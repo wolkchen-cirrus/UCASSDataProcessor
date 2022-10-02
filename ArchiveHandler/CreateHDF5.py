@@ -9,6 +9,7 @@ import h5py as h5
 import ConfigHandler as ch
 import datetime as dt
 import pandas as pd
+import numpy as np
 
 
 def user_import_csv_data(csv_path):
@@ -17,51 +18,64 @@ def user_import_csv_data(csv_path):
     ucass_df = h5.File('UCASS-DF_', 'w')
 
 
-class UCASSVAObjectMobile(object):
-    def __init__(self, h5_path, hdr_data_list,
-                 description, datetime, gcs_dd,
-                 serial_number, bbs_adc, cali_gain, cali_sl):
-
-        self._platform_name = None
-        self._data_length = None
-
-        self.metadata = MetaDataBase(description, datetime, gcs_dd)
-        self.ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl)
-
-        for hdr_data in hdr_data_list:
-            start_row = hdr_data[0]
-            hdr = hdr_data[1]
-            cols = hdr_data[2]
-            data_path = hdr_data[3]
-            frame = pd.read_csv(data_path, names=hdr, header=None, usecols=cols, skiprows=int(start_row))
-
-
-class UCASSVAObjectStatic(object):
-    def __init__(self, h5_path, hdr_data_list, start_row,
-                 description, datetime, gcs_dd,
-                 serial_number, bbs_adc, cali_gain, cali_sl):
-
-        self._data_length = None
-
-        self.metadata = MetaDataBase(description, datetime, gcs_dd)
-        self.ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl)
-
-
 class UCASSVAObjectBase(object):
-    def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl):
+    def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
+                 counts, mtof1, mtof3, mtof5, mtof7, period, csum,
+                 glitch, ltof, rejrat, time, data_length):
+
         self._ucass_serial_number = None
         self._bin_boundaries_adc = None
         self._cali_gain = None
         self._cali_sl = None
+        self._data_length = None
+
+        self._time = None
+        self._counts = None
+        self._mtof1 = None
+        self._mtof3 = None
+        self._mtof5 = None
+        self._mtof7 = None
+        self._period = None
+        self._csum = None
+        self._glitch = None
+        self._ltof = None
+        self._rejrat = None
 
         self.ucass_serial_number = serial_number
         self.bin_boundaries_adc = bbs_adc
         self.cali_gain = cali_gain
         self.cali_sl = cali_sl
+        self.data_length = data_length
+
+        self.counts = counts
+
+    @property
+    def data_length(self):
+        """data_length: the numeric length of the columns in number of cells"""
+        return self._data_length
+
+    @data_length.setter
+    def data_length(self, value):
+        if isinstance(val, int):
+            self._data_length = val
+        else:
+            raise TypeError('Value must be in integer format')
+
+    @property
+    def counts(self):
+        """counts: 16 by x array of raw count data, where x is the dataset column length."""
+        return self._counts
+
+    @counts.setter
+    def counts(self, value):
+        if isinstance(val, np.matrix):
+            self._counts = val
+        else:
+            raise TypeError('Value must be in numpy matrix format')
 
     @property
     def bin_boundaries_adc(self):
-        """bin_boundaries_adc: The instrument specific upper bin boundaries as ADC values"""
+        """bin_boundaries_adc: The instrument specific upper bin boundaries as ADC values."""
         return self._bin_boundaries_adc
 
     @bin_boundaries_adc.setter
