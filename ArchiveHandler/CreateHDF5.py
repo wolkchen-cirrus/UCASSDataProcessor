@@ -49,6 +49,8 @@ class UCASSVAObjectBase(object):
 
         self.counts = counts
 
+
+
     @property
     def data_length(self):
         """data_length: the numeric length of the columns in number of cells"""
@@ -226,3 +228,47 @@ class MetaDataBase(object):
             raise TypeError('value must be tuple of two floats: (lat, long)')
 
 
+class MatrixColumn(object):
+    """MatrixColumn: A class designed for data input protection of the main stratified variables, for example counts,
+    time etc."""
+    def __init__(self, name, r, c):
+        self.name = "_" + str(name)
+        self._r = None
+        self._c = None
+
+        self.r = r
+        self.c = c
+
+    def __get__(self, obj, cls=None):
+        return getattr(obj, self.name)
+
+    def __set__(self, obj, value):
+        if isinstance(value, np.matrix):
+            if (self.r, self.c) == value.shape:
+                setattr(obj, self.name, value)
+            else:
+                raise ValueError('Value must be size %i, %i' % self.r, self.c)
+        else:
+            raise TypeError('Value must be of type: numpy matrix')
+
+    @property
+    def r(self):
+        return self._r
+
+    @r.setter
+    def r(self, val):
+        if isinstance(r, int):
+            self._r = val
+        else:
+            raise TypeError('Value must be of type: integer')
+
+    @property
+    def c(self):
+        return self._c
+
+    @c.setter
+    def c(self, val):
+        if isinstance(c, int):
+            self._c = val
+        else:
+            raise TypeError('Value must be of type: integer')
