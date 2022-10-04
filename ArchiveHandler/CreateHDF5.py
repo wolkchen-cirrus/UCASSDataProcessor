@@ -21,7 +21,16 @@ def user_import_csv_data(csv_path):
 class UCASSVAObjectBase(object):
     def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
                  counts, mtof1, mtof3, mtof5, mtof7, period, csum,
-                 glitch, ltof, rejrat, time, data_length):
+                 glitch, ltof, rejrat, time, data_length,
+                 description, datetime, gcs_dd):
+
+        self._gcs_dd = None
+        self._description = None
+        self._datetime = None
+        self.description = description
+        self.datetime = datetime
+        self._start_epoch_ms = (self.datetime - dt.datetime.utcfromtimestamp(0)).total_seconds() * 1000
+        self.gcs_dd = gcs_dd
 
         self._ucass_serial_number = None
         self._bin_boundaries_adc = None
@@ -178,17 +187,6 @@ class UCASSVAObjectBase(object):
             self._cali_sl = float(val)
         except ValueError:
             raise TypeError('Assigned value must be convertible to a float')
-
-
-class MetaDataBase(object):
-    def __init__(self, description, datetime, gcs_dd):
-        self._gcs_dd = None
-        self._description = None
-        self._datetime = None
-        self.description = description
-        self.datetime = datetime
-        self._start_epoch_ms = (self.datetime - dt.datetime.utcfromtimestamp(0)).total_seconds() * 1000
-        self.gcs_dd = gcs_dd
 
     @property
     def description(self):
