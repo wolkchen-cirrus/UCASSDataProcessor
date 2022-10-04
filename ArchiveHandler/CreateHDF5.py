@@ -48,8 +48,28 @@ class UCASSVAObjectBase(object):
         self.data_length = data_length
 
         self.counts = counts
+        self.time = time
+        self.mtof1 = mtof1
+        self.mtof3 = mtof3
+        self.mtof5 = mtof5
+        self.mtof7 = mtof7
+        self.period = period
+        self.csum = csum
+        self.glitch = glitch
+        self.ltof = ltof
+        self.rejrat = rejrat
 
-
+    counts = MatrixColumn("counts", self.data_length, 16)
+    time = MatrixColumn("time", self.data_length, 1)
+    mtof1 = MatrixColumn("mtof1", self.data_length, 1)
+    mtof3 = MatrixColumn("mtof3", self.data_length, 1)
+    mtof5 = MatrixColumn("mtof5", self.data_length, 1)
+    mtof7 = MatrixColumn("mtof7", self.data_length, 1)
+    period = MatrixColumn("period", self.data_length, 1)
+    csum = MatrixColumn("csum", self.data_length, 1)
+    glitch = MatrixColumn("glitch", self.data_length, 1)
+    ltof = MatrixColumn("ltof", self.data_length, 1)
+    rejrat = MatrixColumn("rejrat", self.data_length, 1)
 
     @property
     def data_length(self):
@@ -62,18 +82,6 @@ class UCASSVAObjectBase(object):
             self._data_length = val
         else:
             raise TypeError('Value must be in integer format')
-
-    @property
-    def counts(self):
-        """counts: 16 by x array of raw count data, where x is the dataset column length."""
-        return self._counts
-
-    @counts.setter
-    def counts(self, value):
-        if isinstance(val, np.matrix):
-            self._counts = val
-        else:
-            raise TypeError('Value must be in numpy matrix format')
 
     @property
     def bin_boundaries_adc(self):
