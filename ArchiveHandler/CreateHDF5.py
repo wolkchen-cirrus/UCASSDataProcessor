@@ -12,25 +12,106 @@ import pandas as pd
 import numpy as np
 
 
-def user_import_csv_data(csv_path):
+def csv_import_user(csv_path):
     flight_date = input('Enter Flight Date yyyy/mm/dd:')
     h5_path = ch.read_config_key('base_data_path')
     ucass_df = h5.File('UCASS-DF_', 'w')
+
+
+def csv_import_fmi2022(csv_path):
+    seial_number = csv_path.split('_')[1]
+    date_time = pd.to_datetime(csv_path.split('_')[2]+csv_path.split('_')[3],
+                               format='%Y%m%d_%H%M%S%f') - timedelta(hours=3, minutes=0)
+    description = input('Description of data:')
+    with open(csv_path) as df:
+        data = df.readlines()
+        data_length = len(data)
+        bbs_adc = data[3].split(',')[:16]
+        time = np.matrix(np.array((data_length, 1)))
+
+
+class METObjectBase(object):
+    def __init__(self, data_length, time,
+                 temp_deg_c, rh, press_hpa):
+
+        self._data_length = None
+
+        self._time = None
+        self._temp_dec_c = None
+        self._rh = None
+        self._press_hpa = None
+
+        self.data_length = data_length
+
+    time = MatrixColumn("time", self.data_length, 1)
+    temp_deg_c = MatrixColumn("temp_deg_c", self.data_length, 1)
+    rh = MatrixColumn("rh", self.data_length, 1)
+    press_hpa = MatrixColumn("press_hpa", self.data_length, 1)
+
+    @property
+    def data_length(self):
+        """data_length: the numeric length of the columns in number of cells"""
+        return self._data_length
+
+    @data_length.setter
+    def data_length(self, value):
+        if isinstance(val, int):
+            self._data_length = val
+        else:
+            raise TypeError('Value must be in integer format')
+
+class UAVObjectBase(object):
+    def __init__(self, data_length, time, press_hpa,
+                 long, lat, gps_alt_m,
+                 pitch_deg, roll_deg, yaw_deg,
+                 asp_ms):
+
+        self._data_length = None
+
+        self._time = None
+        self._press_hpa = None
+        self._long = None
+        self._lat = None
+        self._gps_alt_m = None
+        self._pitch_deg = None
+        self._roll_deg = None
+        self._yaw_deg = None
+        self.asp_ms = None
+
+        self.data_length = data_length
+
+    time = MatrixColumn("time", self.data_length, 1)
+    press_hpa = MatrixColumn("press_hpa", self.data_length, 1)
+    lon = MatrixColumn("lon", self.data_length, 1)
+    lat = MatrixColumn("lat", self.data_length, 1)
+    gps_alt_m = MatrixColumn("gps_alt_m", self.data_length, 1)
+    pitch_deg = MatrixColumn("pitch_deg", self.data_length, 1)
+    roll_deg = MatrixColumn("roll_deg", self.data_length, 1)
+    yaw_deg = MatrixColumn("yaw_deg", self.data_length, 1)
+    asp_ms = MatrixColumn("asp_ms", self.data_length, 1)
+
+    @property
+    def data_length(self):
+        """data_length: the numeric length of the columns in number of cells"""
+        return self._data_length
+
+    @data_length.setter
+    def data_length(self, value):
+        if isinstance(val, int):
+            self._data_length = val
+        else:
+            raise TypeError('Value must be in integer format')
 
 
 class UCASSVAObjectBase(object):
     def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
                  counts, mtof1, mtof3, mtof5, mtof7, period, csum,
                  glitch, ltof, rejrat, time, data_length,
-                 description, datetime, gcs_dd):
+                 description, date_time, gcs_dd):
 
         self._gcs_dd = None
         self._description = None
-        self._datetime = None
-        self.description = description
-        self.datetime = datetime
-        self._start_epoch_ms = (self.datetime - dt.datetime.utcfromtimestamp(0)).total_seconds() * 1000
-        self.gcs_dd = gcs_dd
+        self._date_time = None
 
         self._ucass_serial_number = None
         self._bin_boundaries_adc = None
@@ -49,6 +130,11 @@ class UCASSVAObjectBase(object):
         self._glitch = None
         self._ltof = None
         self._rejrat = None
+
+        self.description = description
+        self.date_time = date_time
+        self._start_epoch_ms = (self.date_time - dt.date_time.utcfromtimestamp(0)).total_seconds() * 1000
+        self.gcs_dd = gcs_dd
 
         self.ucass_serial_number = serial_number
         self.bin_boundaries_adc = bbs_adc
@@ -201,16 +287,16 @@ class UCASSVAObjectBase(object):
             raise TypeError('Value must be in string format')
 
     @property
-    def datetime(self):
-        """datetime: A python datetime variable to describe the time and date of the beginning of recording"""
-        return self._datetime
+    def date_time(self):
+        """date_time: A python date_time variable to describe the time and date of the beginning of recording"""
+        return self._date_time
 
-    @datetime.setter
-    def datetime(self, val):
+    @date_time.setter
+    def date_time(self, val):
         if isinstance(val, dt.datetime):
-            self._datetime = val
+            self._date_time = val
         else:
-            raise TypeError('Value must be in python datetime format')
+            raise TypeError('Value must be in python date_time format')
 
     @property
     def start_epoch_ms(self):
