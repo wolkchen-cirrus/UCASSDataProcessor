@@ -10,6 +10,7 @@ import ConfigHandler as ch
 import datetime as dt
 import pandas as pd
 import numpy as np
+import gc
 
 
 def csv_import_user(csv_path):
@@ -18,12 +19,12 @@ def csv_import_user(csv_path):
     ucass_df = h5.File('UCASS-DF_', 'w')
 
 
-def csv_import_fmi2022(csv_path):
+def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     seial_number = csv_path.split('_')[1]
     date_time = pd.to_datetime(csv_path.split('_')[2]+csv_path.split('_')[3],
                                format='%Y%m%d_%H%M%S%f') - timedelta(hours=3, minutes=0)
     description = input('Description of data:')
-    with open(csv_path) as df:
+    with open(ucass_csv_path) as df:
         data = df.readlines()
         data_length = len(data)
         bbs_adc = data[3].split(',')[:16]
@@ -43,10 +44,27 @@ class METObjectBase(object):
 
         self.data_length = data_length
 
-    time = MatrixColumn("time", self.data_length, 1)
-    temp_deg_c = MatrixColumn("temp_deg_c", self.data_length, 1)
-    rh = MatrixColumn("rh", self.data_length, 1)
-    press_hpa = MatrixColumn("press_hpa", self.data_length, 1)
+        self.time = time
+        self.temp_deg_c = temp_deg_c
+        self.rh = rh
+        self.press_hpa = press_hpa
+
+        self.check_col_length()
+
+    time = MatrixColumn("time", 1)
+    temp_deg_c = MatrixColumn("temp_deg_c", 1)
+    rh = MatrixColumn("rh", 1)
+    press_hpa = MatrixColumn("press_hpa", 1)
+
+    @classmethod
+    def check_col_length(cls):
+        r = cls.data_length
+        for obj in gc.get_objects():
+            if isinstance(obj, MatrixColumn):
+                if int(obj.shape[0]) == r:
+                    pass
+                else:
+                    raise ValueError("object %s must have length %i" % obj, r)
 
     @property
     def data_length(self):
@@ -76,19 +94,41 @@ class UAVObjectBase(object):
         self._pitch_deg = None
         self._roll_deg = None
         self._yaw_deg = None
-        self.asp_ms = None
+        self._asp_ms = None
 
         self.data_length = data_length
 
-    time = MatrixColumn("time", self.data_length, 1)
-    press_hpa = MatrixColumn("press_hpa", self.data_length, 1)
-    lon = MatrixColumn("lon", self.data_length, 1)
-    lat = MatrixColumn("lat", self.data_length, 1)
-    gps_alt_m = MatrixColumn("gps_alt_m", self.data_length, 1)
-    pitch_deg = MatrixColumn("pitch_deg", self.data_length, 1)
-    roll_deg = MatrixColumn("roll_deg", self.data_length, 1)
-    yaw_deg = MatrixColumn("yaw_deg", self.data_length, 1)
-    asp_ms = MatrixColumn("asp_ms", self.data_length, 1)
+        self.time = time
+        self.press_hpa = press_hpa
+        self.long = long
+        self.lat = lat
+        self.gps_alt_m = gps_alt_m
+        self.pitch_deg = pitch_deg
+        self.roll_deg = roll_deg
+        self.yaw_deg = yaw_deg
+        self.asp_ms = asp_ms
+
+        self.check_col_length()
+
+    time = MatrixColumn("time", 1)
+    press_hpa = MatrixColumn("press_hpa", 1)
+    lon = MatrixColumn("lon", 1)
+    lat = MatrixColumn("lat", 1)
+    gps_alt_m = MatrixColumn("gps_alt_m", 1)
+    pitch_deg = MatrixColumn("pitch_deg", 1)
+    roll_deg = MatrixColumn("roll_deg", 1)
+    yaw_deg = MatrixColumn("yaw_deg", 1)
+    asp_ms = MatrixColumn("asp_ms", 1)
+
+    @classmethod
+    def check_col_length(cls):
+        r = cls.data_length
+        for obj in gc.get_objects():
+            if isinstance(obj, MatrixColumn):
+                if int(obj.shape[0]) == r:
+                    pass
+                else:
+                    raise ValueError("object %s must have length %i" % obj, r)
 
     @property
     def data_length(self):
@@ -154,17 +194,30 @@ class UCASSVAObjectBase(object):
         self.ltof = ltof
         self.rejrat = rejrat
 
-    counts = MatrixColumn("counts", self.data_length, 16)
-    time = MatrixColumn("time", self.data_length, 1)
-    mtof1 = MatrixColumn("mtof1", self.data_length, 1)
-    mtof3 = MatrixColumn("mtof3", self.data_length, 1)
-    mtof5 = MatrixColumn("mtof5", self.data_length, 1)
-    mtof7 = MatrixColumn("mtof7", self.data_length, 1)
-    period = MatrixColumn("period", self.data_length, 1)
-    csum = MatrixColumn("csum", self.data_length, 1)
-    glitch = MatrixColumn("glitch", self.data_length, 1)
-    ltof = MatrixColumn("ltof", self.data_length, 1)
-    rejrat = MatrixColumn("rejrat", self.data_length, 1)
+        self.check_col_length()
+
+    counts = MatrixColumn("counts", 16)
+    time = MatrixColumn("time", 1)
+    mtof1 = MatrixColumn("mtof1", 1)
+    mtof3 = MatrixColumn("mtof3", 1)
+    mtof5 = MatrixColumn("mtof5", 1)
+    mtof7 = MatrixColumn("mtof7", 1)
+    period = MatrixColumn("period", 1)
+    csum = MatrixColumn("csum", 1)
+    glitch = MatrixColumn("glitch", 1)
+    ltof = MatrixColumn("ltof", 1)
+    rejrat = MatrixColumn("rejrat", 1)
+
+    @classmethod
+    def check_col_length(cls):
+        r = cls.data_length
+        for obj in gc.get_objects():
+            if isinstance(obj, MatrixColumn):
+                if int(obj.shape[0]) == r:
+                    pass
+                else:
+                    raise ValueError("object %s must have length %i" % obj, r)
+
 
     @property
     def data_length(self):
@@ -323,12 +376,9 @@ class UCASSVAObjectBase(object):
 class MatrixColumn(object):
     """MatrixColumn: A class designed for data input protection of the main stratified variables, for example counts,
     time etc."""
-    def __init__(self, name, r, c):
+    def __init__(self, name, c):
         self.name = "_" + str(name)
-        self._r = None
         self._c = None
-
-        self.r = r
         self.c = c
 
     def __get__(self, obj, cls=None):
@@ -342,17 +392,6 @@ class MatrixColumn(object):
                 raise ValueError('Value must be size %i, %i' % self.r, self.c)
         else:
             raise TypeError('Value must be of type: numpy matrix')
-
-    @property
-    def r(self):
-        return self._r
-
-    @r.setter
-    def r(self, val):
-        if isinstance(r, int):
-            self._r = val
-        else:
-            raise TypeError('Value must be of type: integer')
 
     @property
     def c(self):
