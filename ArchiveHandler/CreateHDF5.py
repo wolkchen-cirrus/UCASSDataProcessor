@@ -13,6 +13,38 @@ import numpy as np
 import gc
 
 
+class _MatrixColumn(object):
+    """_MatrixColumn: A class designed for data input protection of the main stratified variables, for example counts,
+    time etc."""
+    def __init__(self, name, c):
+        self.name = "_" + str(name)
+        self._c = None
+        self.c = c
+
+    def __get__(self, obj, cls=None):
+        return getattr(obj, self.name)
+
+    def __set__(self, obj, value):
+        if isinstance(value, np.matrix):
+            if self.c == value.shape[1]:
+                setattr(obj, self.name, value)
+            else:
+                raise ValueError('Value must be size x, %i' % self.c)
+        else:
+            raise TypeError('Value must be of type: numpy matrix')
+
+    @property
+    def c(self):
+        return self._c
+
+    @c.setter
+    def c(self, val):
+        if isinstance(val, int):
+            self._c = val
+        else:
+            raise TypeError('Value must be of type: integer')
+
+
 def csv_import_user(csv_path):
     flight_date = input('Enter Flight Date yyyy/mm/dd:')
     h5_path = ch.read_config_key('base_data_path')
@@ -20,9 +52,9 @@ def csv_import_user(csv_path):
 
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
-    seial_number = csv_path.split('_')[1]
-    date_time = pd.to_datetime(csv_path.split('_')[2]+csv_path.split('_')[3],
-                               format='%Y%m%d_%H%M%S%f') - timedelta(hours=3, minutes=0)
+    seial_number = ucass_csv_path.split('_')[1]
+    date_time = pd.to_datetime(ucass_csv_path.split('_')[2]+ucass_csv_path.split('_')[3],
+                               format='%Y%m%d_%H%M%S%f') - dt.timedelta(hours=3, minutes=0)
     description = input('Description of data:')
     with open(ucass_csv_path) as df:
         data = df.readlines()
@@ -51,16 +83,16 @@ class METObjectBase(object):
 
         self.check_col_length()
 
-    time = MatrixColumn("time", 1)
-    temp_deg_c = MatrixColumn("temp_deg_c", 1)
-    rh = MatrixColumn("rh", 1)
-    press_hpa = MatrixColumn("press_hpa", 1)
+    time = _MatrixColumn("time", 1)
+    temp_deg_c = _MatrixColumn("temp_deg_c", 1)
+    rh = _MatrixColumn("rh", 1)
+    press_hpa = _MatrixColumn("press_hpa", 1)
 
     @classmethod
     def check_col_length(cls):
         r = cls.data_length
         for obj in gc.get_objects():
-            if isinstance(obj, MatrixColumn):
+            if isinstance(obj, _MatrixColumn):
                 if int(obj.shape[0]) == r:
                     pass
                 else:
@@ -72,11 +104,12 @@ class METObjectBase(object):
         return self._data_length
 
     @data_length.setter
-    def data_length(self, value):
+    def data_length(self, val):
         if isinstance(val, int):
             self._data_length = val
         else:
             raise TypeError('Value must be in integer format')
+
 
 class UAVObjectBase(object):
     def __init__(self, data_length, time, press_hpa,
@@ -110,21 +143,21 @@ class UAVObjectBase(object):
 
         self.check_col_length()
 
-    time = MatrixColumn("time", 1)
-    press_hpa = MatrixColumn("press_hpa", 1)
-    lon = MatrixColumn("lon", 1)
-    lat = MatrixColumn("lat", 1)
-    gps_alt_m = MatrixColumn("gps_alt_m", 1)
-    pitch_deg = MatrixColumn("pitch_deg", 1)
-    roll_deg = MatrixColumn("roll_deg", 1)
-    yaw_deg = MatrixColumn("yaw_deg", 1)
-    asp_ms = MatrixColumn("asp_ms", 1)
+    time = _MatrixColumn("time", 1)
+    press_hpa = _MatrixColumn("press_hpa", 1)
+    lon = _MatrixColumn("lon", 1)
+    lat = _MatrixColumn("lat", 1)
+    gps_alt_m = _MatrixColumn("gps_alt_m", 1)
+    pitch_deg = _MatrixColumn("pitch_deg", 1)
+    roll_deg = _MatrixColumn("roll_deg", 1)
+    yaw_deg = _MatrixColumn("yaw_deg", 1)
+    asp_ms = _MatrixColumn("asp_ms", 1)
 
     @classmethod
     def check_col_length(cls):
         r = cls.data_length
         for obj in gc.get_objects():
-            if isinstance(obj, MatrixColumn):
+            if isinstance(obj, _MatrixColumn):
                 if int(obj.shape[0]) == r:
                     pass
                 else:
@@ -136,7 +169,7 @@ class UAVObjectBase(object):
         return self._data_length
 
     @data_length.setter
-    def data_length(self, value):
+    def data_length(self, val):
         if isinstance(val, int):
             self._data_length = val
         else:
@@ -196,28 +229,27 @@ class UCASSVAObjectBase(object):
 
         self.check_col_length()
 
-    counts = MatrixColumn("counts", 16)
-    time = MatrixColumn("time", 1)
-    mtof1 = MatrixColumn("mtof1", 1)
-    mtof3 = MatrixColumn("mtof3", 1)
-    mtof5 = MatrixColumn("mtof5", 1)
-    mtof7 = MatrixColumn("mtof7", 1)
-    period = MatrixColumn("period", 1)
-    csum = MatrixColumn("csum", 1)
-    glitch = MatrixColumn("glitch", 1)
-    ltof = MatrixColumn("ltof", 1)
-    rejrat = MatrixColumn("rejrat", 1)
+    counts = _MatrixColumn("counts", 16)
+    time = _MatrixColumn("time", 1)
+    mtof1 = _MatrixColumn("mtof1", 1)
+    mtof3 = _MatrixColumn("mtof3", 1)
+    mtof5 = _MatrixColumn("mtof5", 1)
+    mtof7 = _MatrixColumn("mtof7", 1)
+    period = _MatrixColumn("period", 1)
+    csum = _MatrixColumn("csum", 1)
+    glitch = _MatrixColumn("glitch", 1)
+    ltof = _MatrixColumn("ltof", 1)
+    rejrat = _MatrixColumn("rejrat", 1)
 
     @classmethod
     def check_col_length(cls):
         r = cls.data_length
         for obj in gc.get_objects():
-            if isinstance(obj, MatrixColumn):
+            if isinstance(obj, _MatrixColumn):
                 if int(obj.shape[0]) == r:
                     pass
                 else:
                     raise ValueError("object %s must have length %i" % obj, r)
-
 
     @property
     def data_length(self):
@@ -225,7 +257,7 @@ class UCASSVAObjectBase(object):
         return self._data_length
 
     @data_length.setter
-    def data_length(self, value):
+    def data_length(self, val):
         if isinstance(val, int):
             self._data_length = val
         else:
@@ -371,35 +403,3 @@ class UCASSVAObjectBase(object):
             pass
         else:
             raise TypeError('value must be tuple of two floats: (lat, long)')
-
-
-class MatrixColumn(object):
-    """MatrixColumn: A class designed for data input protection of the main stratified variables, for example counts,
-    time etc."""
-    def __init__(self, name, c):
-        self.name = "_" + str(name)
-        self._c = None
-        self.c = c
-
-    def __get__(self, obj, cls=None):
-        return getattr(obj, self.name)
-
-    def __set__(self, obj, value):
-        if isinstance(value, np.matrix):
-            if (self.r, self.c) == value.shape:
-                setattr(obj, self.name, value)
-            else:
-                raise ValueError('Value must be size %i, %i' % self.r, self.c)
-        else:
-            raise TypeError('Value must be of type: numpy matrix')
-
-    @property
-    def c(self):
-        return self._c
-
-    @c.setter
-    def c(self, val):
-        if isinstance(c, int):
-            self._c = val
-        else:
-            raise TypeError('Value must be of type: integer')
