@@ -4,6 +4,7 @@ CreateHDF5.py
 ==============
 This script turns .csv data with columns defined by the user into a standard HDF5 file.
 """
+import os
 
 import h5py as h5
 import ConfigHandler as ch
@@ -45,6 +46,31 @@ class _MatrixColumn(object):
             raise TypeError('Value must be of type: integer')
 
 
+def _get_ucass_calibration(serial_number):
+    cali_path = os.path.join(ch.read_config_key('ucass_calibration_path'), serial_number)
+    cal_file = None
+    for filename in os.listdir(cali_path):
+        if 'CalData' in filename:
+            cal_file = filename
+            break
+    if not cal_file:
+        raise FileNotFoundError("Calibration file does not exist")
+    cali_path = os.path.join(cali_path, cal_file)
+    with open(cali_path) as cf:
+        data = cf.readlines()
+    gain = None
+    sl = None
+    for line in data:
+        if 'Gain' in line:
+            gain = float(line.split('=')[-1])
+        elif 'SL' in line:
+            sl = float(line.split('=')[-1])
+    if (not gain) or (not sl):
+        raise AttributeError("Either gain or sl not found in file")
+    else:
+        return gain, sl
+
+
 def csv_import_user(csv_path):
     flight_date = input('Enter Flight Date yyyy/mm/dd:')
     h5_path = ch.read_config_key('base_data_path')
@@ -53,6 +79,7 @@ def csv_import_user(csv_path):
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     serial_number = ucass_csv_path.split('_')[1]
+    cali_gain, cali_sl = _get_ucass_calibration(serial_number)
     date_time = pd.to_datetime(ucass_csv_path.split('_')[2]+ucass_csv_path.split('_')[3],
                                format='%Y%m%d_%H%M%S%f') - dt.timedelta(hours=3, minutes=0)
     description = input('Description of data:')
@@ -74,9 +101,9 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     ltof = np.matrix(df['reject_longToF']).T
     rejrat = np.matrix(df['reject_ratio']).T
 
-    UCASSVA = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
-                                counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
-                                time, data_length, description, date_time)
+    ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
+                                 counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
+                                 time, data_length, description, date_time)
 
 
 class METObjectBase(object):
