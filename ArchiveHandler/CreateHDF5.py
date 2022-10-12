@@ -52,15 +52,31 @@ def csv_import_user(csv_path):
 
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
-    seial_number = ucass_csv_path.split('_')[1]
+    serial_number = ucass_csv_path.split('_')[1]
     date_time = pd.to_datetime(ucass_csv_path.split('_')[2]+ucass_csv_path.split('_')[3],
                                format='%Y%m%d_%H%M%S%f') - dt.timedelta(hours=3, minutes=0)
     description = input('Description of data:')
     with open(ucass_csv_path) as df:
         data = df.readlines()
-        data_length = len(data)
         bbs_adc = data[3].split(',')[:16]
-        time = np.matrix(np.array((data_length, 1)))
+        bin_header_list = data[4].split(',')[1:17]
+    df = pd.read_csv(ucass_csv_path, delimiter=',', header=4)
+    data_length = df.shape[0]
+    time = np.matrix(df['UTC datetime']).T
+    counts = np.matrix(df[bin_header_list]).T
+    mtof1 = np.matrix(df['Bin1ToF / us']).T
+    mtof3 = np.matrix(df['Bin3ToF / us']).T
+    mtof5 = np.matrix(df['Bin5ToF / us']).T
+    mtof7 = np.matrix(df['Bin7ToF / us']).T
+    period = np.matrix(df['period']).T
+    csum = np.matrix(df['checksum']).T
+    glitch = np.matrix(df['reject_glitch']).T
+    ltof = np.matrix(df['reject_longToF']).T
+    rejrat = np.matrix(df['reject_ratio']).T
+
+    UCASSVA = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
+                                counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
+                                time, data_length, description, date_time)
 
 
 class METObjectBase(object):
@@ -180,9 +196,8 @@ class UCASSVAObjectBase(object):
     def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
                  counts, mtof1, mtof3, mtof5, mtof7, period, csum,
                  glitch, ltof, rejrat, time, data_length,
-                 description, date_time, gcs_dd):
+                 description, date_time):
 
-        self._gcs_dd = None
         self._description = None
         self._date_time = None
 
@@ -206,8 +221,7 @@ class UCASSVAObjectBase(object):
 
         self.description = description
         self.date_time = date_time
-        self._start_epoch_ms = (self.date_time - dt.date_time.utcfromtimestamp(0)).total_seconds() * 1000
-        self.gcs_dd = gcs_dd
+        self._start_epoch_ms = (self.date_time - dt.datetime.utcfromtimestamp(0)).total_seconds() * 1000
 
         self.ucass_serial_number = serial_number
         self.bin_boundaries_adc = bbs_adc
@@ -391,15 +405,3 @@ class UCASSVAObjectBase(object):
     @start_epoch_ms.setter
     def start_epoch_ms(self, val):
         raise PermissionError('Do not re-assign epoch')
-
-    @property
-    def gcs_dd(self):
-        """gcs_dd: Approximate global coordinate system decimal degrees"""
-        return self._gcs_dd
-
-    @gcs_dd.setter
-    def gcs_dd(self, val):
-        if isinstance(val, tuple) and isinstance(val[0], float) and isinstance(val[-1], float):
-            pass
-        else:
-            raise TypeError('value must be tuple of two floats: (lat, long)')
