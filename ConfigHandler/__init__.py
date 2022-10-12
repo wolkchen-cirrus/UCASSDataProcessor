@@ -21,7 +21,8 @@ import os
 config_fn = 'UCASSConfig.json'
 config_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], config_fn)
 base_config_dict = {
-        'base_data_path': None
+        'base_data_path': None,
+        'ucass_calibration_path': None
     }
 
 
