@@ -11,6 +11,7 @@ import ConfigHandler as ch
 import datetime as dt
 import pandas as pd
 import numpy as np
+import subprocess
 import gc
 
 
@@ -49,9 +50,9 @@ class _MatrixColumn(object):
 def _get_ucass_calibration(serial_number):
     cali_path = os.path.join(ch.read_config_key('ucass_calibration_path'), serial_number)
     cal_file = None
-    for filename in os.listdir(cali_path):
-        if 'CalData' in filename:
-            cal_file = filename
+    for fn in os.listdir(cali_path):
+        if 'CalData' in fn:
+            cal_file = fn
             break
     if not cal_file:
         raise FileNotFoundError("Calibration file does not exist")
@@ -69,6 +70,22 @@ def _get_ucass_calibration(serial_number):
         raise AttributeError("Either gain or sl not found in file")
     else:
         return gain, sl
+
+
+def _read_mavlink_log(log_path, message_names):
+    mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
+    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names), log_path],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    fd_out = proc.communicate()[0].decode("utf-8")
+    fd_out = fd_out.split('\n')
+    fd = {}
+    for mess in message_names:
+        fd_list = []
+        for r in fd_out:
+            if mess in r:
+                fd_list.append(r)
+        fd[mess] = fd_list
+    return fd
 
 
 def csv_import_user(csv_path):
@@ -104,6 +121,8 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
                                  counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
                                  time, data_length, description, date_time)
+
+
 
 
 class METObjectBase(object):
