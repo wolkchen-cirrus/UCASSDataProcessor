@@ -73,8 +73,21 @@ def _get_ucass_calibration(serial_number):
 
 
 def _read_mavlink_log(log_path, message_names):
+
+    def _proc_fc_row(fc_row, params):
+        time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
+        output = []
+        fc_row = fc_row.split(',')
+        for param in params:
+            for fc_part in fc_row:
+                label = fc_part.split(':')[0]
+                if param.replace(' ', '') == label.replace(' ', ''):
+                    output.append(float(fc_part.split(':')[-1]))
+                    break
+        return time, output
+
     mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
-    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names), log_path],
+    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names.keys()), log_path],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     fd_out = proc.communicate()[0].decode("utf-8")
     fd_out = fd_out.split('\n')
@@ -85,7 +98,22 @@ def _read_mavlink_log(log_path, message_names):
             if mess in r:
                 fd_list.append(r)
         fd[mess] = fd_list
-    return fd
+    
+    fc_dict = {}
+    for mess in message_names:
+        fc_list = []
+        fc_time = []
+        for row in fd[mess]:
+            fc_time_row, proc_row = _proc_fc_row(row, message_names[mess])
+            fc_list.append(proc_row)
+            fc_time.append(fc_time_row)
+        fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
+
+    df = fc_dict[list(fc_dict.keys())[0]]
+    for i in range(len(fc_dict)-1):
+        df = pd.concat(df.align(fc_dict[list(fc_dict.keys())[i+1]]))
+
+    return df.dropna(how='all')
 
 
 def csv_import_user(csv_path):
@@ -122,7 +150,10 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                                  counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
                                  time, data_length, description, date_time)
 
-
+    mav_messages = {'ARSP': ['Airspeed'],
+                    'ATT': ['Roll', 'Pitch', 'Yaw'],
+                    'GPS': ['Lat', 'Lng', 'Alt', 'Spd']}
+    mav_data = _read_mavlink_log(fc_log_path, mav_messages)
 
 
 class METObjectBase(object):
