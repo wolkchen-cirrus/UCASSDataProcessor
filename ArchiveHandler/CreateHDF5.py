@@ -44,7 +44,13 @@ class _MatrixColumn(object):
         if isinstance(val, int):
             self._c = val
         else:
-            raise TypeError('Value must be of type: integer')
+            raise TypeError('Value must be of type: int')
+
+
+def _check_row_length(val, row_length):
+    if val.shape[0] != row_length:
+        raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+    return val
 
 
 def _get_ucass_calibration(serial_number):
@@ -123,9 +129,9 @@ def csv_import_user(csv_path):
 
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
-    serial_number = ucass_csv_path.split('_')[1]
+    serial_number = ucass_csv_path.split('_')[-4]
     cali_gain, cali_sl = _get_ucass_calibration(serial_number)
-    date_time = pd.to_datetime(ucass_csv_path.split('_')[2]+ucass_csv_path.split('_')[3],
+    date_time = pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
                                format='%Y%m%d_%H%M%S%f') - dt.timedelta(hours=3, minutes=0)
     description = input('Description of data:')
     with open(ucass_csv_path) as df:
@@ -135,7 +141,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     df = pd.read_csv(ucass_csv_path, delimiter=',', header=4)
     data_length = df.shape[0]
     time = np.matrix(df['UTC datetime']).T
-    counts = np.matrix(df[bin_header_list]).T
+    counts = np.matrix(df[bin_header_list])
     mtof1 = np.matrix(df['Bin1ToF / us']).T
     mtof3 = np.matrix(df['Bin3ToF / us']).T
     mtof5 = np.matrix(df['Bin5ToF / us']).T
@@ -154,6 +160,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd']}
     mav_data = _read_mavlink_log(fc_log_path, mav_messages)
+    pass
 
 
 class METObjectBase(object):
@@ -169,27 +176,15 @@ class METObjectBase(object):
 
         self.data_length = data_length
 
-        self.time = time
-        self.temp_deg_c = temp_deg_c
-        self.rh = rh
-        self.press_hpa = press_hpa
-
-        self.check_col_length()
+        self.time = _check_row_length(time, self.data_length)
+        self.temp_deg_c = _check_row_length(temp_deg_c, self.data_length)
+        self.rh = _check_row_length(rh, self.data_length)
+        self.press_hpa = _check_row_length(press_hpa, self.data_length)
 
     time = _MatrixColumn("time", 1)
     temp_deg_c = _MatrixColumn("temp_deg_c", 1)
     rh = _MatrixColumn("rh", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
-
-    @classmethod
-    def check_col_length(cls):
-        r = cls.data_length
-        for obj in gc.get_objects():
-            if isinstance(obj, _MatrixColumn):
-                if int(obj.shape[0]) == r:
-                    pass
-                else:
-                    raise ValueError("object %s must have length %i" % obj, r)
 
     @property
     def data_length(self):
@@ -224,17 +219,15 @@ class UAVObjectBase(object):
 
         self.data_length = data_length
 
-        self.time = time
-        self.press_hpa = press_hpa
-        self.long = long
-        self.lat = lat
-        self.gps_alt_m = gps_alt_m
-        self.pitch_deg = pitch_deg
-        self.roll_deg = roll_deg
-        self.yaw_deg = yaw_deg
-        self.asp_ms = asp_ms
-
-        self.check_col_length()
+        self.time = _check_row_length(time, self.data_length)
+        self.press_hpa = _check_row_length(press_hpa, self.data_length)
+        self.long = _check_row_length(long, self.data_length)
+        self.lat = _check_row_length(lat, self.data_length)
+        self.gps_alt_m = _check_row_length(gps_alt_m, self.data_length)
+        self.pitch_deg = _check_row_length(pitch_deg, self.data_length)
+        self.roll_deg = _check_row_length(roll_deg, self.data_length)
+        self.yaw_deg = _check_row_length(yaw_deg, self.data_length)
+        self.asp_ms = _check_row_length(asp_ms, self.data_length)
 
     time = _MatrixColumn("time", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
@@ -245,16 +238,6 @@ class UAVObjectBase(object):
     roll_deg = _MatrixColumn("roll_deg", 1)
     yaw_deg = _MatrixColumn("yaw_deg", 1)
     asp_ms = _MatrixColumn("asp_ms", 1)
-
-    @classmethod
-    def check_col_length(cls):
-        r = cls.data_length
-        for obj in gc.get_objects():
-            if isinstance(obj, _MatrixColumn):
-                if int(obj.shape[0]) == r:
-                    pass
-                else:
-                    raise ValueError("object %s must have length %i" % obj, r)
 
     @property
     def data_length(self):
@@ -304,21 +287,20 @@ class UCASSVAObjectBase(object):
         self.bin_boundaries_adc = bbs_adc
         self.cali_gain = cali_gain
         self.cali_sl = cali_sl
+
         self.data_length = data_length
 
-        self.counts = counts
-        self.time = time
-        self.mtof1 = mtof1
-        self.mtof3 = mtof3
-        self.mtof5 = mtof5
-        self.mtof7 = mtof7
-        self.period = period
-        self.csum = csum
-        self.glitch = glitch
-        self.ltof = ltof
-        self.rejrat = rejrat
-
-        self.check_col_length()
+        self.counts = _check_row_length(counts, self.data_length)
+        self.time = _check_row_length(time, self.data_length)
+        self.mtof1 = _check_row_length(mtof1, self.data_length)
+        self.mtof3 = _check_row_length(mtof3, self.data_length)
+        self.mtof5 = _check_row_length(mtof5, self.data_length)
+        self.mtof7 = _check_row_length(mtof7, self.data_length)
+        self.period = _check_row_length(period, self.data_length)
+        self.csum = _check_row_length(csum, self.data_length)
+        self.glitch = _check_row_length(glitch, self.data_length)
+        self.ltof = _check_row_length(ltof, self.data_length)
+        self.rejrat = _check_row_length(rejrat, self.data_length)
 
     counts = _MatrixColumn("counts", 16)
     time = _MatrixColumn("time", 1)
@@ -331,16 +313,6 @@ class UCASSVAObjectBase(object):
     glitch = _MatrixColumn("glitch", 1)
     ltof = _MatrixColumn("ltof", 1)
     rejrat = _MatrixColumn("rejrat", 1)
-
-    @classmethod
-    def check_col_length(cls):
-        r = cls.data_length
-        for obj in gc.get_objects():
-            if isinstance(obj, _MatrixColumn):
-                if int(obj.shape[0]) == r:
-                    pass
-                else:
-                    raise ValueError("object %s must have length %i" % obj, r)
 
     @property
     def data_length(self):
