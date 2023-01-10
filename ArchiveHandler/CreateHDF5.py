@@ -78,6 +78,13 @@ def _get_ucass_calibration(serial_number):
         return gain, sl
 
 
+def _sync_and_resample(df_list, period_str):
+    df = df_list[0]
+    for i in range(len(df_list)-1):
+        df = pd.concat(df.align(df_list[i+1]), axis='columns')
+    return df.dropna(how='all', axis=0).dropna(how='all', axis=1).resample(period_str).mean().bfill()
+
+
 def _read_mavlink_log(log_path, message_names):
 
     def _proc_fc_row(fc_row, params):
@@ -115,11 +122,14 @@ def _read_mavlink_log(log_path, message_names):
             fc_time.append(fc_time_row)
         fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
 
-    df = fc_dict[list(fc_dict.keys())[0]]
-    for i in range(len(fc_dict)-1):
-        df = pd.concat(df.align(fc_dict[list(fc_dict.keys())[i+1]]))
+    df = _sync_and_resample(list(fc_dict.values()), '0.1S')
 
-    return df.dropna(how='all')
+    fc_dict = df.to_dict(orient='list')
+    for key in fc_dict:
+        fc_dict[key] = np.matrix(fc_dict[key]).T
+    fc_dict['Time'] = df.index
+
+    return fc_dict
 
 
 def csv_import_user(csv_path):
@@ -140,7 +150,8 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
         bin_header_list = data[4].split(',')[1:17]
     df = pd.read_csv(ucass_csv_path, delimiter=',', header=4)
     data_length = df.shape[0]
-    time = np.matrix(df['UTC datetime']).T
+    time = pd.DatetimeIndex([dt.datetime.strptime(x[0], '%Y-%m-%d %H:%M:%S.%f')
+                             for x in np.matrix(df['UTC datetime']).T.tolist()])
     counts = np.matrix(df[bin_header_list])
     mtof1 = np.matrix(df['Bin1ToF / us']).T
     mtof3 = np.matrix(df['Bin3ToF / us']).T
@@ -158,8 +169,16 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
 
     mav_messages = {'ARSP': ['Airspeed'],
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
-                    'GPS': ['Lat', 'Lng', 'Alt', 'Spd']}
+                    'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
+                    'BARO': ['Press']}
     mav_data = _read_mavlink_log(fc_log_path, mav_messages)
+    data_length = len(mav_data['Time'])
+
+    fmi_talon = UAVObjectBase(data_length, mav_data['Time'], mav_data['Press']/100.0,
+                              mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
+                              mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
+                              mav_data['Airspeed'])
+
     pass
 
 
@@ -176,15 +195,26 @@ class METObjectBase(object):
 
         self.data_length = data_length
 
-        self.time = _check_row_length(time, self.data_length)
+        self.time = time
         self.temp_deg_c = _check_row_length(temp_deg_c, self.data_length)
         self.rh = _check_row_length(rh, self.data_length)
         self.press_hpa = _check_row_length(press_hpa, self.data_length)
 
-    time = _MatrixColumn("time", 1)
     temp_deg_c = _MatrixColumn("temp_deg_c", 1)
     rh = _MatrixColumn("rh", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
+
+    @property
+    def time(self):
+        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        return self._time
+
+    @time.setter
+    def time(self, val):
+        if not isinstance(val, pd.DatetimeIndex):
+            raise TypeError('Time must be pandas DatetimeIndex array')
+        if len(val) != self.data_length:
+            raise ValueError('Time must have the same array length as the matrix columns')
 
     @property
     def data_length(self):
@@ -219,7 +249,7 @@ class UAVObjectBase(object):
 
         self.data_length = data_length
 
-        self.time = _check_row_length(time, self.data_length)
+        self.time = time
         self.press_hpa = _check_row_length(press_hpa, self.data_length)
         self.long = _check_row_length(long, self.data_length)
         self.lat = _check_row_length(lat, self.data_length)
@@ -229,7 +259,6 @@ class UAVObjectBase(object):
         self.yaw_deg = _check_row_length(yaw_deg, self.data_length)
         self.asp_ms = _check_row_length(asp_ms, self.data_length)
 
-    time = _MatrixColumn("time", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
     lon = _MatrixColumn("lon", 1)
     lat = _MatrixColumn("lat", 1)
@@ -238,6 +267,18 @@ class UAVObjectBase(object):
     roll_deg = _MatrixColumn("roll_deg", 1)
     yaw_deg = _MatrixColumn("yaw_deg", 1)
     asp_ms = _MatrixColumn("asp_ms", 1)
+
+    @property
+    def time(self):
+        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        return self._time
+
+    @time.setter
+    def time(self, val):
+        if not isinstance(val, pd.DatetimeIndex):
+            raise TypeError('Time must be pandas DatetimeIndex array')
+        if len(val) != self.data_length:
+            raise ValueError('Time must have the same array length as the matrix columns')
 
     @property
     def data_length(self):
@@ -291,7 +332,7 @@ class UCASSVAObjectBase(object):
         self.data_length = data_length
 
         self.counts = _check_row_length(counts, self.data_length)
-        self.time = _check_row_length(time, self.data_length)
+        self.time = time
         self.mtof1 = _check_row_length(mtof1, self.data_length)
         self.mtof3 = _check_row_length(mtof3, self.data_length)
         self.mtof5 = _check_row_length(mtof5, self.data_length)
@@ -303,7 +344,6 @@ class UCASSVAObjectBase(object):
         self.rejrat = _check_row_length(rejrat, self.data_length)
 
     counts = _MatrixColumn("counts", 16)
-    time = _MatrixColumn("time", 1)
     mtof1 = _MatrixColumn("mtof1", 1)
     mtof3 = _MatrixColumn("mtof3", 1)
     mtof5 = _MatrixColumn("mtof5", 1)
@@ -313,6 +353,18 @@ class UCASSVAObjectBase(object):
     glitch = _MatrixColumn("glitch", 1)
     ltof = _MatrixColumn("ltof", 1)
     rejrat = _MatrixColumn("rejrat", 1)
+
+    @property
+    def time(self):
+        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        return self._time
+
+    @time.setter
+    def time(self, val):
+        if not isinstance(val, pd.DatetimeIndex):
+            raise TypeError('Time must be pandas DatetimeIndex array')
+        if len(val) != self.data_length:
+            raise ValueError('Time must have the same array length as the matrix columns')
 
     @property
     def data_length(self):
