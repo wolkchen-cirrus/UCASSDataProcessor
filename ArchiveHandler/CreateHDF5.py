@@ -179,7 +179,10 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                               mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
                               mav_data['Airspeed'])
 
-    pass
+    df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['d', 't', 'Temp', 'Press', 'RH'])
+
+
+    return ucass_va, fmi_talon, None
 
 
 class METObjectBase(object):
