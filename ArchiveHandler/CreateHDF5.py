@@ -1,7 +1,4 @@
 """
-==============
-CreateHDF5.py
-==============
 This script turns .csv data with columns defined by the user into a standard HDF5 file.
 """
 
