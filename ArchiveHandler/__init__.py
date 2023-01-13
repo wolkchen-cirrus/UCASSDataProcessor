@@ -7,9 +7,6 @@ __maintainer__ = "J. Girdwood"
 __email__ = "j.girdwood@herts.ac.uk"
 __status__ = "Development"
 __doc__ = """
-==============
-ArchiveHandler
-==============
 This python module is responsible for handling the data archive; primarily, this includes importing csv data from 
 various log files, and combining each data instance into an HDF5 file.
 """

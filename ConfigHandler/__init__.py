@@ -7,9 +7,6 @@ __maintainer__ = "J. Girdwood"
 __email__ = "j.girdwood@herts.ac.uk"
 __status__ = "Development"
 __doc__ = """
-==============
-ConfigHandler
-==============
 This python module is responsible for handling the JSON config file, including its initial creation.
 """
 

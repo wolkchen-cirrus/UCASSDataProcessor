@@ -7,9 +7,6 @@ __maintainer__ = "J. Girdwood"
 __email__ = "j.girdwood@herts.ac.uk"
 __status__ = "Development"
 __doc__ = """
-=========
-Utilities
-=========
 This python module contains misc tools to be used by the UCASSDataProcessor master package.
 """
 
@@ -49,7 +46,8 @@ def csv_log_timedelta(filepath, hours, time_format_str, out_time_format_str, tim
     old_filepath = filepath
     if change_fn is True:
         new_start_time = (pd.to_datetime('_'.join([os.path.split(filepath)[-1].split('_')[-3],
-                                                   os.path.split(filepath)[-1].split('_')[-2]]), format='%Y%m%d_%H%M%S%f') +
+                                                   os.path.split(filepath)[-1].split('_')[-2]]),
+                                         format='%Y%m%d_%H%M%S%f') +
                           dt.timedelta(hours=hours)).strftime('%Y%m%d_%H%M%S')+'00'
         path_list = [os.path.split(filepath)[0], '_'.join(['_'.join(os.path.split(filepath)[-1].split('_')[:-3]),
                                                            new_start_time, os.path.split(filepath)[-1].split('_')[-1]])]
