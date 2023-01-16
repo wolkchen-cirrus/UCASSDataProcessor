@@ -12,8 +12,17 @@ import subprocess
 
 
 class _MatrixColumn(object):
-    """_MatrixColumn: A class designed for data input protection of the main stratified variables, for example counts,
-    time etc."""
+    """
+    A class designed for data input protection of the main stratified variables, for example counts, time etc.
+
+    :param name: The variable name for the data to be stored in, to be preceded by '_' in the calling space.
+    :type name: str
+    :param c: The number of columns the data require, this is checked upon instantiation.
+    :type c: int
+
+    :return: The value assigned to the variable '_name' in the instantiating space.
+    :rtype: np.matrix
+    """
     def __init__(self, name, c):
         self.name = "_" + str(name)
         self._c = None
@@ -44,12 +53,34 @@ class _MatrixColumn(object):
 
 
 def _check_row_length(val, row_length):
+    """
+    A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+
+    :param val: The data in a matrix column.
+    :type val: np.matrix
+    :param row_length: The required length of row.
+    :type row_length: int
+
+    :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+
+    :return: the assigned array, if the row length is correct.
+    :rtype: np.matrix
+    """
     if val.shape[0] != row_length:
         raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
     return val
 
 
 def _get_ucass_calibration(serial_number):
+    """
+    A function to retrieve the calibration coefficients of a UCASS unit, given its serial number.
+
+    :param serial_number: The serial number of the UCASS unit.
+    :type serial_number: str
+
+    :return: gain (float) and sl (float), the calibration coefficients.
+    :rtype: tuple
+    """
     cali_path = os.path.join(ch.read_config_key('ucass_calibration_path'), serial_number)
     cal_file = None
     for fn in os.listdir(cali_path):
@@ -75,6 +106,17 @@ def _get_ucass_calibration(serial_number):
 
 
 def _sync_and_resample(df_list, period_str):
+    """
+    A function to synchronise a number of pandas data frames, then resample with a given time period.
+
+    :param df_list: A list of pandas data frames to be synchronised.
+    :type df_list: list
+    :param period_str: The time period for resampling, specified as a string, e.g. '0.1S'.
+    :type period_str: str
+
+    :return: The synchronised and resampled data frame.
+    :rtype: pd.DataFrame
+    """
     df = df_list[0]
     for i in range(len(df_list)-1):
         df = pd.concat(df.align(df_list[i+1]), axis='columns')
@@ -82,7 +124,17 @@ def _sync_and_resample(df_list, period_str):
 
 
 def _read_mavlink_log(log_path, message_names):
+    """
+    A function to read a mavlink log, with specified message and data names, into arrays.
 
+    :param log_path: The path to the mavlink '.log' file
+    :type log_path: str
+    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
+    :type message_names: dict
+
+    :return: The synchronised and resampled data frame.
+    :rtype: pd.DataFrame
+    """
     def _proc_fc_row(fc_row, params):
         time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
         output = []
@@ -129,12 +181,27 @@ def _read_mavlink_log(log_path, message_names):
 
 
 def csv_import_user(csv_path):
+    raise NotImplemented
     flight_date = input('Enter Flight Date yyyy/mm/dd:')
     h5_path = ch.read_config_key('base_data_path')
     ucass_df = h5.File('UCASS-DF_', 'w')
 
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
+    """
+    <<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Function to create all the required classes for data
+    validation, synchronisation, and to create and populate the HDF5 file for data storage.
+
+    :param ucass_csv_path: The path to the UCASS '.csv' file
+    :type ucass_csv_path: str
+    :param fc_log_path: The path to the mavlink '.log' file
+    :type fc_log_path: str
+    :param bme_log_path: The path to the BME280 '.csv' file
+    :type bme_log_path: str
+
+    :return:
+    :rtype:
+    """
     serial_number = ucass_csv_path.split('_')[-4]
     cali_gain, cali_sl = _get_ucass_calibration(serial_number)
     date_time = pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
@@ -185,6 +252,20 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
 
 
 class METObjectBase(object):
+    """
+    Object to store data from meteorological sensors during measurement period.
+
+    :param data_length: The row length of the data
+    :type data_length: int
+    :param temp_deg_c: Temperature column (degrees C)
+    :type temp_deg_c: np.matrix
+    :param time: Time column (s)
+    :type time: np.matrix
+    :param rh: Relative humidity column (%)
+    :type rh: np.matrix
+    :param press_hpa: Pressure column (hPa)
+    :type press_hpa: np.matrix
+    """
     def __init__(self, data_length, time,
                  temp_deg_c, rh, press_hpa):
 
@@ -208,7 +289,7 @@ class METObjectBase(object):
 
     @property
     def time(self):
-        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        """A pandas DatetimeIndex to be used as a dataframe index"""
         return self._time
 
     @time.setter
@@ -220,7 +301,7 @@ class METObjectBase(object):
 
     @property
     def data_length(self):
-        """data_length: the numeric length of the columns in number of cells"""
+        """The numeric length of the columns in number of cells"""
         return self._data_length
 
     @data_length.setter
@@ -232,6 +313,30 @@ class METObjectBase(object):
 
 
 class UAVObjectBase(object):
+    """
+    Object to store data from the flight controller sensors during measurement period.
+
+    :param data_length: The row length of the data
+    :type data_length: int
+    :param time: Time column (s)
+    :type time: np.matrix
+    :param press_hpa: Pressure column (hPa)
+    :type press_hpa: np.matrix
+    :param long: GPS Longitude (dec)
+    :type long: np.matrix
+    :param lat: GPS Latitude (dec)
+    :type lat: np.matrix
+    :param gps_alt_m: GPS Altitude (m)
+    :type gps_alt_m: np.matrix
+    :param pitch_deg: Pitch (deg)
+    :type pitch_deg: np.matrix
+    :param roll_deg: Roll (deg)
+    :type roll_deg: np.matrix
+    :param yaw_deg: Yaw (deg)
+    :type yaw_deg: np.matrix
+    :param asp_ms: Airspeed from pitot tube (m/s)
+    :type asp_ms: np.matrix
+    """
     def __init__(self, data_length, time, press_hpa,
                  long, lat, gps_alt_m,
                  pitch_deg, roll_deg, yaw_deg,
@@ -272,7 +377,7 @@ class UAVObjectBase(object):
 
     @property
     def time(self):
-        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        """A pandas DatetimeIndex to be used as a dataframe index"""
         return self._time
 
     @time.setter
@@ -284,7 +389,7 @@ class UAVObjectBase(object):
 
     @property
     def data_length(self):
-        """data_length: the numeric length of the columns in number of cells"""
+        """The numeric length of the columns in number of cells"""
         return self._data_length
 
     @data_length.setter
@@ -296,6 +401,46 @@ class UAVObjectBase(object):
 
 
 class UCASSVAObjectBase(object):
+    """
+    Object to store data from the UCASS during measurement period.
+
+    :param data_length: The row length of the data
+    :type data_length: int
+    :param time: Time column (s)
+    :type time: np.matrix
+    :param serial_number: UCASS Serial Number
+    :type serial_number: str
+    :param bbs_adc: UCASS bins as a list of ints (ADC vals)
+    :type bbs_adc: list
+    :param cali_gain: UCASS calibration gain (gradient)
+    :type cali_gain: float
+    :param cali_sl: UCASS calibration stray light (offset)
+    :type cali_sl: float
+    :param counts: UCASS raw counts nx16 matrix
+    :type counts: np.matrix
+    :param mtof1: UCASS raw time of flight data for bin 1
+    :type mtof1: np.matrix
+    :param mtof3: UCASS raw time of flight data for bin 3
+    :type mtof3: np.matrix
+    :param mtof5: UCASS raw time of flight data for bin 5
+    :type mtof5: np.matrix
+    :param mtof7: UCASS raw time of flight data for bin 7
+    :type mtof7: np.matrix
+    :param period: UCASS sample period
+    :type period: np.matrix
+    :param csum: UCASS checksum
+    :type csum: np.matrix
+    :param glitch: UCASS glitch trap counts
+    :type glitch: np.matrix
+    :param ltof: UCASS long time of flight counts
+    :type ltof: np.matrix
+    :param rejrat: UCASS particle rejection ratio
+    :type rejrat: np.matrix
+    :param description: Description of data
+    :type description: str
+    :param date_time: Date and time of measurement start
+    :type date_time: dt.datetime
+    """
     def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
                  counts, mtof1, mtof3, mtof5, mtof7, period, csum,
                  glitch, ltof, rejrat, time, data_length,
@@ -358,7 +503,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def time(self):
-        """time: a pandas DatetimeIndex to be used as a dataframe index"""
+        """A pandas DatetimeIndex to be used as a dataframe index"""
         return self._time
 
     @time.setter
@@ -370,7 +515,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def data_length(self):
-        """data_length: the numeric length of the columns in number of cells"""
+        """The numeric length of the columns in number of cells"""
         return self._data_length
 
     @data_length.setter
@@ -382,7 +527,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def bin_boundaries_adc(self):
-        """bin_boundaries_adc: The instrument specific upper bin boundaries as ADC values."""
+        """The instrument specific upper bin boundaries as ADC values."""
         return self._bin_boundaries_adc
 
     @bin_boundaries_adc.setter
@@ -394,7 +539,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def ucass_serial_number(self):
-        """ucass_serial_number: The serial number of the ucass in format UCASS-<version>-<batch>-<id>"""
+        """The serial number of the ucass in format UCASS-<version>-<batch>-<id>"""
         return self._ucass_serial_number
 
     @ucass_serial_number.setter
@@ -466,7 +611,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def cali_sl(self):
-        """cali_sl: Stray light of UCASS unit from last calibration"""
+        """Stray light of UCASS unit from last calibration"""
         return self._cali_sl
 
     @cali_sl.setter
@@ -478,7 +623,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def description(self):
-        """description: A string describing the data, with notes concerning acquisition"""
+        """A string describing the data, with notes concerning acquisition"""
         return self._description
 
     @description.setter
@@ -490,7 +635,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def date_time(self):
-        """date_time: A python date_time variable to describe the time and date of the beginning of recording"""
+        """A python date_time variable to describe the time and date of the beginning of recording"""
         return self._date_time
 
     @date_time.setter
@@ -502,7 +647,7 @@ class UCASSVAObjectBase(object):
 
     @property
     def start_epoch_ms(self):
-        """start_epoch_ms: Time of record start since epoch in milliseconds"""
+        """Time of record start since epoch in milliseconds"""
         return self._start_epoch_ms
 
     @start_epoch_ms.setter
