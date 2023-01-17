@@ -23,7 +23,7 @@ base_config_dict = {
 
 
 def check_config_file():
-    pass
+    raise NotImplemented
 
 
 def create_base_json(overwrite=False):

@@ -20,23 +20,26 @@ def csv_log_timedelta(filepath, hours, time_format_str, out_time_format_str, tim
                       change_fn=False, header=0):
     """
     a function to add or subtract a number of hours from a log file
-    ...
 
-    Parameters:
-    -----------
-    :param filepath - absolute file path
-    :param hours - integer number of hours to add or subtract
-    :param time_format_str - input datetime format string
-    :param out_time_format_str - output datetime format string
-    :param time_header - string, which header specified in 'names' is the time column
-    :param names - column names for data frame
-    :param change_fn - change filename label? boolean true or false
-    :param header - which row are the headers on, 0 if no headers
-    ...
+    :param filepath: Absolute file path
+    :type filepath: str
+    :param hours: Integer number of hours to add or subtract
+    :type hours: int
+    :param time_format_str: Input datetime format string
+    :type time_format_str: str
+    :param out_time_format_str: Output datetime format string
+    :type out_time_format_str: str
+    :param time_header: Which header specified in 'names' is the time column
+    :type time_header: str
+    :param names: Column names for data frame
+    :type names: list
+    :param change_fn: Change filename label?
+    :type change_fn: bool
+    :param header: Which row are the headers on, 0 if no headers
+    :type header: int
 
-    Returns:
-    --------
-    :returns - the old and new (if changed) filepaths as a tuple
+    :returns: The old and new (if changed) filepaths as a tuple
+    :rtype: tuple
     """
     # Change time in file column
     df = pd.read_csv(filepath, delimiter=',', header=header, names=names).dropna()
