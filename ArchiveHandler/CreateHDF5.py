@@ -239,30 +239,33 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     glitch = np.matrix(df['reject_glitch']).T
     ltof = np.matrix(df['reject_longToF']).T
     rejrat = np.matrix(df['reject_ratio']).T
-
     ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
                                  counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
                                  time, data_length, description, date_time)
 
+    date_time = pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
+                               format='%Y%m%d_%H%M%S%f')
     mav_messages = {'ARSP': ['Airspeed'],
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
                     'BARO': ['Press']}
     mav_data = _read_mavlink_log(fc_log_path, mav_messages)
     data_length = len(mav_data['Time'])
-
-    fmi_talon = UAVObjectBase(data_length, mav_data['Time'], mav_data['Press']/100.0,
+    fmi_talon = UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
                               mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
                               mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
                               mav_data['Airspeed'])
 
+    date_time = pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
+                               format='%Y%m%d_%H%M%S%f')
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
     df['Time'] = pd.to_datetime(df['Time'], format='%d/%m/%Y %H:%M:%S')
     data_length = len(df)
+    bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), df['Temp'], df['Press'], df['RH'])
 
-    bme280 = METObjectBase(data_length, pd.DatetimeIndex(df['Time']), df['Temp'], df['Press'], df['RH'])
+    _check_datetime_overlap([bme280.date_time, ucass_va.date_time, fmi_talon.date_time])
 
-    return ucass_va, fmi_talon, bme280
+    return
 
 
 class METObjectBase(object):
@@ -280,10 +283,11 @@ class METObjectBase(object):
     :param press_hpa: Pressure column (hPa)
     :type press_hpa: np.matrix
     """
-    def __init__(self, data_length, time,
+    def __init__(self, data_length, date_time, time,
                  temp_deg_c, rh, press_hpa):
 
         self._data_length = None
+        self._date_time = None
 
         self._time = None
         self._temp_dec_c = None
@@ -291,6 +295,7 @@ class METObjectBase(object):
         self._press_hpa = None
 
         self.data_length = data_length
+        self.date_time = date_time
 
         self.time = time
         self.temp_deg_c = _check_row_length(temp_deg_c, self.data_length)
@@ -325,6 +330,18 @@ class METObjectBase(object):
         else:
             raise TypeError('Value must be in integer format')
 
+    @property
+    def date_time(self):
+        """A python date_time variable to describe the time and date of the beginning of recording"""
+        return self._date_time
+
+    @date_time.setter
+    def date_time(self, val):
+        if isinstance(val, dt.datetime):
+            self._date_time = val
+        else:
+            raise TypeError('Value must be in python date_time format')
+
 
 class UAVObjectBase(object):
     """
@@ -351,12 +368,13 @@ class UAVObjectBase(object):
     :param asp_ms: Airspeed from pitot tube (m/s)
     :type asp_ms: np.matrix
     """
-    def __init__(self, data_length, time, press_hpa,
+    def __init__(self, data_length, date_time, time, press_hpa,
                  long, lat, gps_alt_m,
                  pitch_deg, roll_deg, yaw_deg,
                  asp_ms):
 
         self._data_length = None
+        self._date_time = None
 
         self._time = None
         self._press_hpa = None
@@ -369,6 +387,7 @@ class UAVObjectBase(object):
         self._asp_ms = None
 
         self.data_length = data_length
+        self.date_time = date_time
 
         self.time = time
         self.press_hpa = _check_row_length(press_hpa, self.data_length)
@@ -412,6 +431,18 @@ class UAVObjectBase(object):
             self._data_length = val
         else:
             raise TypeError('Value must be in integer format')
+
+    @property
+    def date_time(self):
+        """A python date_time variable to describe the time and date of the beginning of recording"""
+        return self._date_time
+
+    @date_time.setter
+    def date_time(self, val):
+        if isinstance(val, dt.datetime):
+            self._date_time = val
+        else:
+            raise TypeError('Value must be in python date_time format')
 
 
 class UCASSVAObjectBase(object):
