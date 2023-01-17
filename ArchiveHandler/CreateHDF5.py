@@ -180,11 +180,25 @@ def _read_mavlink_log(log_path, message_names):
     return fc_dict
 
 
-def csv_import_user(csv_path):
-    raise NotImplemented
-    flight_date = input('Enter Flight Date yyyy/mm/dd:')
-    h5_path = ch.read_config_key('base_data_path')
-    ucass_df = h5.File('UCASS-DF_', 'w')
+def _check_datetime_overlap(datetimes, tol_mins=30):
+    """
+    Checks if any datetime difference exceeds a specified tolerance
+
+    :param datetimes: List of datetimes to be checked
+    :type datetimes: list
+    :param tol_mins: Max difference between datetimes in minutes
+    :type tol_mins: int
+
+    :raise ValueError: If the difference between any two datetimes specified is larger than the tolerance
+    """
+    delta = []
+    for date in datetimes:
+        for i in range(len(datetimes)-1):
+            delta.append((date - datetimes[i+1]).total_seconds()/60.0)
+    if all(x > tol_mins for x in delta):
+        raise ValueError("Time delta exceeds threshold (%i)" % tol_mins)
+    else:
+        return
 
 
 def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
@@ -260,7 +274,7 @@ class METObjectBase(object):
     :param temp_deg_c: Temperature column (degrees C)
     :type temp_deg_c: np.matrix
     :param time: Time column (s)
-    :type time: np.matrix
+    :type time: pd.DatetimeIndex
     :param rh: Relative humidity column (%)
     :type rh: np.matrix
     :param press_hpa: Pressure column (hPa)
@@ -319,7 +333,7 @@ class UAVObjectBase(object):
     :param data_length: The row length of the data
     :type data_length: int
     :param time: Time column (s)
-    :type time: np.matrix
+    :type time: pd.DatetimeIndex
     :param press_hpa: Pressure column (hPa)
     :type press_hpa: np.matrix
     :param long: GPS Longitude (dec)
@@ -407,7 +421,7 @@ class UCASSVAObjectBase(object):
     :param data_length: The row length of the data
     :type data_length: int
     :param time: Time column (s)
-    :type time: np.matrix
+    :type time: pd.DatetimeIndex
     :param serial_number: UCASS Serial Number
     :type serial_number: str
     :param bbs_adc: UCASS bins as a list of ints (ADC vals)
