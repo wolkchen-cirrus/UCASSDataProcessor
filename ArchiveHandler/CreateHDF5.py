@@ -216,6 +216,15 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     :return:
     :rtype:
     """
+    # Check date and time coincidence.
+    _check_datetime_overlap([pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
+                                            format='%Y%m%d_%H%M%S%f'),
+                             pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
+                                            format='%Y%m%d_%H%M%S%f'),
+                             pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
+                                            format='%Y%m%d_%H%M%S%f')])
+
+    # UCASS Import.
     serial_number = ucass_csv_path.split('_')[-4]
     cali_gain, cali_sl = _get_ucass_calibration(serial_number)
     date_time = pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
@@ -243,6 +252,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                                  counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
                                  time, data_length, description, date_time)
 
+    # Flight controller import
     date_time = pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
                                format='%Y%m%d_%H%M%S%f')
     mav_messages = {'ARSP': ['Airspeed'],
@@ -256,6 +266,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                               mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
                               mav_data['Airspeed'])
 
+    # Meteorological sensor import
     date_time = pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
                                format='%Y%m%d_%H%M%S%f')
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
@@ -263,7 +274,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     data_length = len(df)
     bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), df['Temp'], df['Press'], df['RH'])
 
-    _check_datetime_overlap([bme280.date_time, ucass_va.date_time, fmi_talon.date_time])
+    # Include dataframe return as class method for storage classes
 
     return
 
@@ -305,6 +316,21 @@ class METObjectBase(object):
     temp_deg_c = _MatrixColumn("temp_deg_c", 1)
     rh = _MatrixColumn("rh", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
+
+    @classmethod
+    def to_dataframe(cls):
+        """
+        Converts the data structure to a pandas dataframe
+
+        :return: DataFrame with time index column
+        :rtype: pd.DataFrame
+        """
+        param_list = [cls.temp_deg_c, cls.rh, cls.press_hpa]
+        headers = ['Temperature C', 'Relative Humidity', 'Pressure (hPa)']
+        df = param_list[0]
+        for i in range(len(param_list) - 1):
+            df = np.concatenate((df, param_list[i+1]), axis=1)
+        return pd.DataFrame(data=df, index=cls.time, columns=headers)
 
     @property
     def time(self):
@@ -400,13 +426,32 @@ class UAVObjectBase(object):
         self.asp_ms = _check_row_length(asp_ms, self.data_length)
 
     press_hpa = _MatrixColumn("press_hpa", 1)
-    lon = _MatrixColumn("lon", 1)
+    long = _MatrixColumn("long", 1)
     lat = _MatrixColumn("lat", 1)
     gps_alt_m = _MatrixColumn("gps_alt_m", 1)
     pitch_deg = _MatrixColumn("pitch_deg", 1)
     roll_deg = _MatrixColumn("roll_deg", 1)
     yaw_deg = _MatrixColumn("yaw_deg", 1)
     asp_ms = _MatrixColumn("asp_ms", 1)
+
+    @classmethod
+    def to_dataframe(cls):
+        """
+        Converts the data structure to a pandas dataframe
+
+        :return: DataFrame with time index column
+        :rtype: pd.DataFrame
+        """
+        param_list = [cls.lat, cls.long, cls.gps_alt_m,
+                      cls.pitch_deg, cls.roll_deg, cls.yaw_deg,
+                      cls.asp_ms, cls.press_hpa]
+        headers = ['Latitude', 'Longitude', 'Altitude',
+                   'Pitch (Deg)', 'Roll (Deg)', 'Yaw (Deg)',
+                   'Airspeed (m/s)', 'Pressure (hPa)']
+        df = param_list[0]
+        for i in range(len(param_list) - 1):
+            df = np.concatenate((df, param_list[i + 1]), axis=1)
+        return pd.DataFrame(data=df, index=cls.time, columns=headers)
 
     @property
     def time(self):
@@ -545,6 +590,21 @@ class UCASSVAObjectBase(object):
     glitch = _MatrixColumn("glitch", 1)
     ltof = _MatrixColumn("ltof", 1)
     rejrat = _MatrixColumn("rejrat", 1)
+
+    @classmethod
+    def to_dataframe(cls):
+        """
+        Converts the data structure to a pandas dataframe
+
+        :return: DataFrame with time index column
+        :rtype: pd.DataFrame
+        """
+        param_list = []
+        headers = []
+        df = param_list[0]
+        for i in range(len(param_list) - 1):
+            df = np.concatenate((df, param_list[i + 1]), axis=1)
+        return pd.DataFrame(data=df, index=cls.time, columns=headers)
 
     @property
     def time(self):
