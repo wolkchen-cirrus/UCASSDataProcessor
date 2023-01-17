@@ -16,19 +16,19 @@ import datetime as dt
 import os
 
 
-def csv_log_timedelta(filepath, hours, time_format_str, out_time_format_str, time_header, names,
-                      change_fn=False, header=0):
+def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
+                      change_fn=False, header=0, minutes=0):
     """
     a function to add or subtract a number of hours from a log file
 
     :param filepath: Absolute file path
     :type filepath: str
-    :param hours: Integer number of hours to add or subtract
+    :param hours: Number of hours to add or subtract
     :type hours: int
+    :param minutes: Number of hours to add or subtract
+    :type minutes: int
     :param time_format_str: Input datetime format string
     :type time_format_str: str
-    :param out_time_format_str: Output datetime format string
-    :type out_time_format_str: str
     :param time_header: Which header specified in 'names' is the time column
     :type time_header: str
     :param names: Column names for data frame
@@ -43,8 +43,16 @@ def csv_log_timedelta(filepath, hours, time_format_str, out_time_format_str, tim
     """
     # Change time in file column
     df = pd.read_csv(filepath, delimiter=',', header=header, names=names).dropna()
-    df[time_header] = pd.to_datetime(df[time_header], format=time_format_str) + dt.timedelta(hours=hours)
-    df[time_header] = df[time_header].dt.strftime(out_time_format_str)
+    if header >= 1:
+        with open(filepath) as f:
+            meta_data = f.readlines()[:header]
+    try:
+        df[time_header] = pd.to_datetime(df[time_header], format=time_format_str) \
+                          + dt.timedelta(hours=hours, minutes=minutes)
+    except ValueError:
+        df[time_header] = pd.to_datetime(df[time_header], format='%Y-%m-%d %H:%M:%S') \
+                          + dt.timedelta(hours=hours, minutes=minutes)
+    df[time_header] = df[time_header].dt.strftime(time_format_str)
     # Change time in filename
     old_filepath = filepath
     if change_fn is True:
@@ -56,8 +64,13 @@ def csv_log_timedelta(filepath, hours, time_format_str, out_time_format_str, tim
                                                            new_start_time, os.path.split(filepath)[-1].split('_')[-1]])]
         filepath = os.path.join(*path_list)
     # Save new file
-    if header == 0:
-        df.to_csv(path_or_buf=filepath, index=False, header=False)
+    if header >= 1:
+        df.to_csv(path_or_buf=filepath, index=False)
+        with open(filepath, 'r+') as f:
+            content = f.read()
+            f.seek(0, 0)
+            f.writelines(meta_data)
+            f.write(content)
     else:
-        df.to_csv(path_or_buf=filepath)
+        df.to_csv(path_or_buf=filepath, index=False, header=False)
     return old_filepath, filepath
