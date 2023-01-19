@@ -1,9 +1,8 @@
 """
-This script turns .csv data with columns defined by the user into a standard HDF5 file.
+This script turns .csv data with columns defined by the user into a pandas dataframe.
 """
 
 import os
-import h5py as h5
 import ConfigHandler as ch
 import datetime as dt
 import pandas as pd
@@ -261,9 +260,9 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                            np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
     # Make full dataframe to be saved
-    df = _sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe(), fmi_talon.to_dataframe()], '0.5S')
+    # df = _sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe(), fmi_talon.to_dataframe()], '0.5S')
 
-    return df
+    return bme280, ucass_va, fmi_talon
 
 
 class METObjectBase(object):
@@ -625,14 +624,20 @@ class UCASSVAObjectBase(object):
         :return: DataFrame with time index column
         :rtype: pd.DataFrame
         """
-        param_list = [self.counts, self.period, self.mtof1, self.mtof3, self.mtof5, self.mtof7, self.period,
+        param_list = [self.counts, self.mtof1, self.mtof3, self.mtof5, self.mtof7, self.period,
                       self.csum, self.glitch, self.ltof, self.rejrat]
-        headers = ['Counts', 'Period (s)', 'Bin 1 ToF (us)', 'Bin 3 ToF (us)', 'Bin 5 ToF (us)', 'Bin 7 ToF (us)',
+        headers = ['Counts, 1', 'Counts, 2', 'Counts, 3', 'Counts, 4', 'Counts, 5', 'Counts, 6', 'Counts, 7',
+                   'Counts, 8', 'Counts, 9', 'Counts, 10', 'Counts, 11', 'Counts, 12', 'Counts, 13', 'Counts, 14',
+                   'Counts, 15', 'Counts, 16', 'Period (s)',
+                   'Mean ToF (us), 1', 'Mean ToF (us), 3', 'Mean ToF (us), 5', 'Mean ToF (us), 7',
                    'Checksum', 'Glitch Counts', 'Long ToF Counts', 'Reject Ratio']
         df = param_list[0]
         for i in range(len(param_list) - 1):
             df = np.concatenate((df, param_list[i + 1]), axis=1)
-        return pd.DataFrame(data=df, index=self.time, columns=headers)
+        df = pd.DataFrame(data=df, index=self.time, columns=headers)
+        headers = df.columns.str.split(', ', expand=True).values
+        df.columns = pd.MultiIndex.from_tuples([('', x[0]) if pd.isnull(x[1]) else x for x in headers])
+        return df
 
     @staticmethod
     def _check_row_length(val, row_length):

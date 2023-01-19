@@ -12,5 +12,6 @@ various log files, and combining each data instance into an HDF5 file.
 """
 
 
-import ArchiveHandler.CreateHDF5
+import ArchiveHandler.Importer
+import ArchiveHandler.HDF5Modulator
 import ArchiveHandler.Utilities
