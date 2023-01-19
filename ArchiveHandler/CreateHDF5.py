@@ -345,8 +345,10 @@ class METObjectBase(object):
     def time(self, val):
         if not isinstance(val, pd.DatetimeIndex):
             raise TypeError('Time must be pandas DatetimeIndex array')
-        if len(val) != self.data_length:
+        elif len(val) != self.data_length:
             raise ValueError('Time must have the same array length as the matrix columns')
+        else:
+            self._time = val
 
     @property
     def data_length(self):
@@ -484,8 +486,10 @@ class UAVObjectBase(object):
     def time(self, val):
         if not isinstance(val, pd.DatetimeIndex):
             raise TypeError('Time must be pandas DatetimeIndex array')
-        if len(val) != self.data_length:
+        elif len(val) != self.data_length:
             raise ValueError('Time must have the same array length as the matrix columns')
+        else:
+            self._time = val
 
     @property
     def data_length(self):
@@ -657,8 +661,10 @@ class UCASSVAObjectBase(object):
     def time(self, val):
         if not isinstance(val, pd.DatetimeIndex):
             raise TypeError('Time must be pandas DatetimeIndex array')
-        if len(val) != self.data_length:
+        elif len(val) != self.data_length:
             raise ValueError('Time must have the same array length as the matrix columns')
+        else:
+            self._time = val
 
     @property
     def data_length(self):
