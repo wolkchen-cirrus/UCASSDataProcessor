@@ -274,9 +274,9 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     data_length = len(df)
     bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), df['Temp'], df['Press'], df['RH'])
 
-    # Include dataframe return as class method for storage classes
+    # TODO: Include dataframe return as class method for storage classes
 
-    return
+    return bme280, ucass_va, fmi_talon
 
 
 class METObjectBase(object):
