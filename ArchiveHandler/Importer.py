@@ -260,9 +260,10 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), np.matrix(df['Temp']).T,
                            np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
-    # TODO: Include dataframe return as class method for storage classes
+    # Make full dataframe to be saved
+    df = _sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe(), fmi_talon.to_dataframe()], '0.5S')
 
-    return bme280, ucass_va, fmi_talon
+    return df
 
 
 class METObjectBase(object):
