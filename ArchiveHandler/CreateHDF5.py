@@ -52,25 +52,6 @@ class _MatrixColumn(object):
             raise TypeError('Value must be of type: int')
 
 
-def _check_row_length(val, row_length):
-    """
-    A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
-
-    :param val: The data in a matrix column.
-    :type val: np.matrix
-    :param row_length: The required length of row.
-    :type row_length: int
-
-    :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
-
-    :return: the assigned array, if the row length is correct.
-    :rtype: np.matrix
-    """
-    if val.shape[0] != row_length:
-        raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
-    return val
-
-
 def _get_ucass_calibration(serial_number):
     """
     A function to retrieve the calibration coefficients of a UCASS unit, given its serial number.
@@ -236,14 +217,18 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
         bin_header_list = data[4].split(',')[1:17]
     df = pd.read_csv(ucass_csv_path, delimiter=',', header=4)
     data_length = df.shape[0]
-    time = pd.DatetimeIndex([dt.datetime.strptime(x[0], '%Y-%m-%d %H:%M:%S.%f')
-                             for x in np.matrix(df['UTC datetime']).T.tolist()])
+    try:
+        time = pd.DatetimeIndex([dt.datetime.strptime(x[0], '%d/%m/%Y %H:%M:%S')
+                                 for x in np.matrix(df['UTC datetime']).T.tolist()])
+    except ValueError:
+        time = pd.DatetimeIndex([dt.datetime.strptime(x[0], '%Y-%m-%d %H:%M:%S.%f')
+                                 for x in np.matrix(df['UTC datetime']).T.tolist()])
     counts = np.matrix(df[bin_header_list])
-    mtof1 = np.matrix(df['Bin1ToF / us']).T
-    mtof3 = np.matrix(df['Bin3ToF / us']).T
-    mtof5 = np.matrix(df['Bin5ToF / us']).T
-    mtof7 = np.matrix(df['Bin7ToF / us']).T
-    period = np.matrix(df['period']).T
+    mtof1 = np.matrix(df['Bin1ToF / us']).T / 3.0
+    mtof3 = np.matrix(df['Bin3ToF / us']).T / 3.0
+    mtof5 = np.matrix(df['Bin5ToF / us']).T / 3.0
+    mtof7 = np.matrix(df['Bin7ToF / us']).T / 3.0
+    period = np.matrix(df['period']).T / float(32.768 * 1e3)
     csum = np.matrix(df['checksum']).T
     glitch = np.matrix(df['reject_glitch']).T
     ltof = np.matrix(df['reject_longToF']).T
@@ -272,7 +257,8 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
     df['Time'] = pd.to_datetime(df['Time'], format='%d/%m/%Y %H:%M:%S')
     data_length = len(df)
-    bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), df['Temp'], df['Press'], df['RH'])
+    bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), np.matrix(df['Temp']).T,
+                           np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
     # TODO: Include dataframe return as class method for storage classes
 
@@ -309,28 +295,46 @@ class METObjectBase(object):
         self.date_time = date_time
 
         self.time = time
-        self.temp_deg_c = _check_row_length(temp_deg_c, self.data_length)
-        self.rh = _check_row_length(rh, self.data_length)
-        self.press_hpa = _check_row_length(press_hpa, self.data_length)
+        self.temp_deg_c = self._check_row_length(temp_deg_c, self.data_length)
+        self.rh = self._check_row_length(rh, self.data_length)
+        self.press_hpa = self._check_row_length(press_hpa, self.data_length)
 
     temp_deg_c = _MatrixColumn("temp_deg_c", 1)
     rh = _MatrixColumn("rh", 1)
     press_hpa = _MatrixColumn("press_hpa", 1)
 
-    @classmethod
-    def to_dataframe(cls):
+    def to_dataframe(self):
         """
         Converts the data structure to a pandas dataframe
 
         :return: DataFrame with time index column
         :rtype: pd.DataFrame
         """
-        param_list = [cls.temp_deg_c, cls.rh, cls.press_hpa]
+        param_list = [self.temp_deg_c, self.rh, self.press_hpa]
         headers = ['Temperature C', 'Relative Humidity', 'Pressure (hPa)']
         df = param_list[0]
         for i in range(len(param_list) - 1):
             df = np.concatenate((df, param_list[i+1]), axis=1)
-        return pd.DataFrame(data=df, index=cls.time, columns=headers)
+        return pd.DataFrame(data=df, index=self.time, columns=headers)
+
+    @staticmethod
+    def _check_row_length(val, row_length):
+        """
+        A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+
+        :param val: The data in a matrix column.
+        :type val: np.matrix
+        :param row_length: The required length of row.
+        :type row_length: int
+
+        :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+
+        :return: the assigned array, if the row length is correct.
+        :rtype: np.matrix
+        """
+        if val.shape[0] != row_length:
+            raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+        return val
 
     @property
     def time(self):
@@ -416,14 +420,14 @@ class UAVObjectBase(object):
         self.date_time = date_time
 
         self.time = time
-        self.press_hpa = _check_row_length(press_hpa, self.data_length)
-        self.long = _check_row_length(long, self.data_length)
-        self.lat = _check_row_length(lat, self.data_length)
-        self.gps_alt_m = _check_row_length(gps_alt_m, self.data_length)
-        self.pitch_deg = _check_row_length(pitch_deg, self.data_length)
-        self.roll_deg = _check_row_length(roll_deg, self.data_length)
-        self.yaw_deg = _check_row_length(yaw_deg, self.data_length)
-        self.asp_ms = _check_row_length(asp_ms, self.data_length)
+        self.press_hpa = self._check_row_length(press_hpa, self.data_length)
+        self.long = self._check_row_length(long, self.data_length)
+        self.lat = self._check_row_length(lat, self.data_length)
+        self.gps_alt_m = self._check_row_length(gps_alt_m, self.data_length)
+        self.pitch_deg = self._check_row_length(pitch_deg, self.data_length)
+        self.roll_deg = self._check_row_length(roll_deg, self.data_length)
+        self.yaw_deg = self._check_row_length(yaw_deg, self.data_length)
+        self.asp_ms = self._check_row_length(asp_ms, self.data_length)
 
     press_hpa = _MatrixColumn("press_hpa", 1)
     long = _MatrixColumn("long", 1)
@@ -434,24 +438,42 @@ class UAVObjectBase(object):
     yaw_deg = _MatrixColumn("yaw_deg", 1)
     asp_ms = _MatrixColumn("asp_ms", 1)
 
-    @classmethod
-    def to_dataframe(cls):
+    def to_dataframe(self):
         """
         Converts the data structure to a pandas dataframe
 
         :return: DataFrame with time index column
         :rtype: pd.DataFrame
         """
-        param_list = [cls.lat, cls.long, cls.gps_alt_m,
-                      cls.pitch_deg, cls.roll_deg, cls.yaw_deg,
-                      cls.asp_ms, cls.press_hpa]
+        param_list = [self.lat, self.long, self.gps_alt_m,
+                      self.pitch_deg, self.roll_deg, self.yaw_deg,
+                      self.asp_ms, self.press_hpa]
         headers = ['Latitude', 'Longitude', 'Altitude',
                    'Pitch (Deg)', 'Roll (Deg)', 'Yaw (Deg)',
                    'Airspeed (m/s)', 'Pressure (hPa)']
         df = param_list[0]
         for i in range(len(param_list) - 1):
             df = np.concatenate((df, param_list[i + 1]), axis=1)
-        return pd.DataFrame(data=df, index=cls.time, columns=headers)
+        return pd.DataFrame(data=df, index=self.time, columns=headers)
+
+    @staticmethod
+    def _check_row_length(val, row_length):
+        """
+        A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+
+        :param val: The data in a matrix column.
+        :type val: np.matrix
+        :param row_length: The required length of row.
+        :type row_length: int
+
+        :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+
+        :return: the assigned array, if the row length is correct.
+        :rtype: np.matrix
+        """
+        if val.shape[0] != row_length:
+            raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+        return val
 
     @property
     def time(self):
@@ -508,15 +530,15 @@ class UCASSVAObjectBase(object):
     :type cali_sl: float
     :param counts: UCASS raw counts nx16 matrix
     :type counts: np.matrix
-    :param mtof1: UCASS raw time of flight data for bin 1
+    :param mtof1: UCASS raw time of flight data for bin 1 in Micro Seconds
     :type mtof1: np.matrix
-    :param mtof3: UCASS raw time of flight data for bin 3
+    :param mtof3: UCASS raw time of flight data for bin 3 in Micro Seconds
     :type mtof3: np.matrix
-    :param mtof5: UCASS raw time of flight data for bin 5
+    :param mtof5: UCASS raw time of flight data for bin 5 in Micro Seconds
     :type mtof5: np.matrix
-    :param mtof7: UCASS raw time of flight data for bin 7
+    :param mtof7: UCASS raw time of flight data for bin 7 in Micro Seconds
     :type mtof7: np.matrix
-    :param period: UCASS sample period
+    :param period: UCASS sample period in Seconds
     :type period: np.matrix
     :param csum: UCASS checksum
     :type csum: np.matrix
@@ -568,17 +590,17 @@ class UCASSVAObjectBase(object):
 
         self.data_length = data_length
 
-        self.counts = _check_row_length(counts, self.data_length)
+        self.counts = self._check_row_length(counts, self.data_length)
         self.time = time
-        self.mtof1 = _check_row_length(mtof1, self.data_length)
-        self.mtof3 = _check_row_length(mtof3, self.data_length)
-        self.mtof5 = _check_row_length(mtof5, self.data_length)
-        self.mtof7 = _check_row_length(mtof7, self.data_length)
-        self.period = _check_row_length(period, self.data_length)
-        self.csum = _check_row_length(csum, self.data_length)
-        self.glitch = _check_row_length(glitch, self.data_length)
-        self.ltof = _check_row_length(ltof, self.data_length)
-        self.rejrat = _check_row_length(rejrat, self.data_length)
+        self.mtof1 = self._check_row_length(mtof1, self.data_length)
+        self.mtof3 = self._check_row_length(mtof3, self.data_length)
+        self.mtof5 = self._check_row_length(mtof5, self.data_length)
+        self.mtof7 = self._check_row_length(mtof7, self.data_length)
+        self.period = self._check_row_length(period, self.data_length)
+        self.csum = self._check_row_length(csum, self.data_length)
+        self.glitch = self._check_row_length(glitch, self.data_length)
+        self.ltof = self._check_row_length(ltof, self.data_length)
+        self.rejrat = self._check_row_length(rejrat, self.data_length)
 
     counts = _MatrixColumn("counts", 16)
     mtof1 = _MatrixColumn("mtof1", 1)
@@ -591,20 +613,40 @@ class UCASSVAObjectBase(object):
     ltof = _MatrixColumn("ltof", 1)
     rejrat = _MatrixColumn("rejrat", 1)
 
-    @classmethod
-    def to_dataframe(cls):
+    def to_dataframe(self):
         """
         Converts the data structure to a pandas dataframe
 
         :return: DataFrame with time index column
         :rtype: pd.DataFrame
         """
-        param_list = []
-        headers = []
+        param_list = [self.counts, self.period, self.mtof1, self.mtof3, self.mtof5, self.mtof7, self.period,
+                      self.csum, self.glitch, self.ltof, self.rejrat]
+        headers = ['Counts', 'Period (s)', 'Bin 1 ToF (us)', 'Bin 3 ToF (us)', 'Bin 5 ToF (us)', 'Bin 7 ToF (us)',
+                   'Checksum', 'Glitch Counts', 'Long ToF Counts', 'Reject Ratio']
         df = param_list[0]
         for i in range(len(param_list) - 1):
             df = np.concatenate((df, param_list[i + 1]), axis=1)
-        return pd.DataFrame(data=df, index=cls.time, columns=headers)
+        return pd.DataFrame(data=df, index=self.time, columns=headers)
+
+    @staticmethod
+    def _check_row_length(val, row_length):
+        """
+        A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+
+        :param val: The data in a matrix column.
+        :type val: np.matrix
+        :param row_length: The required length of row.
+        :type row_length: int
+
+        :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+
+        :return: the assigned array, if the row length is correct.
+        :rtype: np.matrix
+        """
+        if val.shape[0] != row_length:
+            raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+        return val
 
     @property
     def time(self):
