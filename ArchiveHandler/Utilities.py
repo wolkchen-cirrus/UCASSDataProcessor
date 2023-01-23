@@ -1,11 +1,16 @@
 """
-Contains functions for data archive maintenance.
+Contains functions for data archive maintenance and searching.
 """
 
 
 import pandas as pd
 import datetime as dt
 import os
+
+
+def make_dir_structure():
+
+    return
 
 
 def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
