@@ -29,6 +29,8 @@ def check_config_file():
 def create_base_json(overwrite=False):
     if overwrite is True:
         _write_over_json(base_config_dict)
+    elif not os.path.exists(config_path):
+        _write_over_json(base_config_dict)
     else:
         raise FileExistsError('Config JSON already exists at %s' % config_path)
 
