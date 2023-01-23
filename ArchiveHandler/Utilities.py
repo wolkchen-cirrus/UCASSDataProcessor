@@ -5,18 +5,31 @@ Contains functions for data archive maintenance and searching.
 
 import pandas as pd
 import datetime as dt
+import ConfigHandler as ch
 import os
 
 
 def make_dir_structure():
+    """
+    A function to create the data storage structure required for the software. If directories already exist, the
+    function skips them. The config json is used to find the base path.
+    """
 
-    return
+    base = ch.read_config_key('base_data_path')
+    paths = [base, os.path.join(base, 'Raw'), os.path.join(base, 'Processed'),
+             os.path.join(base, 'Raw', 'FC'), os.path.join(base, 'Raw', 'Met'), os.path.join(base, 'Raw', 'Misc'),
+             os.path.join(base, 'Raw', 'Rejected'), os.path.join(base, 'Raw', 'UCASS')]
+    for path in paths:
+        try:
+            os.makedirs(path)
+        except FileExistsError:
+            print('Directory \"%s\" already exists; skipping directory' % path)
 
 
 def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
                       change_fn=False, header=0, minutes=0):
     """
-    a function to add or subtract a number of hours from a log file
+    A function to add or subtract a number of hours from a log file
 
     :param filepath: Absolute file path
     :type filepath: str
