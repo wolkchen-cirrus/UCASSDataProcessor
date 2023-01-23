@@ -9,12 +9,42 @@ import ConfigHandler as ch
 import os
 
 
+def match_raw_files(files, match_types, tol_min=30):
+    """
+    A function to find matching raw files by datetime, assuming some data for one data instance were in different files.
+
+    :param files: list of files you want to match
+    :type files: list
+    :param match_types: types of files you want to find matches for. Must be a folder name in the "Raw" directory
+    :type match_types: list
+    :param tol_min: tolerance of matches in minutes, default is 30
+    :type tol_min: int
+
+    :return: dataframe of matches where the index is the input files, and the columns are the match types
+    :rtype: pd.DataFrame
+    """
+    base = ch.read_config_key('base_data_path')
+    dt0s = pd.to_datetime(['_'.join(os.path.split(x)[-1].split('_')[-3:-1]) for x in files], format='%Y%m%d_%H%M%S%f')
+    mf = pd.DataFrame(index=[os.path.split(x)[-1] for x in files])
+    for mt in match_types:
+        mfn = []
+        for dt0, in_file in zip(dt0s, files):
+            tm = os.listdir(os.path.join(base, 'Raw', mt))
+            delta_dt = pd.to_datetime(['_'.join(x.split('_')[-3:-1]) for x in tm], format='%Y%m%d_%H%M%S%f')
+            delta_dt = abs((delta_dt-dt0).total_seconds()/60.0)
+            if min(delta_dt) > tol_min:
+                mfn.append(pd.nan)
+            else:
+                mfn.append(tm[list(delta_dt).index(min(delta_dt))])
+        mf[mt] = mfn
+    return mf
+
+
 def make_dir_structure():
     """
     A function to create the data storage structure required for the software. If directories already exist, the
     function skips them. The config json is used to find the base path.
     """
-
     base = ch.read_config_key('base_data_path')
     paths = [base, os.path.join(base, 'Raw'), os.path.join(base, 'Processed'),
              os.path.join(base, 'Raw', 'FC'), os.path.join(base, 'Raw', 'Met'), os.path.join(base, 'Raw', 'Misc'),
