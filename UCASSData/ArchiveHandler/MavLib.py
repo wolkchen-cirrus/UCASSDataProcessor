@@ -1,0 +1,134 @@
+"""
+Library of tools to handle mavlink log data in raw data processing.
+"""
+
+import datetime as dt
+import pandas as pd
+import numpy as np
+import subprocess
+import os.path
+from ..ArchiveHandler import ImportLib as im
+from ..ArchiveHandler import Utilities as utils
+from UCASSData import ConfigHandler as ch
+from pymavlink import mavutil
+import json
+import array
+
+
+def read_mavlink_log(log_path, message_names):
+    """
+    A function to read a mavlink log, with specified message and data names, into arrays. Calls the "mavlogdump.py" file
+    as a subprocess and therefore takes a long time to run.
+
+    :param log_path: The path to the mavlink '.log' file
+    :type log_path: str
+    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
+    :type message_names: dict
+
+    :return: The synchronised and resampled data frame.
+    :rtype: pd.DataFrame
+    """
+
+    def _proc_fc_row(fc_row, params):
+        time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
+        output = []
+        fc_row = fc_row.split(',')
+        for param in params:
+            for fc_part in fc_row:
+                label = fc_part.split(':')[0]
+                if param.replace(' ', '') == label.replace(' ', ''):
+                    output.append(float(fc_part.split(':')[-1]))
+                    break
+        return time, output
+
+    mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
+    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names.keys()), log_path],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    fd_out = proc.communicate()[0].decode("utf-8")
+    fd_out = fd_out.split('\n')
+    fd = {}
+    for mess in message_names:
+        fd_list = []
+        for r in fd_out:
+            if mess in r:
+                fd_list.append(r)
+        fd[mess] = fd_list
+
+    fc_dict = {}
+    for mess in message_names:
+        fc_list = []
+        fc_time = []
+        for row in fd[mess]:
+            fc_time_row, proc_row = _proc_fc_row(row, message_names[mess])
+            fc_list.append(proc_row)
+            fc_time.append(fc_time_row)
+        fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
+
+    df = im.sync_and_resample(list(fc_dict.values()), '0.1S')
+
+    fc_dict = df.to_dict(orient='list')
+    for key in fc_dict:
+        fc_dict[key] = np.matrix(fc_dict[key]).T
+    fc_dict['Time'] = df.index
+
+    return fc_dict
+
+
+def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
+
+    # Get path for outputs
+    base = utils.get_log_path(None, out_dir)
+
+    # Create path if it does not exist
+    if not os.path.exists(base):
+        print('Creating data directory structure at base path %s' % ch.read_config_key('base_data_path'))
+        utils.make_dir_structure()
+
+    # Convert input path to list if it is not
+    fc_log = im.to_list(fc_log)
+
+    # Loop through input logs
+    for log in fc_log:
+
+        # Convert to abs path
+        log = utils.get_log_path(log, in_dir)
+        out_file = os.path.join(base, os.path.split(log)[-1].replace('.log', '.json'))
+        mlog = mavutil.mavlink_connection(log, robust_parsing=True, dialect='ardupilotmega')
+
+        db = []
+        exclude = ['BAD_DATA', 'FMT', 'PARM', 'MULT', 'FMTU']
+        # Main proc loop
+        while True:
+            # Get mavlink log line
+            m = mlog.recv_match()
+            # Break if empty; the logging is complete
+            if m is None:
+                break
+            # Get message type for later
+            m_type = m.get_type()
+            # Skip over bad data
+            if m_type in exclude:
+                continue
+            # Grab the timestamp.
+            timestamp = getattr(m, '_timestamp', 0.0)
+            # Format our message as a Python dict, which gets us almost to proper JSON format
+            data = m.to_dict()
+            # Remove the mavpackettype value as we specify that later.
+            del data['mavpackettype']
+            # Prepare the message as a single object with 'meta' and 'data' keys holding
+            # the message's metadata and actual data respectively.
+            meta = {"type": m_type, "timestamp": timestamp}
+            # convert any array.array (e.g. packed-16-bit fft readings) into lists:
+            for key in data.keys():
+                if type(data[key]) == array.array:
+                    data[key] = list(data[key])
+            # convert any byte-strings into utf-8 strings.  Don't die trying.
+            for key in data.keys():
+                if type(data[key]) == bytes:
+                    data[key] = im.to_string(data[key])
+            db.append({"meta": meta, "data": data})
+
+        with open(out_file, mode='a') as out_stream:
+            out_stream.write(json.dumps(db))
+
+        print('Created %s' % out_file)

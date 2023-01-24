@@ -4,10 +4,7 @@ Contains functions for importing raw data into the software.
 
 import os.path
 from UCASSData import ConfigHandler as ch
-import datetime as dt
 import pandas as pd
-import numpy as np
-import subprocess
 
 
 def get_ucass_calibration(serial_number):
@@ -58,65 +55,8 @@ def sync_and_resample(df_list, period_str):
     """
     df = df_list[0]
     for i in range(len(df_list)-1):
-        df = pd.concat(df.align(df_list[i+1]), axis='columns')
+        df = df.join(df_list[i+1])
     return df.dropna(how='all', axis=0).dropna(how='all', axis=1).resample(period_str).mean().bfill()
-
-
-def read_mavlink_log(log_path, message_names):
-    """
-    A function to read a mavlink log, with specified message and data names, into arrays.
-
-    :param log_path: The path to the mavlink '.log' file
-    :type log_path: str
-    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
-    :type message_names: dict
-
-    :return: The synchronised and resampled data frame.
-    :rtype: pd.DataFrame
-    """
-    def _proc_fc_row(fc_row, params):
-        time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
-        output = []
-        fc_row = fc_row.split(',')
-        for param in params:
-            for fc_part in fc_row:
-                label = fc_part.split(':')[0]
-                if param.replace(' ', '') == label.replace(' ', ''):
-                    output.append(float(fc_part.split(':')[-1]))
-                    break
-        return time, output
-
-    mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
-    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names.keys()), log_path],
-                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    fd_out = proc.communicate()[0].decode("utf-8")
-    fd_out = fd_out.split('\n')
-    fd = {}
-    for mess in message_names:
-        fd_list = []
-        for r in fd_out:
-            if mess in r:
-                fd_list.append(r)
-        fd[mess] = fd_list
-    
-    fc_dict = {}
-    for mess in message_names:
-        fc_list = []
-        fc_time = []
-        for row in fd[mess]:
-            fc_time_row, proc_row = _proc_fc_row(row, message_names[mess])
-            fc_list.append(proc_row)
-            fc_time.append(fc_time_row)
-        fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
-
-    df = sync_and_resample(list(fc_dict.values()), '0.1S')
-
-    fc_dict = df.to_dict(orient='list')
-    for key in fc_dict:
-        fc_dict[key] = np.matrix(fc_dict[key]).T
-    fc_dict['Time'] = df.index
-
-    return fc_dict
 
 
 def check_datetime_overlap(datetimes, tol_mins=30):
@@ -130,6 +70,7 @@ def check_datetime_overlap(datetimes, tol_mins=30):
 
     :raise ValueError: If the difference between any two datetimes specified is larger than the tolerance
     """
+    datetimes = to_list(datetimes)
     delta = []
     for date in datetimes:
         for i in range(len(datetimes)-1):
@@ -138,3 +79,46 @@ def check_datetime_overlap(datetimes, tol_mins=30):
         raise ValueError("Time delta exceeds threshold (%i)" % tol_mins)
     else:
         return
+
+
+def fn_datetime(fn):
+    """
+    Retrieves datetime from filename in standard format
+
+    :param fn: filename (abs path ok)
+    :type fn: str
+
+    :return: datetime of file
+    :rtype: dt.datetime
+    """
+    return pd.to_datetime('_'.join([fn.split('_')[-3], fn.split('_')[-2]]), format='%Y%m%d_%H%M%S%f')
+
+
+def to_string(s):
+    """
+    Convert object to string
+
+    :param s: input string
+
+    :return: converted object
+    :rtype: str
+    """
+    if isinstance(s, str):
+        return s
+    else:
+        return s.decode(errors="backslashreplace")
+
+
+def to_list(s):
+    """
+    Converts to list for function inputs
+
+    :param s: string or list
+
+    :return: ensured list
+    :rtype: list
+    """
+    if isinstance(s, list):
+        return s
+    else:
+        return [s]

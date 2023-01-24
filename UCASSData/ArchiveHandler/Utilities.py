@@ -2,10 +2,11 @@
 Contains functions for data archive maintenance and searching. Anything to do with raw data maintenance goes here.
 """
 
-
 import pandas as pd
 import datetime as dt
+import numpy as np
 from UCASSData import ConfigHandler as ch
+from ..ArchiveHandler import ImportLib as im
 import os.path
 
 
@@ -14,7 +15,7 @@ def get_log_path(path, t):
     Returns abs path from log filename and type
 
     :param path: file path, abd or rel
-    :type path: str
+    :type path: str or None
     :param t: data type (Met, FC, UCASS, &c.)
     :type t: str
 
@@ -22,23 +23,13 @@ def get_log_path(path, t):
     :rtype: str
     """
     base = ch.read_config_key('base_data_path')
-    if os.path.isabs(path):
-        return path
-    else:
-        return os.path.join(base, 'Raw', t, os.path.split(path)[-1])
-
-
-def fn_datetime(fn):
-    """
-    Retrieves datetime from filename in standard format
-
-    :param fn: filename (abs path ok)
-    :type fn: str
-
-    :return: datetime of file
-    :rtype: dt.datetime
-    """
-    return pd.to_datetime('_'.join([fn.split('_')[-3], fn.split('_')[-2]]), format='%Y%m%d_%H%M%S%f')
+    try:
+        if os.path.isabs(path):
+            return path
+        else:
+            return os.path.join(base, 'Raw', t, os.path.split(path)[-1])
+    except TypeError:
+        return os.path.join(base, 'Raw', t)
 
 
 def match_raw_files(files, match_types, tol_min=30):
@@ -46,15 +37,17 @@ def match_raw_files(files, match_types, tol_min=30):
     A function to find matching raw files by datetime, assuming some data for one data instance were in different files.
 
     :param files: list of files you want to match
-    :type files: list
+    :type files: list or str
     :param match_types: types of files you want to find matches for. Must be a folder name in the "Raw" directory
-    :type match_types: list
+    :type match_types: list or str
     :param tol_min: tolerance of matches in minutes, default is 30
     :type tol_min: int
 
     :return: dataframe of matches where the index is the input files, and the columns are the match types
     :rtype: pd.DataFrame
     """
+    files = im.to_list(files)
+    match_types = im.to_list(match_types)
     base = ch.read_config_key('base_data_path')
     dt0s = pd.to_datetime(['_'.join(os.path.split(x)[-1].split('_')[-3:-1]) for x in files], format='%Y%m%d_%H%M%S%f')
     mf = pd.DataFrame(index=[os.path.split(x)[-1] for x in files])
@@ -65,7 +58,7 @@ def match_raw_files(files, match_types, tol_min=30):
             delta_dt = pd.to_datetime(['_'.join(x.split('_')[-3:-1]) for x in tm], format='%Y%m%d_%H%M%S%f')
             delta_dt = abs((delta_dt-dt0).total_seconds()/60.0)
             if min(delta_dt) > tol_min:
-                mfn.append(pd.nan)
+                mfn.append(np.nan)
             else:
                 mfn.append(tm[list(delta_dt).index(min(delta_dt))])
         mf[mt] = mfn
@@ -80,7 +73,8 @@ def make_dir_structure():
     base = ch.read_config_key('base_data_path')
     paths = [base, os.path.join(base, 'Raw'), os.path.join(base, 'Processed'),
              os.path.join(base, 'Raw', 'FC'), os.path.join(base, 'Raw', 'Met'), os.path.join(base, 'Raw', 'Misc'),
-             os.path.join(base, 'Raw', 'Rejected'), os.path.join(base, 'Raw', 'UCASS')]
+             os.path.join(base, 'Raw', 'Rejected'), os.path.join(base, 'Raw', 'UCASS'),
+             os.path.join(base, 'Raw', 'FC Proc')]
     for path in paths:
         try:
             os.makedirs(path)

@@ -6,7 +6,7 @@ with open("README.md", "r") as f:
 packages = setuptools.find_packages()
 
 setuptools.setup(
-    name="noether",
+    name="UCASSData",
     version="0.0.1",
     author="Jessica Marie Girdwood",
     author_email="jessgirdwood@protonmail.com",

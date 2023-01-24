@@ -1,10 +1,11 @@
 """
 <<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Creates all the required classes for data validation,
-synchronisation, and to create and populate the HDF5 file for data storage.
+synchronisation, and to create and populate the HDF5 file for data storage. Valid as an example function.
 """
 
 from argparse import ArgumentParser
 import UCASSData.ArchiveHandler.ImportLib as im
+import UCASSData.ArchiveHandler.MavLib as MavLib
 from UCASSData.ArchiveHandler.DataObjects.METObjectBase import METObjectBase
 from UCASSData.ArchiveHandler.DataObjects.UAVObjectBase import UAVObjectBase
 from UCASSData.ArchiveHandler.DataObjects.UCASSVAObjectBase import UCASSVAObjectBase
@@ -28,13 +29,13 @@ if __name__ == '__main__':
     bme_log_path = utils.get_log_path(args.met_log, 'Met')
 
     # Check date and time coincidence.
-    im.check_datetime_overlap([utils.fn_datetime(ucass_csv_path), utils.fn_datetime(fc_log_path),
-                               utils.fn_datetime(bme_log_path)])
+    im.check_datetime_overlap([im.fn_datetime(ucass_csv_path), im.fn_datetime(fc_log_path),
+                               im.fn_datetime(bme_log_path)])
 
     # UCASS Import.
     serial_number = ucass_csv_path.split('_')[-4]
     cali_gain, cali_sl = im.get_ucass_calibration(serial_number)
-    date_time = utils.fn_datetime(ucass_csv_path)
+    date_time = im.fn_datetime(ucass_csv_path)
     description = input('Description of data:')
     with open(ucass_csv_path) as df:
         data = df.readlines()
@@ -59,16 +60,16 @@ if __name__ == '__main__':
     ltof = np.matrix(df['reject_longToF']).T
     rejrat = np.matrix(df['reject_ratio']).T
     ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
-                                    counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
-                                    time, data_length, description, date_time)
+                                 counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
+                                 time, data_length, description, date_time)
 
     # Flight controller import
-    date_time = utils.fn_datetime(fc_log_path)
+    date_time = im.fn_datetime(fc_log_path)
     mav_messages = {'ARSP': ['Airspeed'],
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
                     'BARO': ['Press']}
-    mav_data = im.read_mavlink_log(fc_log_path, mav_messages)
+    mav_data = MavLib.read_mavlink_log(fc_log_path, mav_messages)
     data_length = len(mav_data['Time'])
     fmi_talon = UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
                               mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
@@ -76,7 +77,7 @@ if __name__ == '__main__':
                               mav_data['Airspeed'])
 
     # Meteorological sensor import
-    date_time = utils.fn_datetime(bme_log_path)
+    date_time = im.fn_datetime(bme_log_path)
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
     df['Time'] = pd.to_datetime(df['Time'], format='%d/%m/%Y %H:%M:%S')
     data_length = len(df)
@@ -84,4 +85,6 @@ if __name__ == '__main__':
                            np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
     # Make full dataframe to be saved
-    # df = _sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe(), fmi_talon.to_dataframe()], '0.5S')
+    df = im.sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe().drop('Pressure (hPa)'),
+                               fmi_talon.to_dataframe()], '0.5S')
+    pass
