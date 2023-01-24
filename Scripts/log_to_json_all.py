@@ -25,6 +25,8 @@ if not os.path.exists(out_dir):
 if __name__ == '__main__':
     log_files = os.listdir(in_dir)
     file_df = utils.match_raw_files(log_files, args.out_directory, tol_min=1)
-    proc_list = file_df.isna().index.values.tolist()
+    proc_list = file_df.isna()[args.out_directory].index[file_df.isna()[args.out_directory] == True].values.tolist()
+    if not proc_list:
+        raise FileNotFoundError('All .log files are processed')
     for f in proc_list:
         MavLib.log_to_json(f)
