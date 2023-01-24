@@ -1,10 +1,13 @@
 """
-<<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Function to create all the required classes for data
-validation, synchronisation, and to create and populate the HDF5 file for data storage.
+<<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Creates all the required classes for data validation,
+synchronisation, and to create and populate the HDF5 file for data storage.
 """
 
 from argparse import ArgumentParser
-import UCASSData.ArchiveHandler.Importer as im
+import UCASSData.ArchiveHandler.ImportLib as im
+from UCASSData.ArchiveHandler.DataObjects.METObjectBase import METObjectBase
+from UCASSData.ArchiveHandler.DataObjects.UAVObjectBase import UAVObjectBase
+from UCASSData.ArchiveHandler.DataObjects.UCASSVAObjectBase import UCASSVAObjectBase
 import UCASSData.ArchiveHandler.Utilities as utils
 import numpy as np
 import pandas as pd
@@ -55,7 +58,7 @@ if __name__ == '__main__':
     glitch = np.matrix(df['reject_glitch']).T
     ltof = np.matrix(df['reject_longToF']).T
     rejrat = np.matrix(df['reject_ratio']).T
-    ucass_va = im.UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
+    ucass_va = UCASSVAObjectBase(serial_number, bbs_adc, cali_gain, cali_sl,
                                     counts, mtof1, mtof3, mtof5, mtof7, period, csum, glitch, ltof, rejrat,
                                     time, data_length, description, date_time)
 
@@ -67,18 +70,18 @@ if __name__ == '__main__':
                     'BARO': ['Press']}
     mav_data = im.read_mavlink_log(fc_log_path, mav_messages)
     data_length = len(mav_data['Time'])
-    fmi_talon = im.UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
-                                 mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
-                                 mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
-                                 mav_data['Airspeed'])
+    fmi_talon = UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
+                              mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
+                              mav_data['Pitch'], mav_data['Roll'], mav_data['Yaw'],
+                              mav_data['Airspeed'])
 
     # Meteorological sensor import
     date_time = utils.fn_datetime(bme_log_path)
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
     df['Time'] = pd.to_datetime(df['Time'], format='%d/%m/%Y %H:%M:%S')
     data_length = len(df)
-    bme280 = im.METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), np.matrix(df['Temp']).T,
-                              np.matrix(df['RH']).T, np.matrix(df['Press']).T)
+    bme280 = METObjectBase(data_length, date_time, pd.DatetimeIndex(df['Time']), np.matrix(df['Temp']).T,
+                           np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
     # Make full dataframe to be saved
     # df = _sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe(), fmi_talon.to_dataframe()], '0.5S')
