@@ -19,17 +19,24 @@ def get_log_path(path, t):
     :param t: data type (Met, FC, UCASS, &c.)
     :type t: str
 
+    :raise TypeError: If the calculated path does not exist
+
     :return: the abs path
     :rtype: str
     """
     base = ch.read_config_key('base_data_path')
     try:
         if os.path.isabs(path):
-            return path
+            pass
         else:
-            return os.path.join(base, 'Raw', t, os.path.split(path)[-1])
+            path = os.path.join(base, 'Raw', t, os.path.split(path)[-1])
     except TypeError:
-        return os.path.join(base, 'Raw', t)
+        path = os.path.join(base, 'Raw', t)
+
+    if os.path.exists(path):
+        return path
+    else:
+        raise FileNotFoundError('Path does not exist in structure')
 
 
 def match_raw_files(files, match_types, tol_min=30):

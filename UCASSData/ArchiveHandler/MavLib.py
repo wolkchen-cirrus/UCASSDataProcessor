@@ -26,9 +26,8 @@ def read_mavlink_log(log_path, message_names):
     :type message_names: dict
 
     :return: The synchronised and resampled data frame.
-    :rtype: pd.DataFrame
+    :rtype: dict
     """
-
     def _proc_fc_row(fc_row, params):
         time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
         output = []
@@ -72,6 +71,28 @@ def read_mavlink_log(log_path, message_names):
     fc_dict['Time'] = df.index
 
     return fc_dict
+
+
+def read_json_log(log_path, message_names):
+    """
+    A function to read a mavlink log, with specified message and data names, into arrays.
+
+    :param log_path: The path to the json file
+    :type log_path: str
+    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
+    :type message_names: dict
+
+    :return: The synchronised and resampled data frame.
+    :rtype: dict
+    """
+    # Load JSON
+    log_path = utils.get_log_path(log_path, 'FC Proc')
+    with open(log_path, 'r') as f:
+        log_dict = json.load(f)
+    for m in message_names:
+        a = [x for x in log_dict.values() if m in x]
+        # TODO: Complete this when less tired
+    return
 
 
 def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
