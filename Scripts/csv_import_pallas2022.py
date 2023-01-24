@@ -5,11 +5,10 @@ validation, synchronisation, and to create and populate the HDF5 file for data s
 
 from argparse import ArgumentParser
 import UCASSData.ArchiveHandler.Importer as im
-from UCASSData import ConfigHandler as ch
+import UCASSData.ArchiveHandler.Utilities as utils
 import numpy as np
 import pandas as pd
 import datetime as dt
-import os.path
 
 
 parser = ArgumentParser(description=__doc__)
@@ -19,40 +18,20 @@ parser.add_argument("met_log", metavar="MET LOG")
 args = parser.parse_args()
 
 
-def get_log_path(path, t):
-    """
-    Returns abs path from log filename and type
-
-    :param path:
-    :param t:
-    :return:
-    """
-    base = ch.read_config_key('base_data_path')
-    if os.path.isabs(path):
-        return path
-    else:
-        return os.path.join(base, t, os.path.split(path)[-1])
-
-
 if __name__ == '__main__':
 
-    ucass_csv_path = get_log_path(args.ucass_log, 'UCASS')
-    fc_log_path = get_log_path(args.fc_log, 'FC')
-    bme_log_path = get_log_path(args.met_log, 'Met')
+    ucass_csv_path = utils.get_log_path(args.ucass_log, 'UCASS')
+    fc_log_path = utils.get_log_path(args.fc_log, 'FC')
+    bme_log_path = utils.get_log_path(args.met_log, 'Met')
 
     # Check date and time coincidence.
-    im.check_datetime_overlap([pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
-                                              format='%Y%m%d_%H%M%S%f'),
-                               pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
-                                              format='%Y%m%d_%H%M%S%f'),
-                               pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
-                                              format='%Y%m%d_%H%M%S%f')])
+    im.check_datetime_overlap([utils.fn_datetime(ucass_csv_path), utils.fn_datetime(fc_log_path),
+                               utils.fn_datetime(bme_log_path)])
 
     # UCASS Import.
     serial_number = ucass_csv_path.split('_')[-4]
     cali_gain, cali_sl = im.get_ucass_calibration(serial_number)
-    date_time = pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
-                               format='%Y%m%d_%H%M%S%f')
+    date_time = utils.fn_datetime(ucass_csv_path)
     description = input('Description of data:')
     with open(ucass_csv_path) as df:
         data = df.readlines()
@@ -81,8 +60,7 @@ if __name__ == '__main__':
                                     time, data_length, description, date_time)
 
     # Flight controller import
-    date_time = pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
-                               format='%Y%m%d_%H%M%S%f')
+    date_time = utils.fn_datetime(fc_log_path)
     mav_messages = {'ARSP': ['Airspeed'],
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
@@ -95,8 +73,7 @@ if __name__ == '__main__':
                                  mav_data['Airspeed'])
 
     # Meteorological sensor import
-    date_time = pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
-                               format='%Y%m%d_%H%M%S%f')
+    date_time = utils.fn_datetime(bme_log_path)
     df = pd.read_csv(bme_log_path, delimiter=',', header=0, names=['Time', 'Temp', 'Press', 'RH']).dropna()
     df['Time'] = pd.to_datetime(df['Time'], format='%d/%m/%Y %H:%M:%S')
     data_length = len(df)

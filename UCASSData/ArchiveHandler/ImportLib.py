@@ -1,8 +1,8 @@
 """
-This script turns .csv data with columns defined by the user into a pandas dataframe.
+Contains functions for importing raw data into the software. 
 """
 
-import os
+import os.path
 from UCASSData import ConfigHandler as ch
 import datetime as dt
 import pandas as pd

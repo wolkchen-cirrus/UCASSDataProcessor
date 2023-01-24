@@ -1,12 +1,44 @@
 """
-Contains functions for data archive maintenance and searching.
+Contains functions for data archive maintenance and searching. Anything to do with raw data maintenance goes here.
 """
 
 
 import pandas as pd
 import datetime as dt
 from UCASSData import ConfigHandler as ch
-import os
+import os.path
+
+
+def get_log_path(path, t):
+    """
+    Returns abs path from log filename and type
+
+    :param path: file path, abd or rel
+    :type path: str
+    :param t: data type (Met, FC, UCASS, &c.)
+    :type t: str
+
+    :return: the abs path
+    :rtype: str
+    """
+    base = ch.read_config_key('base_data_path')
+    if os.path.isabs(path):
+        return path
+    else:
+        return os.path.join(base, 'Raw', t, os.path.split(path)[-1])
+
+
+def fn_datetime(fn):
+    """
+    Retrieves datetime from filename in standard format
+
+    :param fn: filename (abs path ok)
+    :type fn: str
+
+    :return: datetime of file
+    :rtype: dt.datetime
+    """
+    return pd.to_datetime('_'.join([fn.split('_')[-3], fn.split('_')[-2]]), format='%Y%m%d_%H%M%S%f')
 
 
 def match_raw_files(files, match_types, tol_min=30):
