@@ -5,7 +5,7 @@ Contains functions for data archive maintenance and searching.
 
 import pandas as pd
 import datetime as dt
-import ConfigHandler as ch
+from UCASSData import ConfigHandler as ch
 import os
 
 

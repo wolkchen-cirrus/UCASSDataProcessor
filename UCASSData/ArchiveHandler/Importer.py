@@ -3,7 +3,7 @@ This script turns .csv data with columns defined by the user into a pandas dataf
 """
 
 import os
-import ConfigHandler as ch
+from UCASSData import ConfigHandler as ch
 import datetime as dt
 import pandas as pd
 import numpy as np
@@ -51,7 +51,7 @@ class _MatrixColumn(object):
             raise TypeError('Value must be of type: int')
 
 
-def _get_ucass_calibration(serial_number):
+def get_ucass_calibration(serial_number):
     """
     A function to retrieve the calibration coefficients of a UCASS unit, given its serial number.
 
@@ -85,7 +85,7 @@ def _get_ucass_calibration(serial_number):
         return gain, sl
 
 
-def _sync_and_resample(df_list, period_str):
+def sync_and_resample(df_list, period_str):
     """
     A function to synchronise a number of pandas data frames, then resample with a given time period.
 
@@ -103,7 +103,7 @@ def _sync_and_resample(df_list, period_str):
     return df.dropna(how='all', axis=0).dropna(how='all', axis=1).resample(period_str).mean().bfill()
 
 
-def _read_mavlink_log(log_path, message_names):
+def read_mavlink_log(log_path, message_names):
     """
     A function to read a mavlink log, with specified message and data names, into arrays.
 
@@ -150,7 +150,7 @@ def _read_mavlink_log(log_path, message_names):
             fc_time.append(fc_time_row)
         fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
 
-    df = _sync_and_resample(list(fc_dict.values()), '0.1S')
+    df = sync_and_resample(list(fc_dict.values()), '0.1S')
 
     fc_dict = df.to_dict(orient='list')
     for key in fc_dict:
@@ -160,7 +160,7 @@ def _read_mavlink_log(log_path, message_names):
     return fc_dict
 
 
-def _check_datetime_overlap(datetimes, tol_mins=30):
+def check_datetime_overlap(datetimes, tol_mins=30):
     """
     Checks if any datetime difference exceeds a specified tolerance
 
@@ -197,16 +197,16 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
     :rtype:
     """
     # Check date and time coincidence.
-    _check_datetime_overlap([pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
-                                            format='%Y%m%d_%H%M%S%f'),
-                             pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
-                                            format='%Y%m%d_%H%M%S%f'),
-                             pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
-                                            format='%Y%m%d_%H%M%S%f')])
+    check_datetime_overlap([pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
+                                           format='%Y%m%d_%H%M%S%f'),
+                            pd.to_datetime('_'.join([fc_log_path.split('_')[-3], fc_log_path.split('_')[-2]]),
+                                           format='%Y%m%d_%H%M%S%f'),
+                            pd.to_datetime('_'.join([bme_log_path.split('_')[-3], bme_log_path.split('_')[-2]]),
+                                           format='%Y%m%d_%H%M%S%f')])
 
     # UCASS Import.
     serial_number = ucass_csv_path.split('_')[-4]
-    cali_gain, cali_sl = _get_ucass_calibration(serial_number)
+    cali_gain, cali_sl = get_ucass_calibration(serial_number)
     date_time = pd.to_datetime('_'.join([ucass_csv_path.split('_')[-3], ucass_csv_path.split('_')[-2]]),
                                format='%Y%m%d_%H%M%S%f')
     description = input('Description of data:')
@@ -243,7 +243,7 @@ def csv_import_fmi2022bme(ucass_csv_path, fc_log_path, bme_log_path):
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
                     'BARO': ['Press']}
-    mav_data = _read_mavlink_log(fc_log_path, mav_messages)
+    mav_data = read_mavlink_log(fc_log_path, mav_messages)
     data_length = len(mav_data['Time'])
     fmi_talon = UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
                               mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],

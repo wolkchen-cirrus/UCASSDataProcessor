@@ -12,6 +12,4 @@ various log files, and combining each data instance into an HDF5 file.
 """
 
 
-import ArchiveHandler.Importer
-import ArchiveHandler.HDF5Modulator
-import ArchiveHandler.Utilities
+from UCASSData.ArchiveHandler import *

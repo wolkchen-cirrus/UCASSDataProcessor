@@ -1,4 +1,4 @@
-__author__ = "J. Girdwood"
+__author__ = "Jessica Girdwood"
 __copyright__ = "Copyright 2022, University of Hertfordshire and Subsidiary Companies"
 __credits__ = ["J. Girdwood"]
 __license__ = "MIT"
