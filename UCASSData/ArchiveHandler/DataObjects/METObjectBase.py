@@ -1,5 +1,5 @@
 import datetime as dt
-from MatrixColumn import MatrixColumn
+from .MatrixColumn import MatrixColumn
 import pandas as pd
 import numpy as np
 
