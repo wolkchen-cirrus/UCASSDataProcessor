@@ -17,7 +17,7 @@ def get_ucass_calibration(serial_number):
     :return: gain (float) and sl (float), the calibration coefficients.
     :rtype: tuple
     """
-    cali_path = os.path.join(ch.read_config_key('ucass_calibration_path'), serial_number)
+    cali_path = os.path.join(ch.getval('ucass_calibration_path'), serial_number)
     cal_file = None
     for fn in os.listdir(cali_path):
         if 'CalData' in fn:
@@ -55,7 +55,7 @@ def sync_and_resample(df_list, period_str):
     """
     df = df_list[0]
     for i in range(len(df_list)-1):
-        df = df.join(df_list[i+1])
+        df = pd.merge(df, df_list[i+1], how='outer', left_index=True, right_index=True)
     return df.dropna(how='all', axis=0).dropna(how='all', axis=1).resample(period_str).mean().bfill()
 
 

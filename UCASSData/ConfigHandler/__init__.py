@@ -1,63 +1,117 @@
 __author__ = "Jessica Girdwood"
-__copyright__ = "Copyright 2022, University of Hertfordshire and Subsidiary Companies"
-__credits__ = ["J. Girdwood"]
-__license__ = "MIT"
-__version__ = "0.0.1"
-__maintainer__ = "J. Girdwood"
-__email__ = "j.girdwood@herts.ac.uk"
-__status__ = "Development"
 __doc__ = """
 This python module is responsible for handling the JSON config file, including its initial creation.
 """
 
 import json
-import os
+import os.path
+from pydoc import locate
+from warnings import warn
 
 
 config_fn = 'UCASSConfig.json'
 config_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], config_fn)
-base_config_dict = {
-        'base_data_path': None,
-        'ucass_calibration_path': None
-    }
 
 
-def check_config_file():
-    raise NotImplemented
+class _ConfVal:
+    def __init__(self, cd):
+        self.name = None
+        self.val = None
+        self.dtype = None
+        self.unit = None
+        self.desc = None
+        [setattr(self, k, v) for k, v in cd.items() if k in self.__dict__]
+
+    def check(self):
+        if not isinstance(self.val, locate(self.dtype)):
+            raise TypeError
+        for k, v in self.__dict__.items():
+            if v is None:
+                raise AttributeError('%s is not set' % k)
 
 
-def create_base_json(overwrite=False):
-    if overwrite is True:
-        _write_over_json(base_config_dict)
-    elif not os.path.exists(config_path):
-        _write_over_json(base_config_dict)
+def add_config(cd):
+    while True:
+        cc = _ConfVal(cd)
+        cc.check()
+        fcd = _read_conf()
+        try:
+            fcd.append(cc.__dict__)
+        except AttributeError:
+            _blank_json()
+            continue
+        _write_over_json(fcd)
+        break
+
+
+def change_config_val(name, val):
+    fcd = _read_conf()
+    cc = _ConfVal(_getitem(name, fcd)[-1])
+    cc.val = val
+    cc.check()
+    _write_over_json(cc.__dict__)
+
+
+def change_config(cd):
+    cc = _ConfVal(cd)
+    cc.check()
+    del_config(cc.name)
+    add_config(cc.__dict__)
+
+
+def getval(name):
+    fcd = _read_conf()
+    cc = _ConfVal(_getitem(name, fcd)[-1])
+    cc.check()
+    return cc.val
+
+
+def getconf(name):
+    fcd = _read_conf()
+    cc = _ConfVal(_getitem(name, fcd)[-1])
+    cc.check()
+    print(json.dumps(cc.__dict__, indent=4, separators=(',', ': ')))
+    return cc.__dict__
+
+
+def del_config(name):
+    fcd = _read_conf()
+    del fcd[_getitem(name, fcd)[0]]
+    _write_over_json(fcd)
+
+
+def _write_over_json(cd):
+    with open(config_path, 'w') as cfp:
+        try:
+            json.dump(cd, cfp, indent=4, separators=(',', ': '))
+        except TypeError:
+            cd['dtype'] = cd['dtype'].__name__
+
+
+def _read_conf():
+    with open(config_path, 'r') as cfp:
+        while True:
+            try:
+                fcd = json.load(cfp)
+            except json.JSONDecodeError:
+                _blank_json()
+                continue
+            break
+    return fcd
+
+
+def _getitem(name, fcd):
+    item_list = [(i, x) for i, x in enumerate(fcd) if name == x['name']]
+    if len(item_list) != 1:
+        if len(item_list) > 1:
+            raise AttributeError('More than one setting of name %s exists' % name)
+        else:
+            raise AttributeError('Name %s does not exist' % name)
     else:
-        raise FileExistsError('Config JSON already exists at %s' % config_path)
+        return item_list[0]
 
 
-def read_config_key(key_name):
-    config_dict = _read_json()
-    return config_dict[key_name]
-
-
-def change_config_val(key_name, key_val):
-    config_dict = _read_json()
-    if key_name in config_dict.keys():
-        config_dict[key_name] = key_val
-        _write_over_json(config_dict)
-    else:
-        raise KeyError('%s is not a valid config variable' % key_name)
-
-
-def _read_json():
-    with open(config_path, 'r') as config_file_pointer:
-        config_dict = json.load(config_file_pointer)
-        config_file_pointer.close()
-    return config_dict
-
-
-def _write_over_json(new_dict):
-    config_json = json.dumps(new_dict)
-    with open(config_path, 'w') as config_file_pointer:
-        config_file_pointer.write(config_json)
-        config_file_pointer.close()
+def _blank_json():
+    warn('Creating blank JSON')
+    with open(config_path, 'w') as cfp:
+        cfp.write('[]')

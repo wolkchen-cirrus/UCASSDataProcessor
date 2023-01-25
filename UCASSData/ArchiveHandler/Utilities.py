@@ -24,7 +24,7 @@ def get_log_path(path, t):
     :return: the abs path
     :rtype: str
     """
-    base = ch.read_config_key('base_data_path')
+    base = ch.getval('base_data_path')
     try:
         if os.path.isabs(path):
             pass
@@ -55,7 +55,7 @@ def match_raw_files(files, match_types, tol_min=30):
     """
     files = im.to_list(files)
     match_types = im.to_list(match_types)
-    base = ch.read_config_key('base_data_path')
+    base = ch.getval('base_data_path')
     dt0s = pd.to_datetime(['_'.join(os.path.split(x)[-1].split('_')[-3:-1]) for x in files], format='%Y%m%d_%H%M%S%f')
     mf = pd.DataFrame(index=[os.path.split(x)[-1] for x in files])
     for mt in match_types:
@@ -77,7 +77,7 @@ def make_dir_structure():
     A function to create the data storage structure required for the software. If directories already exist, the
     function skips them. The config json is used to find the base path.
     """
-    base = ch.read_config_key('base_data_path')
+    base = ch.getval('base_data_path')
     paths = [base, os.path.join(base, 'Raw'), os.path.join(base, 'Processed'),
              os.path.join(base, 'Raw', 'FC'), os.path.join(base, 'Raw', 'Met'), os.path.join(base, 'Raw', 'Misc'),
              os.path.join(base, 'Raw', 'Rejected'), os.path.join(base, 'Raw', 'UCASS'),
@@ -147,3 +147,22 @@ def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
     else:
         df.to_csv(path_or_buf=filepath, index=False, header=False)
     return old_filepath, filepath
+
+
+def infer_fc_log_type(fn):
+    """
+    Infers a flight controller log type from it's filename
+
+    :param fn: Filename
+    :type fn: str
+
+    :raise ValueError: If the log extension is not .log or .json
+
+    :return: File extension
+    :rtype: str
+    """
+    _, ext = os.path.splitext(fn)
+    if (ext != '.log') and (ext != '.json'):
+        raise ValueError('%s is invalid fc log extension' % ext)
+    else:
+        return ext

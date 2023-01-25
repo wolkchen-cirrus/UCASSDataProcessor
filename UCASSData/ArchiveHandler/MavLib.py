@@ -13,12 +13,13 @@ from UCASSData import ConfigHandler as ch
 from pymavlink import mavutil
 import json
 import array
+import warnings
 
 
 def read_mavlink_log(log_path, message_names):
     """
     A function to read a mavlink log, with specified message and data names, into arrays. Calls the "mavlogdump.py" file
-    as a subprocess and therefore takes a long time to run.
+    as a subprocess and therefore takes a long time to run; function depreciated in future versions, in favour of json.
 
     :param log_path: The path to the mavlink '.log' file
     :type log_path: str
@@ -39,6 +40,8 @@ def read_mavlink_log(log_path, message_names):
                     output.append(float(fc_part.split(':')[-1]))
                     break
         return time, output
+
+    warnings.warn('Feature will be discontinued in future versions', category=DeprecationWarning)
 
     mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
     proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names.keys()), log_path],
@@ -89,10 +92,29 @@ def read_json_log(log_path, message_names):
     log_path = utils.get_log_path(log_path, 'FC Proc')
     with open(log_path, 'r') as f:
         log_dict = json.load(f)
+    fc_dict = {}
     for m in message_names:
-        a = [x for x in log_dict.values() if m in x]
-        # TODO: Complete this when less tired
-    return
+        # Get message names with listcomp!
+        data = [x for x in log_dict if m == x['meta']['type']]
+        # Merge meta and data, I love listcomp!
+        data = [x['data'] | {'timestamp': x['meta']['timestamp']} for x in data]
+        # Timestoomp --> dootime
+        data = [x | {'timestamp': dt.datetime.fromtimestamp(x['timestamp'])} for x in data]
+        # Format as dataframe with columns, and a timestamp index for syncing
+        fc_dict[m] = pd.DataFrame(data).set_index('timestamp')
+        # Remove unwanted data
+        rm_list = list(fc_dict[m].columns.values)
+        [rm_list.remove(x) for x in message_names[m]]
+        fc_dict[m] = fc_dict[m].drop(rm_list, axis=1)
+
+    df = im.sync_and_resample(list(fc_dict.values()), '0.1S')
+
+    fc_dict = df.to_dict(orient='list')
+    for key in fc_dict:
+        fc_dict[key] = np.matrix(fc_dict[key]).T
+    fc_dict['Time'] = df.index
+
+    return fc_dict
 
 
 def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
@@ -102,7 +124,7 @@ def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
 
     # Create path if it does not exist
     if not os.path.exists(base):
-        print('Creating data directory structure at base path %s' % ch.read_config_key('base_data_path'))
+        print('Creating data directory structure at base path %s' % ch.getval('base_data_path'))
         utils.make_dir_structure()
 
     # Convert input path to list if it is not

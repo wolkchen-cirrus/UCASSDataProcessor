@@ -13,20 +13,31 @@ import UCASSData.ArchiveHandler.Utilities as utils
 import numpy as np
 import pandas as pd
 import datetime as dt
+import warnings
 
 
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("ucass_log", metavar="UCASS LOG")
-parser.add_argument("fc_log", metavar="FC LOG")
-parser.add_argument("met_log", metavar="MET LOG")
+parser.add_argument("--fc-type", default=None, help=".json or .log as FC data input; will infer if not specified ")
+parser.add_argument("ucass_log", metavar="UCASS LOG", help="UCASS log path (csv)")
+parser.add_argument("fc_log", metavar="FC LOG", help="FC log path (log or json)")
+parser.add_argument("met_log", metavar="MET LOG", help="Met log path (csv)")
 args = parser.parse_args()
 
+ucass_csv_path = utils.get_log_path(args.ucass_log, 'UCASS')
+bme_log_path = utils.get_log_path(args.met_log, 'Met')
+
+if args.fc_type:
+    fc_type = args.fc_type.replace('.', '')
+else:
+    fc_type = utils.infer_fc_log_type(args.fc_log).replace('.', '')
+if fc_type == 'json':
+    fc_log_path = utils.get_log_path(args.fc_log, 'FC Proc')
+elif fc_type == 'log':
+    fc_log_path = utils.get_log_path(args.fc_log, 'FC')
+else:
+    raise ValueError('%s if invalid FC log type' % args.fc_type)
 
 if __name__ == '__main__':
-
-    ucass_csv_path = utils.get_log_path(args.ucass_log, 'UCASS')
-    fc_log_path = utils.get_log_path(args.fc_log, 'FC')
-    bme_log_path = utils.get_log_path(args.met_log, 'Met')
 
     # Check date and time coincidence.
     im.check_datetime_overlap([im.fn_datetime(ucass_csv_path), im.fn_datetime(fc_log_path),
@@ -69,7 +80,11 @@ if __name__ == '__main__':
                     'ATT': ['Roll', 'Pitch', 'Yaw'],
                     'GPS': ['Lat', 'Lng', 'Alt', 'Spd'],
                     'BARO': ['Press']}
-    mav_data = MavLib.read_mavlink_log(fc_log_path, mav_messages)
+    if fc_type == 'json':
+        mav_data = MavLib.read_json_log(fc_log_path, mav_messages)
+    else:
+        warnings.warn('Attempting to parse FC .log file, go make a coffee this will take a while :D')
+        mav_data = MavLib.read_mavlink_log(fc_log_path, mav_messages)
     data_length = len(mav_data['Time'])
     fmi_talon = UAVObjectBase(data_length, date_time, mav_data['Time'], mav_data['Press']/100.0,
                               mav_data['Lng'], mav_data['Lat'], mav_data['Alt'],
@@ -85,6 +100,6 @@ if __name__ == '__main__':
                            np.matrix(df['RH']).T, np.matrix(df['Press']).T)
 
     # Make full dataframe to be saved
-    df = im.sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe().drop('Pressure (hPa)'),
+    df = im.sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe().drop('Pressure (hPa)', axis=1),
                                fmi_talon.to_dataframe()], '0.5S')
     pass

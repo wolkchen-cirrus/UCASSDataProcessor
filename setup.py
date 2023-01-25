@@ -1,4 +1,5 @@
 import setuptools
+import UCASSData
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -7,10 +8,10 @@ packages = setuptools.find_packages()
 
 setuptools.setup(
     name="UCASSData",
-    version="0.0.1",
-    author="Jessica Marie Girdwood",
-    author_email="jessgirdwood@protonmail.com",
-    description="Processes data from the UCASS instrument, and manages the data repos",
+    version=UCASSData.__version__,
+    author=UCASSData.__author__,
+    author_email=UCASSData.__email__,
+    description=UCASSData.__doc__,
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/JGirdwood/UCASSDataProcessor",

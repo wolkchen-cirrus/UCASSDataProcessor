@@ -4,5 +4,8 @@ __credits__ = ["J. Girdwood"]
 __license__ = "MIT"
 __version__ = "0.0.1"
 __maintainer__ = "J. Girdwood"
-__email__ = "j.girdwood@herts.ac.uk"
+__email__ = "JessGirdwood@protonmail.com"
 __status__ = "Development"
+__doc__ = """
+Processes data from the UCASS instrument, and manages the data repos.
+"""
