@@ -75,18 +75,23 @@ def match_raw_files(files, match_types, tol_min=30):
 def make_dir_structure():
     """
     A function to create the data storage structure required for the software. If directories already exist, the
-    function skips them. The config json is used to find the base path.
+    function skips them. The config json is used to find the base path and structure.
     """
+    def make_dirs(fd, root):
+        for key, val in fd.items():
+            path = os.path.join(root, key)
+            try:
+                os.mkdir(path)
+            except FileExistsError:
+                print('Directory \"%s\" already exists; skipping directory' % path)
+            if type(val) == dict:
+                make_dirs(val, os.path.join(root, key))
+
     base = ch.getval('base_data_path')
-    paths = [base, os.path.join(base, 'Raw'), os.path.join(base, 'Processed'),
-             os.path.join(base, 'Raw', 'FC'), os.path.join(base, 'Raw', 'Met'), os.path.join(base, 'Raw', 'Misc'),
-             os.path.join(base, 'Raw', 'Rejected'), os.path.join(base, 'Raw', 'UCASS'),
-             os.path.join(base, 'Raw', 'FC Proc')]
-    for path in paths:
-        try:
-            os.makedirs(path)
-        except FileExistsError:
-            print('Directory \"%s\" already exists; skipping directory' % path)
+    if not os.path.exists(base):
+        raise FileNotFoundError('Base path \'%s\' in config does not exist' % base)
+    struct = ch.getval('dir_structure')
+    make_dirs(struct, base)
 
 
 def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,

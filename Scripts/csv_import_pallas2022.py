@@ -4,6 +4,7 @@ synchronisation, and to create and populate the HDF5 file for data storage. Vali
 """
 
 from argparse import ArgumentParser
+import UCASSData.ConfigHandler as ch
 import UCASSData.ArchiveHandler.ImportLib as im
 import UCASSData.ArchiveHandler.MavLib as MavLib
 from UCASSData.ArchiveHandler.DataObjects.METObjectBase import METObjectBase
@@ -101,5 +102,5 @@ if __name__ == '__main__':
 
     # Make full dataframe to be saved
     df = im.sync_and_resample([ucass_va.to_dataframe(), bme280.to_dataframe().drop('Pressure (hPa)', axis=1),
-                               fmi_talon.to_dataframe()], '0.5S')
+                               fmi_talon.to_dataframe()], str(ch.getval('timestep'))+'S')
     pass
