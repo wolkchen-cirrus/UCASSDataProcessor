@@ -17,6 +17,8 @@ import datetime as dt
 import warnings
 
 
+warnings.warn('Generic imports using config structs are favoured', category=DeprecationWarning)
+
 parser = ArgumentParser(description=__doc__)
 parser.add_argument("--fc-type", default=None, help=".json or .log as FC data input; will infer if not specified ")
 parser.add_argument("ucass_log", metavar="UCASS LOG", help="UCASS log path (csv)")
@@ -30,7 +32,7 @@ bme_log_path = utils.get_log_path(args.met_log, 'Met')
 if args.fc_type:
     fc_type = args.fc_type.replace('.', '')
 else:
-    fc_type = utils.infer_fc_log_type(args.fc_log).replace('.', '')
+    fc_type = utils.infer_log_type(args.fc_log).replace('.', '')
 if fc_type == 'json':
     fc_log_path = utils.get_log_path(args.fc_log, 'FC Proc')
 elif fc_type == 'log':

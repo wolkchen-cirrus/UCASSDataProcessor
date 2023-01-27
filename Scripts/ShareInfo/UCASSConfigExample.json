@@ -1,0 +1,154 @@
+[
+    {
+        "name": "base_data_path",
+        "val": "C:\\Users\\JGirdwood\\University of Hertfordshire\\PI Group - Documents\\Data\\UCASS",
+        "dtype": "str",
+        "unit": "n/a",
+        "desc": "base path from which all data is accessed"
+    },
+    {
+        "name": "ucass_calibration_path",
+        "val": "C:\\Users\\JGirdwood\\University of Hertfordshire\\PI Group - Documents\\Projects\\UCASS\\Calibration\\CalibrationOutputs_JG20210125",
+        "dtype": "str",
+        "unit": "n/a",
+        "desc": "path to ucass calibration variables"
+    },
+    {
+        "name": "timestep",
+        "val": 0.5,
+        "dtype": "float",
+        "unit": "s",
+        "desc": "global timestep for dataframes"
+    },
+    {
+        "name": "dir_structure",
+        "val": {
+            "Raw": {
+                "Met": [],
+                "FC": [],
+                "FC Proc": [],
+                "Rejected": [],
+                "Misc": [],
+                "UCASS": []
+            },
+            "Processed": []
+        },
+        "dtype": "dict",
+        "unit": "n/a",
+        "desc": "raw data directory structure"
+    },
+    {
+        "name": "data_flags",
+        "val": {
+            "BME280_FMITalon_20221007_08555400_00.csv": {
+                "0": [
+                    "dt",
+                    "T",
+                    "P",
+                    "RH"
+                ],
+                "type": "Met"
+            },
+            "FMITalon_UCASS-AA-FMI02-001_20221007_08554600_00.csv": {
+                "5": [
+                    "dt",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "C5",
+                    "C6",
+                    "C7",
+                    "C8",
+                    "C9",
+                    "C10",
+                    "C11",
+                    "C12",
+                    "C13",
+                    "C14",
+                    "C15",
+                    "C16",
+                    "ToF1",
+                    "ToF3",
+                    "ToF5",
+                    "ToF7",
+                    "Period",
+                    "CSum",
+                    "Glitch",
+                    "LToF",
+                    "RejRat"
+                ],
+                "type": "UCASS"
+            },
+            "FMITalon_20221007_08573300_00.json": {
+                "ARSP": [
+                    "Airspeed"
+                ],
+                "ATT": [
+                    "Roll",
+                    "Pitch",
+                    "Yaw"
+                ],
+                "GPS": [
+                    "Lat",
+                    "Lng",
+                    "Alt",
+                    "Spd"
+                ],
+                "BARO": [
+                    "Press"
+                ],
+                "type": "FC Proc"
+            }
+        },
+        "dtype": "dict",
+        "unit": "n/a",
+        "desc": "flags for data headers, read \"valid_flags\" config entry for details"
+    },
+    {
+        "name": "valid_flags",
+        "val": [
+            "dt",
+            "C1",
+            "C2",
+            "C3",
+            "C4",
+            "C5",
+            "C6",
+            "C7",
+            "C8",
+            "C9",
+            "C10",
+            "C11",
+            "C12",
+            "C13",
+            "C14",
+            "C15",
+            "C16",
+            "ToF1",
+            "ToF3",
+            "ToF5",
+            "ToF7",
+            "Period",
+            "CSum",
+            "Glitch",
+            "LToF",
+            "RejRat",
+            "Airspeed",
+            "Roll",
+            "Pitch",
+            "Yaw",
+            "Lat",
+            "Lng",
+            "Alt",
+            "Spd",
+            "Press",
+            "T",
+            "P",
+            "RH"
+        ],
+        "dtype": "list",
+        "unit": "n/a",
+        "desc": "valid falgs which can be specified for import"
+    }
+]

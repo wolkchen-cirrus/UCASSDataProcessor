@@ -86,12 +86,19 @@ def fn_datetime(fn):
     Retrieves datetime from filename in standard format
 
     :param fn: filename (abs path ok)
-    :type fn: str
+    :type fn: list
 
-    :return: datetime of file
+    :return: datetime of file as list or dt if dt specified
     :rtype: dt.datetime
     """
-    return pd.to_datetime('_'.join([fn.split('_')[-3], fn.split('_')[-2]]), format='%Y%m%d_%H%M%S%f')
+    fn = to_list(fn)
+    dt = []
+    for f in fn:
+        dt.append(pd.to_datetime('_'.join([f.split('_')[-3], f.split('_')[-2]]), format='%Y%m%d_%H%M%S%f'))
+    if len(dt) == 1:
+        return dt[0]
+    else:
+        return dt
 
 
 def to_string(s):

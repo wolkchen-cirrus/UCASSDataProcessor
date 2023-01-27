@@ -39,37 +39,54 @@ def get_log_path(path, t):
         raise FileNotFoundError('Path does not exist in structure')
 
 
-def match_raw_files(files, match_types, tol_min=30):
+def match_raw_files(match_types, files=None, default_type='UCASS', tol_min=20):
     """
     A function to find matching raw files by datetime, assuming some data for one data instance were in different files.
 
-    :param files: list of files you want to match
+    :param files: list of files you want to match up
     :type files: list or str
     :param match_types: types of files you want to find matches for. Must be a folder name in the "Raw" directory
     :type match_types: list or str
-    :param tol_min: tolerance of matches in minutes, default is 30
+    :param tol_min: tolerance of matches in minutes
     :type tol_min: int
+    :param default_type: if files is not specified, the contents of this directory will be used to generate matches
+    :type default_type: str
 
-    :return: dataframe of matches where the index is the input files, and the columns are the match types
+    :return: dataframe of matches where the index is a datetime index, and the columns are the match types
     :rtype: pd.DataFrame
     """
-    files = im.to_list(files)
+    if files:
+        files = im.to_list(files)
+    else:
+        files = os.listdir(get_log_path(None, default_type))
     match_types = im.to_list(match_types)
     base = ch.getval('base_data_path')
-    dt0s = pd.to_datetime(['_'.join(os.path.split(x)[-1].split('_')[-3:-1]) for x in files], format='%Y%m%d_%H%M%S%f')
-    mf = pd.DataFrame(index=[os.path.split(x)[-1] for x in files])
+    # Get datetime from files
+    dt0s = im.fn_datetime(files)
+    # Make df with dt index for storage (match frame)
+    mf = pd.DataFrame(index=pd.DatetimeIndex(dt0s))
+    # mt can be 'Met', 'UCASS', &c
     for mt in match_types:
+        # mfn is a list of the matched file names
         mfn = []
+        # dt0 is the datetime; in_file is the input file
         for dt0, in_file in zip(dt0s, files):
-            tm = os.listdir(os.path.join(base, 'Raw', mt))
-            delta_dt = pd.to_datetime(['_'.join(x.split('_')[-3:-1]) for x in tm], format='%Y%m%d_%H%M%S%f')
-            delta_dt = abs((delta_dt-dt0).total_seconds()/60.0)
+            # List of potential matches
+            tm = os.listdir(get_log_path(None, mt))
+            # Get match dts
+            fdt = im.fn_datetime(tm)
+            # Get deltas
+            delta_dt = [abs((x-dt0).total_seconds()/60.0) for x in fdt]
             if min(delta_dt) > tol_min:
+                # Fill with nans if tol is breached
                 mfn.append(np.nan)
             else:
+                # Append filename using index to match
                 mfn.append(tm[list(delta_dt).index(min(delta_dt))])
+        # Write col to dataframe
         mf[mt] = mfn
-    return mf
+    # Return sorted dataframe
+    return mf.sort_index()
 
 
 def make_dir_structure():
@@ -78,6 +95,14 @@ def make_dir_structure():
     function skips them. The config json is used to find the base path and structure.
     """
     def make_dirs(fd, root):
+        """
+        Recursive function to search for a directory structure and create missing directories.
+
+        :param fd: directory dict
+        :type fd: dict
+        :param root: base directory (abs)
+        :type root: str
+        """
         for key, val in fd.items():
             path = os.path.join(root, key)
             try:
@@ -154,20 +179,40 @@ def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
     return old_filepath, filepath
 
 
-def infer_fc_log_type(fn):
+def infer_log_type(fn):
     """
-    Infers a flight controller log type from it's filename
+    Infers a log type from it's filename
 
     :param fn: Filename
     :type fn: str
 
-    :raise ValueError: If the log extension is not .log or .json
+    :raise ValueError: If the log extension is neither .log, .json, nor .csv
 
     :return: File extension
     :rtype: str
     """
     _, ext = os.path.splitext(fn)
-    if (ext != '.log') and (ext != '.json'):
+    if (ext != '.log') and (ext != '.json') and (ext != '.csv'):
         raise ValueError('%s is invalid fc log extension' % ext)
     else:
         return ext
+
+
+def get_files(dts, types):
+    """
+    gets files from datetime or between two datetime vars; primarily invokes match_raw_files
+
+    :param dts: date times
+    :type dts: tuple
+    :param types: list of file types ('UCASS', 'Met', &c)
+    :type types: list
+
+    :return: reduced match types array
+    """
+    types = im.to_list(types)
+    df = match_raw_files(types)
+    if isinstance(dts, tuple):
+        return df.iloc[df.index.get_indexer(dts[0], method='nearest'):
+                       df.index.get_indexer(dts[-1], method='nearest')]
+    else:
+        return df.iloc[df.index.get_indexer(dts, method='nearest')]
