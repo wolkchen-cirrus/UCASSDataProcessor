@@ -9,7 +9,8 @@ import pandas as pd
 
 def get_ucass_calibration(serial_number):
     """
-    A function to retrieve the calibration coefficients of a UCASS unit, given its serial number.
+    A function to retrieve the calibration coefficients of a UCASS unit, given
+    its serial number.
 
     :param serial_number: The serial number of the UCASS unit.
     :type serial_number: str
@@ -17,7 +18,8 @@ def get_ucass_calibration(serial_number):
     :return: gain (float) and sl (float), the calibration coefficients.
     :rtype: tuple
     """
-    cali_path = os.path.join(ch.getval('ucass_calibration_path'), serial_number)
+    cali_path = os.path.join(ch.getval('ucass_calibration_path'),
+                             serial_number)
     cal_file = None
     for fn in os.listdir(cali_path):
         if 'CalData' in fn:
@@ -43,11 +45,12 @@ def get_ucass_calibration(serial_number):
 
 def sync_and_resample(df_list, period_str):
     """
-    A function to synchronise a number of pandas data frames, then resample with a given time period.
+    A function to synchronise a number of pandas data frames, then resample
+    with a given time period.
 
     :param df_list: A list of pandas data frames to be synchronised.
     :type df_list: list
-    :param period_str: The time period for resampling, specified as a string, e.g. '0.1S'.
+    :param period_str: The time period for resampling e.g. '0.1S'.
     :type period_str: str
 
     :return: The synchronised and resampled data frame.
@@ -55,8 +58,10 @@ def sync_and_resample(df_list, period_str):
     """
     df = df_list[0]
     for i in range(len(df_list)-1):
-        df = pd.merge(df, df_list[i+1], how='outer', left_index=True, right_index=True)
-    return df.dropna(how='all', axis=0).dropna(how='all', axis=1).resample(period_str).mean().bfill()
+        df = pd.merge(df, df_list[i+1], how='outer', left_index=True,
+                      right_index=True)
+    return df.dropna(how='all', axis=0).dropna(how='all', axis=1)\
+        .resample(period_str).mean().bfill()
 
 
 def check_datetime_overlap(datetimes, tol_mins=30):
@@ -68,7 +73,8 @@ def check_datetime_overlap(datetimes, tol_mins=30):
     :param tol_mins: Max difference between datetimes in minutes
     :type tol_mins: int
 
-    :raise ValueError: If the difference between any two datetimes specified is larger than the tolerance
+    :raise ValueError: If the difference between any two datetimes specified is
+    larger than the tolerance
     """
     datetimes = to_list(datetimes)
     delta = []
@@ -86,7 +92,7 @@ def fn_datetime(fn):
     Retrieves datetime from filename in standard format
 
     :param fn: filename (abs path ok)
-    :type fn: list
+    :type fn: list/str
 
     :return: datetime of file as list or dt if dt specified
     :rtype: dt.datetime
@@ -94,7 +100,8 @@ def fn_datetime(fn):
     fn = to_list(fn)
     dt = []
     for f in fn:
-        dt.append(pd.to_datetime('_'.join([f.split('_')[-3], f.split('_')[-2]]), format='%Y%m%d_%H%M%S%f'))
+        dt.append(pd.to_datetime('_'.join([f.split('_')[-3], f.split('_')[-2]])
+                                 , format='%Y%m%d_%H%M%S%f'))
     if len(dt) == 1:
         return dt[0]
     else:

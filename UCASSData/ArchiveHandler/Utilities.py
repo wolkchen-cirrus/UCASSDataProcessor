@@ -1,5 +1,6 @@
 """
-Contains functions for data archive maintenance and searching. Anything to do with raw data maintenance goes here.
+Contains functions for data archive maintenance and searching. Anything to do
+with raw data maintenance goes here.
 """
 
 import pandas as pd
@@ -41,18 +42,19 @@ def get_log_path(path, t):
 
 def match_raw_files(match_types, files=None, default_type='UCASS', tol_min=20):
     """
-    A function to find matching raw files by datetime, assuming some data for one data instance were in different files.
+    A function to find matching raw files by datetime, assuming some data for
+    one data instance were in different files.
 
     :param files: list of files you want to match up
     :type files: list or str
-    :param match_types: types of files you want to find matches for. Must be a folder name in the "Raw" directory
+    :param match_types: folder name in the "Raw" directory
     :type match_types: list or str
     :param tol_min: tolerance of matches in minutes
     :type tol_min: int
-    :param default_type: if files is not specified, the contents of this directory will be used to generate matches
+    :param default_type: if files is not specified, type used to get matches
     :type default_type: str
 
-    :return: dataframe of matches where the index is a datetime index, and the columns are the match types
+    :return: dataframe of matches where the index is a datetime index.
     :rtype: pd.DataFrame
     """
     if files:
@@ -60,7 +62,6 @@ def match_raw_files(match_types, files=None, default_type='UCASS', tol_min=20):
     else:
         files = os.listdir(get_log_path(None, default_type))
     match_types = im.to_list(match_types)
-    base = ch.getval('base_data_path')
     # Get datetime from files
     dt0s = im.fn_datetime(files)
     # Make df with dt index for storage (match frame)
@@ -91,12 +92,14 @@ def match_raw_files(match_types, files=None, default_type='UCASS', tol_min=20):
 
 def make_dir_structure():
     """
-    A function to create the data storage structure required for the software. If directories already exist, the
-    function skips them. The config json is used to find the base path and structure.
+    A function to create the data storage structure required for the software.
+    If directories already exist, the function skips them. The config json is
+    used to find the base path and structure.
     """
     def make_dirs(fd, root):
         """
-        Recursive function to search for a directory structure and create missing directories.
+        Recursive function to search for a directory structure and create
+        missing directories.
 
         :param fd: directory dict
         :type fd: dict
@@ -108,19 +111,21 @@ def make_dir_structure():
             try:
                 os.mkdir(path)
             except FileExistsError:
-                print('Directory \"%s\" already exists; skipping directory' % path)
+                print('Directory \"%s\" already exists; skipping directory'
+                      % path)
             if type(val) == dict:
                 make_dirs(val, os.path.join(root, key))
 
     base = ch.getval('base_data_path')
     if not os.path.exists(base):
-        raise FileNotFoundError('Base path \'%s\' in config does not exist' % base)
+        raise FileNotFoundError('Base path \'%s\' in config does not exist'
+                                % base)
     struct = ch.getval('dir_structure')
     make_dirs(struct, base)
 
 
-def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
-                      change_fn=False, header=0, minutes=0):
+def csv_log_timedelta(filepath, hours, time_format_str, time_header,
+                      names=None, change_fn=False, header=0, minutes=0):
     """
     A function to add or subtract a number of hours from a log file
 
@@ -145,26 +150,30 @@ def csv_log_timedelta(filepath, hours, time_format_str, time_header, names=None,
     :rtype: tuple
     """
     # Change time in file column
-    df = pd.read_csv(filepath, delimiter=',', header=header, names=names).dropna()
+    df = pd.read_csv(filepath, delimiter=',', header=header, names=names)\
+        .dropna()
     if header >= 1:
         with open(filepath) as f:
             meta_data = f.readlines()[:header]
     try:
-        df[time_header] = pd.to_datetime(df[time_header], format=time_format_str) \
+        df[time_header] = pd.to_datetime(df[time_header],
+                                         format=time_format_str) \
                           + dt.timedelta(hours=hours, minutes=minutes)
     except ValueError:
-        df[time_header] = pd.to_datetime(df[time_header], format='%Y-%m-%d %H:%M:%S') \
+        df[time_header] = pd.to_datetime(df[time_header],
+                                         format='%Y-%m-%d %H:%M:%S') \
                           + dt.timedelta(hours=hours, minutes=minutes)
     df[time_header] = df[time_header].dt.strftime(time_format_str)
     # Change time in filename
     old_filepath = filepath
     if change_fn is True:
-        new_start_time = (pd.to_datetime('_'.join([os.path.split(filepath)[-1].split('_')[-3],
-                                                   os.path.split(filepath)[-1].split('_')[-2]]),
-                                         format='%Y%m%d_%H%M%S%f') +
-                          dt.timedelta(hours=hours)).strftime('%Y%m%d_%H%M%S')+'00'
-        path_list = [os.path.split(filepath)[0], '_'.join(['_'.join(os.path.split(filepath)[-1].split('_')[:-3]),
-                                                           new_start_time, os.path.split(filepath)[-1].split('_')[-1]])]
+        new_start_time = (im.fn_datetime(filepath) +
+                          dt.timedelta(hours=hours)).strftime('%Y%m%d_%H%M%S')\
+                         + '00'
+        path_list = [os.path.split(filepath)[0],
+                     '_'.join(['_'.join(os.path.split(filepath)[-1]
+                                        .split('_')[:-3]), new_start_time,
+                               os.path.split(filepath)[-1].split('_')[-1]])]
         filepath = os.path.join(*path_list)
     # Save new file
     if header >= 1:
@@ -200,7 +209,8 @@ def infer_log_type(fn):
 
 def get_files(dts, types):
     """
-    gets files from datetime or between two datetime vars; primarily invokes match_raw_files
+    gets files from datetime or between two datetime vars; primarily invokes
+    match_raw_files
 
     :param dts: date times
     :type dts: tuple

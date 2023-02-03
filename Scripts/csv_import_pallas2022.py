@@ -1,6 +1,7 @@
 """
-<<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Creates all the required classes for data validation,
-synchronisation, and to create and populate the HDF5 file for data storage. Valid as an example function.
+<<VALID ONLY FOR DATA COLLECTED IN PALLAS, AUTUMN 2022>>. Creates all the
+required classes for data validation, synchronisation, and to create and
+populate the HDF5 file for data storage. Valid as an example function.
 """
 
 from argparse import ArgumentParser
@@ -17,13 +18,18 @@ import datetime as dt
 import warnings
 
 
-warnings.warn('Generic imports using config structs are favoured', category=DeprecationWarning)
+warnings.warn('Generic imports using config structs are favoured',
+              category=DeprecationWarning)
 
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("--fc-type", default=None, help=".json or .log as FC data input; will infer if not specified ")
-parser.add_argument("ucass_log", metavar="UCASS LOG", help="UCASS log path (csv)")
-parser.add_argument("fc_log", metavar="FC LOG", help="FC log path (log or json)")
-parser.add_argument("met_log", metavar="MET LOG", help="Met log path (csv)")
+parser.add_argument("--fc-type", default=None,
+                    help=".json or .log as FC data input")
+parser.add_argument("ucass_log", metavar="UCASS LOG",
+                    help="UCASS log path (csv)")
+parser.add_argument("fc_log", metavar="FC LOG",
+                    help="FC log path (log or json)")
+parser.add_argument("met_log", metavar="MET LOG",
+                    help="Met log path (csv)")
 args = parser.parse_args()
 
 ucass_csv_path = utils.get_log_path(args.ucass_log, 'UCASS')
@@ -43,7 +49,8 @@ else:
 if __name__ == '__main__':
 
     # Check date and time coincidence.
-    im.check_datetime_overlap([im.fn_datetime(ucass_csv_path), im.fn_datetime(fc_log_path),
+    im.check_datetime_overlap([im.fn_datetime(ucass_csv_path),
+                               im.fn_datetime(fc_log_path),
                                im.fn_datetime(bme_log_path)])
 
     # UCASS Import.
