@@ -1,3 +1,5 @@
+// Example of a UCASS Config file, place in UCASSData/ConfigHandler to access
+// with ConfigHandler tools.
 [
     {
         "name": "base_data_path",
