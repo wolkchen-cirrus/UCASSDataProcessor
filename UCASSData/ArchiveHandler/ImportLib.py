@@ -4,7 +4,12 @@ Contains functions for importing raw data into the software.
 
 import os.path
 from UCASSData import ConfigHandler as ch
+import dateutil.parser as dup
+import MavLib as mav
+import Utilities as utils
 import pandas as pd
+import warnings
+import numpy as np
 
 
 def get_ucass_calibration(serial_number):
@@ -87,6 +92,28 @@ def check_datetime_overlap(datetimes, tol_mins=30):
         return
 
 
+def infer_datetime(fn, dts):
+    """
+    Attempts to infer datetime string format using filename as anchor; pretty
+    unstable tbh, try not to use this if possible
+
+    :param fn: filename
+    :type fn: str
+    :param dts: datetime string in rando format
+    :type dts: string
+
+    :returns: datetime
+    :rtype: dt.datetime
+    """
+    sdt = fn_datetime(fn)
+    dt = dup.parse(dts)
+    if (sdt-dt).total_seconds()/(60.0**2*24) > 1:
+        dt = dup.parse(dts, dayfirst=True)
+        if (sdt - dt).total_seconds() / (60.0 ** 2 * 24) > 1:
+            raise ValueError("Could not infer dt format, revise input")
+    return dt
+
+
 def fn_datetime(fn):
     """
     Retrieves datetime from filename in standard format
@@ -136,3 +163,83 @@ def to_list(s):
         return s
     else:
         return [s]
+
+
+def df_to_matrix_dict(df):
+    """
+    Turns a pandas dataframe into a dict of matrix columns for input into
+    import structs
+
+    :param df: dataframe
+    :type df: pd.DataFrame
+
+    :returns: dictionary with standard type keys
+    :rtype: dict
+    """
+    md = df.to_dict(orient='list')
+    for key in md:
+        md[key] = np.matrix(md[key]).T
+    md['Time'] = df.index
+    return md
+
+
+def proc_iss(iss):
+    """
+    Main proc system for import struct specification; transfers data from files
+    into a dictionary.
+
+    :param iss: import struct specification
+    :type iss: dict
+
+    :returns: dictionary of data in matrices
+    :rtype: dict
+    """
+
+    def _proc_cols(fn, cols, s_row, t):
+        if not cols:
+            return {}
+        fn = utils.get_log_path(fn, t)
+        if 'Time' not in cols:
+            raise ValueError('File does not have a datetime index')
+        if not s_row:
+            s_row = 0
+        d_out = pd.read_csv(fn, header=s_row, names=cols)
+        d_out['Time'] = [infer_datetime(fn, x) for x in d_out['Time']]
+        d_out.set_index(d_out['Time'])
+        d_out.drop('Time')
+        return df_to_matrix_dict(d_out)
+
+    def _proc_row(fn, proc_rows, t):
+        if not proc_rows:
+            return {}
+        fn = utils.get_log_path(fn, t)
+        d_out = {}
+        with open(fn) as f:
+            d = f.readlines()
+            for rn in proc_rows:
+                d_out[rn] = d[proc_rows[rn]]
+        return d_out
+
+    data = {}
+    for k in iss:
+        lt = utils.infer_log_type(k)
+        if lt is '.json':
+            data[k] = mav.read_json_log(k, iss[k]['data'])
+        elif lt is '.log':
+            warnings.warn('Attempting to parse FC .log file, go make a coffee '
+                          'this will take a while :D')
+            data[k] = mav.read_mavlink_log(k, iss[k]['data'])
+        elif lt is '.csv':
+            proc = {}
+            for key in ['cols', 'srow', 'procrows']:
+                tp = iss[k]['type']
+                try:
+                    proc[key] = iss[k]['data'][key]
+                except KeyError:
+                    proc[key] = None
+            data[k] = {_proc_cols(k, proc['cols'], proc['srows'], tp) |
+                       _proc_row(k, proc['procrows'], tp)}
+        else:
+            raise ValueError("Invalid log file extension %s" % lt)
+
+    return data

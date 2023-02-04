@@ -3,8 +3,9 @@ This is the main user mechanism for interfacing with raw data in the program.
 Data headers are described by the "data_flags" config setting, an example of
 which is in Scripts/ShareInfo/ImportStructExample.json. Valid data flags for
 import are set in the "valid_flags" config setting. Script will process files
-between "--s-dt" and "dt", or a single datetime if only dt is specified. dt
-must be in format "YYYY-mm-dd HH:MM:SS".
+between "dt[0]" and "dt[1]", or a single datetime if only dt is specified. dt
+must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
+"YYYY-mm-dd HH:MM:SS,YYYY-mm-dd HH:MM:SS".
 """
 
 from argparse import ArgumentParser

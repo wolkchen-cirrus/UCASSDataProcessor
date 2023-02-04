@@ -49,7 +49,8 @@ def change_config_val(name, val):
     cc = _ConfVal(_getitem(name, fcd)[-1])
     cc.val = val
     cc.check()
-    _write_over_json(cc.__dict__)
+    del_config(name)
+    add_config(cc.__dict__)
 
 
 def change_config(cd):

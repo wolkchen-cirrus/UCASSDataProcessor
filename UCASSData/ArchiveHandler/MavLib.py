@@ -68,12 +68,7 @@ def read_mavlink_log(log_path, message_names):
 
     df = im.sync_and_resample(list(fc_dict.values()), '0.1S')
 
-    fc_dict = df.to_dict(orient='list')
-    for key in fc_dict:
-        fc_dict[key] = np.matrix(fc_dict[key]).T
-    fc_dict['Time'] = df.index
-
-    return fc_dict
+    return im.df_to_matrix_dict(df)
 
 
 def read_json_log(log_path, message_names):
@@ -109,12 +104,7 @@ def read_json_log(log_path, message_names):
 
     df = im.sync_and_resample(list(fc_dict.values()), '0.1S')
 
-    fc_dict = df.to_dict(orient='list')
-    for key in fc_dict:
-        fc_dict[key] = np.matrix(fc_dict[key]).T
-    fc_dict['Time'] = df.index
-
-    return fc_dict
+    return im.df_to_matrix_dict(df)
 
 
 def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
