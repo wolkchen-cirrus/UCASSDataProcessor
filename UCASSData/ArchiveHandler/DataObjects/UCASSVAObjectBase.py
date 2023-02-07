@@ -45,9 +45,10 @@ class UCASSVAObjectBase(object):
     :param date_time: Date and time of measurement start
     :type date_time: dt.datetime
     """
-    def __init__(self, date_time: dt.datetime, serial_number: str,
-                 bbs_adc: list, cali_gain: float, cali_sl: float,
-                 data_length: int, description: str,
+    def __init__(self, date_time: dt.datetime = None,
+                 serial_number: str = None, bbs_adc: list = None,
+                 cali_gain: float = None, cali_sl: float = None,
+                 data_length: int = None, description: str = None,
 
                  counts=None, mtof1=None, mtof3=None, mtof5=None,
                  mtof7=None, period=None, csum=None, glitch=None, ltof=None,

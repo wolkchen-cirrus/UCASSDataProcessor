@@ -19,8 +19,8 @@ class METObjectBase(object):
     :param press_hpa: Pressure column (hPa)
     :type press_hpa: np.matrix
     """
-    def __init__(self, data_length: int, date_time: dt.datetime, time=None,
-                 temp_deg_c=None, rh=None, press_hpa=None):
+    def __init__(self, data_length: int = None, date_time: dt.datetime = None,
+                 time=None, temp_deg_c=None, rh=None, press_hpa=None):
 
         self._date_time = None
 

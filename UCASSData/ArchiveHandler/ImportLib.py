@@ -1,16 +1,16 @@
 """
 Contains functions for importing raw data into the software. 
 """
-
+import importlib
 import os.path
 from UCASSData import ConfigHandler as ch
 import dateutil.parser as dup
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
+import importlib as imp
 import pandas as pd
 import warnings
 import numpy as np
-from collections.abc import MutableMapping
 
 
 def get_ucass_calibration(serial_number: str) -> tuple:
@@ -294,16 +294,11 @@ def populate_data_objects(data: dict) -> list:
     :rtype: list
     """
 
-    def _flatten_dict(d: MutableMapping) -> MutableMapping:
-        items = []
-        for k, v in d.items():
-            if isinstance(v, MutableMapping):
-                items.extend(_flatten_dict(v).items())
-            else:
-                items.append((k, v))
-        return dict(items)
+    tom = ch.getval("type_object_map")
+    tp = data['type']
+    module = importlib.import_module('UCASSData.ArchiveHandler.DataObjects.' +
+                                     tom[tp])
+    data_obj = getattr(module, tom[tp])
 
-    # Flatten data; last key is taken if multiple
-    data = _flatten_dict(data)
 
     return []

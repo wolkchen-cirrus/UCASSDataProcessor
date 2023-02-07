@@ -30,7 +30,7 @@ class UAVObjectBase(object):
     :param asp_ms: Airspeed from pitot tube (m/s)
     :type asp_ms: np.matrix
     """
-    def __init__(self, data_length: int, date_time: dt.datetime,
+    def __init__(self, data_length: int = None, date_time: dt.datetime = None,
                  time=None, press_hpa=None,
                  long=None, lat=None, gps_alt_m=None,
                  pitch_deg=None, roll_deg=None, yaw_deg=None,
