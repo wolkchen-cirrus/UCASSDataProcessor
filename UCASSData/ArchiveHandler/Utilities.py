@@ -222,7 +222,8 @@ def get_files(dts, types):
     types = im.to_list(types)
     df = match_raw_files(types)
     if isinstance(dts, tuple):
-        return df.iloc[df.index.get_indexer(dts[0], method='nearest'):
-                       df.index.get_indexer(dts[-1], method='nearest')]
+        return df.iloc[df.index.get_indexer([dts[0]], method='nearest')[0]:
+                       df.index.get_indexer([dts[-1]], method='nearest')[0]]
     else:
-        return df.iloc[df.index.get_indexer(dts, method='nearest')]
+        return df.iloc[df.index.get_indexer([dts], method='nearest')[0]:
+                       df.index.get_indexer([dts], method='nearest')[0] + 1]

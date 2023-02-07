@@ -36,6 +36,13 @@ def add_config(cd):
         cc.check()
         fcd = _read_conf()
         try:
+            getconf(cc.name)
+            raise FileExistsError("Config with name %s already exists" %
+                                  cc.name)
+        except AttributeError:
+            pass
+
+        try:
             fcd.append(cc.__dict__)
         except AttributeError:
             _blank_json()

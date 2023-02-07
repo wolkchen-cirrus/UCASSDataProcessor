@@ -3,14 +3,15 @@ import numpy as np
 
 class MatrixColumn(object):
     """
-    A class designed for data input protection of the main stratified variables, for example counts, time etc.
+    A class designed for data input protection of the main stratified
+    variables, for example counts, time etc.
 
-    :param name: The variable name for the data to be stored in, to be preceded by '_' in the calling space.
+    :param name: variable name, to be preceded by '_' in the calling space.
     :type name: str
-    :param c: The number of columns the data require, this is checked upon instantiation.
+    :param c: number of columns, this is checked upon instantiation.
     :type c: int
 
-    :return: The value assigned to the variable '_name' in the instantiating space.
+    :return: value assigned to the variable '_name' in the instantiating space.
     :rtype: np.matrix
     """
     def __init__(self, name, c):

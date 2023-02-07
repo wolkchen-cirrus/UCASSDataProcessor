@@ -5,14 +5,15 @@ Contains functions for importing raw data into the software.
 import os.path
 from UCASSData import ConfigHandler as ch
 import dateutil.parser as dup
-import MavLib as mav
-import Utilities as utils
+from ..ArchiveHandler import MavLib as mav
+from ..ArchiveHandler import Utilities as utils
 import pandas as pd
 import warnings
 import numpy as np
+from collections.abc import MutableMapping
 
 
-def get_ucass_calibration(serial_number):
+def get_ucass_calibration(serial_number: str) -> tuple:
     """
     A function to retrieve the calibration coefficients of a UCASS unit, given
     its serial number.
@@ -48,7 +49,7 @@ def get_ucass_calibration(serial_number):
         return gain, sl
 
 
-def sync_and_resample(df_list, period_str):
+def sync_and_resample(df_list: list, period_str: str) -> pd.DataFrame:
     """
     A function to synchronise a number of pandas data frames, then resample
     with a given time period.
@@ -69,7 +70,7 @@ def sync_and_resample(df_list, period_str):
         .resample(period_str).mean().bfill()
 
 
-def check_datetime_overlap(datetimes, tol_mins=30):
+def check_datetime_overlap(datetimes: list, tol_mins: int = 30):
     """
     Checks if any datetime difference exceeds a specified tolerance
 
@@ -92,7 +93,7 @@ def check_datetime_overlap(datetimes, tol_mins=30):
         return
 
 
-def infer_datetime(fn, dts):
+def infer_datetime(fn: str, dts: str):
     """
     Attempts to infer datetime string format using filename as anchor; pretty
     unstable tbh, try not to use this if possible
@@ -135,7 +136,7 @@ def fn_datetime(fn):
         return dt
 
 
-def to_string(s):
+def to_string(s) -> str:
     """
     Convert object to string
 
@@ -150,7 +151,7 @@ def to_string(s):
         return s.decode(errors="backslashreplace")
 
 
-def to_list(s):
+def to_list(s) -> list:
     """
     Converts to list for function inputs
 
@@ -165,7 +166,7 @@ def to_list(s):
         return [s]
 
 
-def df_to_matrix_dict(df):
+def df_to_matrix_dict(df: pd.DataFrame) -> dict:
     """
     Turns a pandas dataframe into a dict of matrix columns for input into
     import structs
@@ -183,7 +184,37 @@ def df_to_matrix_dict(df):
     return md
 
 
-def proc_iss(iss):
+def check_valid_cols(iss: dict, dkey: str = 'cols'):
+    """
+    Checks the cols in a given struct spec are valid. Valid cols are specified
+    in the 'valid_flags' config variable
+
+    :param iss: import struct spec
+    :type iss: dict
+    :param dkey: key where the col data is, default 'cols'
+    :type dkey: str
+    """
+    fields = []
+
+    def _finditem(obj, key):
+        if key in obj:
+            fields.append(obj[key])
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                item = _finditem(v, key)
+                if item is not None:
+                    return item
+
+    _finditem(iss, dkey)
+    fields = [i for s in fields for i in s if not isinstance(s, str)]
+    vf = ch.getval('valid_flags')
+    for flag in fields:
+        if flag not in vf:
+            ch.getconf('valid_flags')
+            raise ReferenceError('Data flag \'%s\' is not valid' % flag)
+
+
+def proc_iss(iss: dict) -> dict:
     """
     Main proc system for import struct specification; transfers data from files
     into a dictionary.
@@ -194,6 +225,7 @@ def proc_iss(iss):
     :returns: dictionary of data in matrices
     :rtype: dict
     """
+    check_valid_cols(iss)
 
     def _proc_cols(fn, cols, s_row, t):
         if not cols:
@@ -203,10 +235,12 @@ def proc_iss(iss):
             raise ValueError('File does not have a datetime index')
         if not s_row:
             s_row = 0
+        else:
+            s_row = int(s_row)
         d_out = pd.read_csv(fn, header=s_row, names=cols)
         d_out['Time'] = [infer_datetime(fn, x) for x in d_out['Time']]
-        d_out.set_index(d_out['Time'])
-        d_out.drop('Time')
+        d_out = d_out.set_index(d_out['Time'])
+        d_out = d_out.drop('Time', axis=1)
         return df_to_matrix_dict(d_out)
 
     def _proc_row(fn, proc_rows, t):
@@ -217,29 +251,59 @@ def proc_iss(iss):
         with open(fn) as f:
             d = f.readlines()
             for rn in proc_rows:
-                d_out[rn] = d[proc_rows[rn]]
+                pr = int(proc_rows[rn])
+                d_out[rn] = d[pr]
         return d_out
 
     data = {}
     for k in iss:
+        if k is np.nan:
+            print("No file of type %s for measurement" % iss[k]['type'])
+            continue
         lt = utils.infer_log_type(k)
-        if lt is '.json':
+        if lt == '.json':
             data[k] = mav.read_json_log(k, iss[k]['data'])
-        elif lt is '.log':
+        elif lt == '.log':
             warnings.warn('Attempting to parse FC .log file, go make a coffee '
                           'this will take a while :D')
             data[k] = mav.read_mavlink_log(k, iss[k]['data'])
-        elif lt is '.csv':
+        elif lt == '.csv':
             proc = {}
+            tp = iss[k]['type']
             for key in ['cols', 'srow', 'procrows']:
-                tp = iss[k]['type']
                 try:
                     proc[key] = iss[k]['data'][key]
                 except KeyError:
                     proc[key] = None
-            data[k] = {_proc_cols(k, proc['cols'], proc['srows'], tp) |
-                       _proc_row(k, proc['procrows'], tp)}
+            data[k] = _proc_cols(k, proc['cols'], proc['srow'], tp) | \
+                _proc_row(k, proc['procrows'], tp) | {'type': tp}
         else:
             raise ValueError("Invalid log file extension %s" % lt)
 
     return data
+
+
+def populate_data_objects(data: dict) -> list:
+    """
+    Populates the objects in UCASSData.ArchiveHandler.DataObjects with raw data
+
+    :param data: the data for one instance
+    :type data: dict
+
+    :return: list of "DataObject" objects
+    :rtype: list
+    """
+
+    def _flatten_dict(d: MutableMapping) -> MutableMapping:
+        items = []
+        for k, v in d.items():
+            if isinstance(v, MutableMapping):
+                items.extend(_flatten_dict(v).items())
+            else:
+                items.append((k, v))
+        return dict(items)
+
+    # Flatten data; last key is taken if multiple
+    data = _flatten_dict(data)
+
+    return []

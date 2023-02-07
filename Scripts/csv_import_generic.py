@@ -10,6 +10,8 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 
 from argparse import ArgumentParser
 import UCASSData.ArchiveHandler.Utilities as utils
+import UCASSData.ArchiveHandler.ImportLib as im
+import UCASSData.ConfigHandler as ch
 import json
 import os
 import pandas as pd
@@ -42,8 +44,41 @@ if __name__ == "__main__":
         ssp = args.struct_spec_path
     with open(ssp, 'r') as ssp:
         iss = json.load(ssp)
+    try:
+        ch.add_config({"name": "data_flags",
+                       "val": iss,
+                       "dtype": "dict",
+                       "unit": "n/a",
+                       "desc": "flags for data headers, read "
+                               "\"valid_flags\" config entry for details"
+                       })
+        print("Written iss to config:")
+        ch.getconf("data_flags")
+    except FileExistsError:
+        pass
+    # Sort iss for priority assignment
+    k = list(iss.keys())
+    k.sort(reverse=True)
+    iss = {i: iss[i] for i in k}
     # Infer types from import struct spec
     types = [iss[x]['type'] for x in list(iss.keys())]
     # Get frame of matching files to process
     fdf = utils.get_files(dts, types)
+    # Loop through files using index
+    data = {}
+    for dt in fdf.index:
+        # Reformat iss with fn keys
+        iss_n = {}
+        for k in iss:
+            # Get type from iss
+            t = iss[k]['type']
+            # Get filename from df
+            fn = fdf[t][dt]
+            # Rename the dict key
+            iss_n[fn] = iss[k]
+        # Save or add iss
+        ch.change_config_val("data_flags", iss_n)
+        # Get raw data from files
+        data[dt] = im.proc_iss(iss_n)
+
     pass

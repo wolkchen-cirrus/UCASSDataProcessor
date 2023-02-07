@@ -1,5 +1,5 @@
 {
-  "1": {"data": {"cols": ["Time", "T", "P", "RH"]}, "type": "Met"},
+  "1": {"data": {"cols": ["Time", "T", "Press", "RH"]}, "type": "Met"},
   "2": {"data": {"cols": ["Time", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "ToF1", "ToF3", "ToF5", "ToF7", "Period", "CSum", "Glitch", "LToF", "RejRat"], "srow":  "5", "procrows": {"bbs":  "3"}}, "type": "UCASS"},
   "3": {"data": {"ARSP": ["Airspeed"], "ATT": ["Roll", "Pitch", "Yaw"], "GPS": ["Lat", "Lng", "Alt", "Spd"], "BARO": ["Press"]}, "type": "FC Proc"}
 }

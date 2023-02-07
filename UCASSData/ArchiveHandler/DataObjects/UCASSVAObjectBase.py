@@ -45,19 +45,17 @@ class UCASSVAObjectBase(object):
     :param date_time: Date and time of measurement start
     :type date_time: dt.datetime
     """
-    def __init__(self, serial_number, bbs_adc, cali_gain, cali_sl,
-                 counts, mtof1, mtof3, mtof5, mtof7, period, csum,
-                 glitch, ltof, rejrat, time, data_length,
-                 description, date_time):
+    def __init__(self, date_time: dt.datetime, serial_number: str,
+                 bbs_adc: list, cali_gain: float, cali_sl: float,
+                 data_length: int, description: str,
 
-        self._description = None
+                 counts=None, mtof1=None, mtof3=None, mtof5=None,
+                 mtof7=None, period=None, csum=None, glitch=None, ltof=None,
+                 rejrat=None, time=None):
+
         self._date_time = None
-
         self._ucass_serial_number = None
         self._bin_boundaries_adc = None
-        self._cali_gain = None
-        self._cali_sl = None
-        self._data_length = None
 
         self._time = None
         self._counts = None
@@ -73,7 +71,8 @@ class UCASSVAObjectBase(object):
 
         self.description = description
         self.date_time = date_time
-        self._start_epoch_ms = (self.date_time - dt.datetime.utcfromtimestamp(0)).total_seconds() * 1000
+        self._start_epoch = (self.date_time - dt.datetime.utcfromtimestamp(0))\
+            .total_seconds()
 
         self.ucass_serial_number = serial_number
         self.bin_boundaries_adc = bbs_adc
@@ -112,38 +111,44 @@ class UCASSVAObjectBase(object):
         :return: DataFrame with time index column
         :rtype: pd.DataFrame
         """
-        param_list = [self.counts, self.mtof1, self.mtof3, self.mtof5, self.mtof7, self.period,
-                      self.csum, self.glitch, self.ltof, self.rejrat]
-        headers = ['Counts, 1', 'Counts, 2', 'Counts, 3', 'Counts, 4', 'Counts, 5', 'Counts, 6', 'Counts, 7',
-                   'Counts, 8', 'Counts, 9', 'Counts, 10', 'Counts, 11', 'Counts, 12', 'Counts, 13', 'Counts, 14',
-                   'Counts, 15', 'Counts, 16', 'Period (s)',
-                   'Mean ToF (us), 1', 'Mean ToF (us), 3', 'Mean ToF (us), 5', 'Mean ToF (us), 7',
-                   'Checksum', 'Glitch Counts', 'Long ToF Counts', 'Reject Ratio']
+        param_list = [self.counts, self.mtof1, self.mtof3, self.mtof5, 
+                      self.mtof7, self.period, self.csum, self.glitch, 
+                      self.ltof, self.rejrat]
+        headers = ['Counts, 1', 'Counts, 2', 'Counts, 3', 'Counts, 4', 
+                   'Counts, 5', 'Counts, 6', 'Counts, 7', 'Counts, 8', 
+                   'Counts, 9', 'Counts, 10', 'Counts, 11', 'Counts, 12', 
+                   'Counts, 13', 'Counts, 14', 'Counts, 15', 'Counts, 16', 
+                   'Period (s)', 'Mean ToF (us), 1', 'Mean ToF (us), 3', 
+                   'Mean ToF (us), 5', 'Mean ToF (us), 7', 'Checksum', 
+                   'Glitch Counts', 'Long ToF Counts', 'Reject Ratio']
         df = param_list[0]
         for i in range(len(param_list) - 1):
             df = np.concatenate((df, param_list[i + 1]), axis=1)
         df = pd.DataFrame(data=df, index=self.time, columns=headers)
         headers = df.columns.str.split(', ', expand=True).values
-        df.columns = pd.MultiIndex.from_tuples([('', x[0]) if pd.isnull(x[1]) else x for x in headers])
+        df.columns = pd.MultiIndex.from_tuples([('', x[0]) if pd.isnull(x[1]) 
+                                                else x for x in headers])
         return df
 
     @staticmethod
     def _check_row_length(val, row_length):
         """
-        A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+        A function to ensure a value has the required row length to be assigned
+        to a '_matrix_column' object.
 
         :param val: The data in a matrix column.
         :type val: np.matrix
         :param row_length: The required length of row.
         :type row_length: int
 
-        :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+        :raises ValueError: if the wrong lenth is measured
 
         :return: the assigned array, if the row length is correct.
         :rtype: np.matrix
         """
         if val.shape[0] != row_length:
-            raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+            raise ValueError('Assigned column %i is not specified length %i' 
+                             % (val.shape[0], row_length))
         return val
 
     @property
@@ -156,21 +161,9 @@ class UCASSVAObjectBase(object):
         if not isinstance(val, pd.DatetimeIndex):
             raise TypeError('Time must be pandas DatetimeIndex array')
         elif len(val) != self.data_length:
-            raise ValueError('Time must have the same array length as the matrix columns')
+            raise ValueError('Invalid row length')
         else:
             self._time = val
-
-    @property
-    def data_length(self):
-        """The numeric length of the columns in number of cells"""
-        return self._data_length
-
-    @data_length.setter
-    def data_length(self, val):
-        if isinstance(val, int):
-            self._data_length = val
-        else:
-            raise TypeError('Value must be in integer format')
 
     @property
     def bin_boundaries_adc(self):
@@ -186,24 +179,26 @@ class UCASSVAObjectBase(object):
 
     @property
     def ucass_serial_number(self):
-        """The serial number of the ucass in format UCASS-<version>-<batch>-<id>"""
+        """The serial number of the ucass in format 
+        UCASS-<version>-<batch>-<id>"""
         return self._ucass_serial_number
 
     @ucass_serial_number.setter
     def ucass_serial_number(self, val):
+        base_error = 'UCASS serial number must be formatted string ' \
+                     'UCASS-<version>-<batch>-<id>'
         if isinstance(val, str):
             split_val = val.split('-')
             try:
                 int(split_val[-1])
             except ValueError:
-                raise ValueError('UCASS serial number must be formatted string UCASS-<version>-<batch>-<id>\n'
-                                 '<id> is not int')
+                raise ValueError('%s\n<id> is not int' % base_error)
             if len(split_val) != 4:
-                raise ValueError('UCASS serial number must be formatted string UCASS-<version>-<batch>-<id>\n'
-                                 'String is not 4 part delimited with \'-\'')
+                raise ValueError('%s\nString is not 4 part delimited with -'
+                                 % base_error)
             elif split_val[0] != 'UCASS':
-                raise ValueError('UCASS serial number must be formatted string UCASS-<version>-<batch>-<id>\n'
-                                 'First part of string must be \'UCASS\'')
+                raise ValueError('%s\nFirst part of string must be \'UCASS\''
+                                 % base_error)
             else:
                 self._ucass_serial_number = val
         else:
@@ -245,44 +240,8 @@ class UCASSVAObjectBase(object):
             return self.ucass_serial_number.split('-')[1]
 
     @property
-    def cali_gain(self):
-        """Gain of UCASS unit from last calibration"""
-        return self._cali_gain
-
-    @cali_gain.setter
-    def cali_gain(self, val):
-        try:
-            self._cali_gain = float(val)
-        except ValueError:
-            raise TypeError('Assigned value must be convertible to a float')
-
-    @property
-    def cali_sl(self):
-        """Stray light of UCASS unit from last calibration"""
-        return self._cali_sl
-
-    @cali_sl.setter
-    def cali_sl(self, val):
-        try:
-            self._cali_sl = float(val)
-        except ValueError:
-            raise TypeError('Assigned value must be convertible to a float')
-
-    @property
-    def description(self):
-        """A string describing the data, with notes concerning acquisition"""
-        return self._description
-
-    @description.setter
-    def description(self, val):
-        if isinstance(val, str):
-            self._description = val
-        else:
-            raise TypeError('Value must be in string format')
-
-    @property
     def date_time(self):
-        """A python date_time variable to describe the time and date of the beginning of recording"""
+        """Date and time at start"""
         return self._date_time
 
     @date_time.setter
@@ -293,10 +252,10 @@ class UCASSVAObjectBase(object):
             raise TypeError('Value must be in python date_time format')
 
     @property
-    def start_epoch_ms(self):
+    def start_epoch(self):
         """Time of record start since epoch in milliseconds"""
-        return self._start_epoch_ms
+        return self._start_epoch
 
-    @start_epoch_ms.setter
-    def start_epoch_ms(self, val):
+    @start_epoch.setter
+    def start_epoch(self, val):
         raise PermissionError('Do not re-assign epoch')

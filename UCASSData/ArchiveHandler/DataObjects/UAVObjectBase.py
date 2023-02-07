@@ -6,7 +6,8 @@ import numpy as np
 
 class UAVObjectBase(object):
     """
-    Object to store data from the flight controller sensors during measurement period.
+    Object to store data from the flight controller sensors during measurement
+    period.
 
     :param data_length: The row length of the data
     :type data_length: int
@@ -29,12 +30,12 @@ class UAVObjectBase(object):
     :param asp_ms: Airspeed from pitot tube (m/s)
     :type asp_ms: np.matrix
     """
-    def __init__(self, data_length, date_time, time, press_hpa,
-                 long, lat, gps_alt_m,
-                 pitch_deg, roll_deg, yaw_deg,
-                 asp_ms):
+    def __init__(self, data_length: int, date_time: dt.datetime,
+                 time=None, press_hpa=None,
+                 long=None, lat=None, gps_alt_m=None,
+                 pitch_deg=None, roll_deg=None, yaw_deg=None,
+                 asp_ms=None):
 
-        self._data_length = None
         self._date_time = None
 
         self._time = None
@@ -90,20 +91,22 @@ class UAVObjectBase(object):
     @staticmethod
     def _check_row_length(val, row_length):
         """
-        A function to ensure a value has the required row length to be assigned to a '_matrix_column' object.
+        A function to ensure a value has the required row length to be assigned
+        to a '_matrix_column' object.
 
         :param val: The data in a matrix column.
         :type val: np.matrix
         :param row_length: The required length of row.
         :type row_length: int
 
-        :raises ValueError: if the length of the matrix column does not match the specified 'row_length'
+        :raises ValueError: if invalid length
 
         :return: the assigned array, if the row length is correct.
         :rtype: np.matrix
         """
         if val.shape[0] != row_length:
-            raise ValueError('Assigned column %i is not specified length %i' % (val.shape[0], row_length))
+            raise ValueError('Assigned column %i is not specified length %i'
+                             % (val.shape[0], row_length))
         return val
 
     @property
@@ -116,25 +119,14 @@ class UAVObjectBase(object):
         if not isinstance(val, pd.DatetimeIndex):
             raise TypeError('Time must be pandas DatetimeIndex array')
         elif len(val) != self.data_length:
-            raise ValueError('Time must have the same array length as the matrix columns')
+            raise ValueError('Invalid column length')
         else:
             self._time = val
 
     @property
-    def data_length(self):
-        """The numeric length of the columns in number of cells"""
-        return self._data_length
-
-    @data_length.setter
-    def data_length(self, val):
-        if isinstance(val, int):
-            self._data_length = val
-        else:
-            raise TypeError('Value must be in integer format')
-
-    @property
     def date_time(self):
-        """A python date_time variable to describe the time and date of the beginning of recording"""
+        """A python date_time variable to describe the time and date of the
+        beginning of recording"""
         return self._date_time
 
     @date_time.setter
