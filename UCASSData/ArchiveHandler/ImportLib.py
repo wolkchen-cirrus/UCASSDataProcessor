@@ -207,7 +207,7 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
 
     _finditem(iss, dkey)
     fields = [i for s in fields for i in s if not isinstance(s, str)]
-    vf = ch.getval('valid_flags')
+    vf = [x['name'] for x in ch.getval('valid_flags')]
     for flag in fields:
         if flag not in vf:
             ch.getconf('valid_flags')

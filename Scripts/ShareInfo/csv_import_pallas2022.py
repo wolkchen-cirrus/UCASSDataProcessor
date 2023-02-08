@@ -8,7 +8,7 @@ from argparse import ArgumentParser
 import UCASSData.ConfigHandler as ch
 import UCASSData.ArchiveHandler.ImportLib as im
 import UCASSData.ArchiveHandler.MavLib as MavLib
-from UCASSData.ArchiveHandler.DataObjects.METObjectBase import METObjectBase
+from UCASSData.ArchiveHandler.DataObjects.ImportObject import METObjectBase
 from UCASSData.ArchiveHandler.DataObjects.UAVObjectBase import UAVObjectBase
 from UCASSData.ArchiveHandler.DataObjects.UCASSVAObjectBase import UCASSVAObjectBase
 import UCASSData.ArchiveHandler.Utilities as utils

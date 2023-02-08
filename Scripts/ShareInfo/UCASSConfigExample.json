@@ -26,44 +26,196 @@
     {
         "name": "valid_flags",
         "val": [
-            "Time",
-            "C1",
-            "C2",
-            "C3",
-            "C4",
-            "C5",
-            "C6",
-            "C7",
-            "C8",
-            "C9",
-            "C10",
-            "C11",
-            "C12",
-            "C13",
-            "C14",
-            "C15",
-            "C16",
-            "ToF1",
-            "ToF3",
-            "ToF5",
-            "ToF7",
-            "Period",
-            "CSum",
-            "Glitch",
-            "LToF",
-            "RejRat",
-            "Airspeed",
-            "Roll",
-            "Pitch",
-            "Yaw",
-            "Lat",
-            "Lng",
-            "Alt",
-            "Spd",
-            "Press",
-            "T",
-            "RH",
-            "bbs"
+            {
+                "name": "Time",
+                "unit": "datetime",
+                "desc": "date-time stamp"
+            },
+            {
+                "name": "C1",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 1"
+            },
+            {
+                "name": "C2",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 2"
+            },
+            {
+                "name": "C3",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 3"
+            },
+            {
+                "name": "C4",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 4"
+            },
+            {
+                "name": "C5",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 5"
+            },
+            {
+                "name": "C6",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 6"
+            },
+            {
+                "name": "C7",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 7"
+            },
+            {
+                "name": "C8",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 8"
+            },
+            {
+                "name": "C9",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 9"
+            },
+            {
+                "name": "C10",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 10"
+            },
+            {
+                "name": "C11",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 11"
+            },
+            {
+                "name": "C12",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 12"
+            },
+            {
+                "name": "C13",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 13"
+            },
+            {
+                "name": "C14",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 14"
+            },
+            {
+                "name": "C15",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 15"
+            },
+            {
+                "name": "C16",
+                "unit": "12 bit integer",
+                "desc": "number of particles in bin 16"
+            },
+            {
+                "name": "ToF1",
+                "unit": "us",
+                "desc": "time of flight bin 1"
+            },
+            {
+                "name": "ToF3",
+                "unit": "us",
+                "desc": "time of flight bin 3"
+            },
+            {
+                "name": "ToF5",
+                "unit": "us",
+                "desc": "time of flight bin 5"
+            },
+            {
+                "name": "ToF7",
+                "unit": "us",
+                "desc": "time of flight bin 7"
+            },
+            {
+                "name": "Period",
+                "unit": "s",
+                "desc": "actual sample period"
+            },
+            {
+                "name": "CSum",
+                "unit": "8 bit integer",
+                "desc": "checksum; total counts"
+            },
+            {
+                "name": "Glitch",
+                "unit": "8 bit integer",
+                "desc": "number of glitch (short ToF) rejects"
+            },
+            {
+                "name": "LToF",
+                "unit": "8 bit integer",
+                "desc": "number of long time of flight rejects"
+            },
+            {
+                "name": "RejRat",
+                "unit": "8 bit integer",
+                "desc": "number of particle rejects"
+            },
+            {
+                "name": "Airspeed",
+                "unit": "m/s",
+                "desc": "resultant airspeed"
+            },
+            {
+                "name": "Roll",
+                "unit": "degrees",
+                "desc": "ucass roll angle"
+            },
+            {
+                "name": "Pitch",
+                "unit": "degrees",
+                "desc": "ucass pitch angle"
+            },
+            {
+                "name": "Yaw",
+                "unit": "degrees",
+                "desc": "ucass yaw angle"
+            },
+            {
+                "name": "Lat",
+                "unit": "dec",
+                "desc": "decimal latitude"
+            },
+            {
+                "name": "Lng",
+                "unit": "dec",
+                "desc": "decimal longitude"
+            },
+            {
+                "name": "Alt",
+                "unit": "m",
+                "desc": "altitude"
+            },
+            {
+                "name": "Spd",
+                "unit": "m/s",
+                "desc": "groundspeed of ucass"
+            },
+            {
+                "name": "Press",
+                "unit": "hpa",
+                "desc": "absolute barometric pressure"
+            },
+            {
+                "name": "Temp",
+                "unit": "c",
+                "desc": "air temperature"
+            },
+            {
+                "name": "RH",
+                "unit": "%",
+                "desc": "relative humidity"
+            },
+            {
+                "name": "bbs",
+                "unit": "12 bit integer",
+                "desc": "list of bin boundaries (adc)"
+            }
         ],
         "dtype": "list",
         "unit": "n/a",
@@ -160,18 +312,5 @@
         "dtype": "dict",
         "unit": "n/a",
         "desc": "flags for data headers, read \"valid_flags\" config entry for details"
-    },
-    {
-        "name": "type_object_map",
-        "val": {
-            "Met": "METObjectBase",
-            "UCASS": "UCASSVAObjectBase",
-            "FC Proc": "UAVObjectBase",
-            "FC": "UAVObjectBase",
-            "Meta": "MetaDataObjectBase"
-        },
-        "dtype": "dict",
-        "unit": "n/a",
-        "desc": "maps file types to objects in UCASSData.ArchiveHandler.DataObjects"
     }
 ]

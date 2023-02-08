@@ -1,43 +1,39 @@
-import numpy as np
+from numpy import matrix as mt
+import UCASSData.ConfigHandler as ch
 
 
 class MatrixColumn(object):
     """
-    A class designed for data input protection of the main stratified
-    variables, for example counts, time etc.
-
-    :param name: variable name, to be preceded by '_' in the calling space.
-    :type name: str
-    :param c: number of columns, this is checked upon instantiation.
-    :type c: int
-
-    :return: value assigned to the variable '_name' in the instantiating space.
-    :rtype: np.matrix
+    Defines metadata for matrix column
     """
-    def __init__(self, name, c):
-        self.name = "_" + str(name)
-        self._c = None
-        self.c = c
+    def __init__(self, name: str, val: mt, dlen: int):
+        self.name: str = name
+        self.val: mt = val
+        field = self._search_flags(self.name)
+        self.unit: str = field['unit']
+        self.desc: str = field['desc']
+        self.dlen: int = dlen
+        self._self_check()
 
-    def __get__(self, obj, cls=None):
-        return getattr(obj, self.name)
-
-    def __set__(self, obj, value):
-        if isinstance(value, np.matrix):
-            if self.c == value.shape[1]:
-                setattr(obj, self.name, value)
-            else:
-                raise ValueError('Value must be size x, %i' % self.c)
+    def _self_check(self):
+        if not isinstance(self.val, mt):
+            raise TypeError
+        elif self.val.shape[1] != 1:
+            raise ValueError("only 1 column")
+        elif len(self) != self.dlen:
+            raise ValueError("Length must be %i" % self.dlen)
         else:
-            raise TypeError('Value must be of type: numpy matrix')
+            for k, v in self.__dict__.items():
+                if v is None:
+                    raise AttributeError('%s is not set' % k)
 
-    @property
-    def c(self):
-        return self._c
+    def __len__(self) -> int:
+        return self.val.shape[0]
 
-    @c.setter
-    def c(self, val):
-        if isinstance(val, int):
-            self._c = val
+    @staticmethod
+    def _search_flags(flag: str) -> dict:
+        field = [x for x in ch.getval('valid_flags') if x['name'] == flag]
+        if len(field) != 1:
+            raise FileNotFoundError
         else:
-            raise TypeError('Value must be of type: int')
+            return field[0]
