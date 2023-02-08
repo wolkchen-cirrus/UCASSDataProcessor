@@ -1,13 +1,13 @@
 """
 Contains functions for importing raw data into the software. 
 """
-import importlib
 import os.path
 from UCASSData import ConfigHandler as ch
+from collections.abc import MutableMapping
 import dateutil.parser as dup
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
-import importlib as imp
+import datetime as dt
 import pandas as pd
 import warnings
 import numpy as np
@@ -107,33 +107,32 @@ def infer_datetime(fn: str, dts: str):
     :rtype: dt.datetime
     """
     sdt = fn_datetime(fn)
-    dt = dup.parse(dts)
-    if (sdt-dt).total_seconds()/(60.0**2*24) > 1:
-        dt = dup.parse(dts, dayfirst=True)
-        if (sdt - dt).total_seconds() / (60.0 ** 2 * 24) > 1:
+    dti = dup.parse(dts)
+    if (sdt-dti).total_seconds()/(60.0**2*24) > 1:
+        dti = dup.parse(dts, dayfirst=True)
+        if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
             raise ValueError("Could not infer dt format, revise input")
-    return dt
+    return dti
 
 
-def fn_datetime(fn):
+def fn_datetime(fn: list or str) -> dt.datetime or pd.Timestamp:
     """
     Retrieves datetime from filename in standard format
 
     :param fn: filename (abs path ok)
-    :type fn: list/str
 
     :return: datetime of file as list or dt if dt specified
-    :rtype: dt.datetime
     """
     fn = to_list(fn)
-    dt = []
+    dti = []
     for f in fn:
-        dt.append(pd.to_datetime('_'.join([f.split('_')[-3], f.split('_')[-2]])
-                                 , format='%Y%m%d_%H%M%S%f'))
-    if len(dt) == 1:
-        return dt[0]
+        dti.append(pd.to_datetime('_'.join([f.split('_')[-3],
+                                            f.split('_')[-2]]),
+                                  format='%Y%m%d_%H%M%S%f'))
+    if len(dti) == 1:
+        return dti[0]
     else:
-        return dt
+        return dti
 
 
 def to_string(s) -> str:
@@ -143,7 +142,6 @@ def to_string(s) -> str:
     :param s: input string
 
     :return: converted object
-    :rtype: str
     """
     if isinstance(s, str):
         return s
@@ -158,7 +156,6 @@ def to_list(s) -> list:
     :param s: string or list
 
     :return: ensured list
-    :rtype: list
     """
     if isinstance(s, list):
         return s
@@ -172,10 +169,8 @@ def df_to_matrix_dict(df: pd.DataFrame) -> dict:
     import structs
 
     :param df: dataframe
-    :type df: pd.DataFrame
 
     :returns: dictionary with standard type keys
-    :rtype: dict
     """
     md = df.to_dict(orient='list')
     for key in md:
@@ -190,9 +185,7 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
     in the 'valid_flags' config variable
 
     :param iss: import struct spec
-    :type iss: dict
     :param dkey: key where the col data is, default 'cols'
-    :type dkey: str
     """
     fields = []
 
@@ -220,10 +213,8 @@ def proc_iss(iss: dict) -> dict:
     into a dictionary.
 
     :param iss: import struct specification
-    :type iss: dict
 
     :returns: dictionary of data in matrices
-    :rtype: dict
     """
     check_valid_cols(iss)
 
@@ -283,22 +274,26 @@ def proc_iss(iss: dict) -> dict:
     return data
 
 
-def populate_data_objects(data: dict) -> list:
+def serial_number_from_fn(fn: str) -> str:
+    fn = os.path.split(fn)[1]
+    fn = fn.split("_")
+    sn = [x for x in fn if "UCASS" in x]
+    if len(sn) != 1:
+        raise LookupError
+    else:
+        return sn[0]
+
+
+def flatten_dict(d: MutableMapping) -> MutableMapping:
     """
-    Populates the objects in UCASSData.ArchiveHandler.DataObjects with raw data
+    flattens dictionary recursively
 
-    :param data: the data for one instance
-    :type data: dict
-
-    :return: list of "DataObject" objects
-    :rtype: list
+    :param d: dict to flatten
     """
-
-    tom = ch.getval("type_object_map")
-    tp = data['type']
-    module = importlib.import_module('UCASSData.ArchiveHandler.DataObjects.' +
-                                     tom[tp])
-    data_obj = getattr(module, tom[tp])
-
-
-    return []
+    items = []
+    for k, v in d.items():
+        if isinstance(v, MutableMapping):
+            items.extend(flatten_dict(v).items())
+        else:
+            items.append((k, v))
+    return dict(items)

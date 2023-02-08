@@ -11,5 +11,7 @@ class ImportObject(DataStruct):
         for k, v in dat.items():
             if isinstance(v, mt):
                 self.col_dict[k] = MatrixColumn(k, v, len(self))
+            else:
+                print("%s cannot be assigned to matrix column" % k)
 
         self._self_check()

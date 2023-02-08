@@ -1,43 +1,44 @@
 import datetime as dt
 import os.path
+import UCASSData.ArchiveHandler.ImportLib as im
 
 
-class UCASSVAObjectBase(object):
+class MetaDataObject(object):
     """
-    Object to store data from the UCASS during measurement period.
+    Object to store meta data during measurement period.
 
     :param serial_number: UCASS Serial Number
-    :type serial_number: str
-    :param bbs_adc: UCASS bins as a list of ints (ADC vals)
-    :type bbs_adc: list
-    :param cali_gain: UCASS calibration gain (gradient)
-    :type cali_gain: float
-    :param cali_sl: UCASS calibration stray light (offset)
-    :type cali_sl: float
+    :param bbs: UCASS bins as a list of ints (ADC vals)
+    :param cali_coeffs: UCASS calibration coefficients in order
     :param description: Description of data
-    :type description: str
     :param date_time: Date and time of measurement start
-    :type date_time: dt.datetime
     """
     def __init__(self, date_time: dt.datetime = None,
-                 serial_number: str = None, bbs_adc: list = None,
-                 cali_gain: float = None, cali_sl: float = None,
+                 serial_number: str = None, bbs: list = None,
+                 cali_coeffs: tuple = None,
                  description: str = None, file_list: list = None):
 
         self._date_time = None
         self._ucass_serial_number = None
         self._file_list = None
 
-        self.description = description
+        if description is None:
+            self.description = input("Description of data: ")
+        else:
+            self.description = description
+
         self.date_time = date_time
         self._start_epoch = (self.date_time - dt.datetime.utcfromtimestamp(0))\
             .total_seconds()
 
         self.file_list = file_list
         self.ucass_serial_number = serial_number
-        self.bin_boundaries_adc = bbs_adc
-        self.cali_gain = cali_gain
-        self.cali_sl = cali_sl
+        self.bin_boundaries_adc = bbs
+        if cali_coeffs is None:
+            self.cali_coeffs = \
+                im.get_ucass_calibration(self.ucass_serial_number)
+        else:
+            self.cali_coeffs = cali_coeffs
 
     @property
     def file_list(self):

@@ -11,6 +11,9 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 from argparse import ArgumentParser
 import UCASSData.ArchiveHandler.Utilities as utils
 import UCASSData.ArchiveHandler.ImportLib as im
+from UCASSData.ArchiveHandler.DataObjects.ImportObject import ImportObject
+from UCASSData.ArchiveHandler.DataObjects.MetaDataObject import MetaDataObject
+import inspect
 import UCASSData.ConfigHandler as ch
 import json
 import os
@@ -27,6 +30,7 @@ parser.add_argument("dt", metavar="DATE",
 args = parser.parse_args()
 
 if __name__ == "__main__":
+
     # Get datetime from input strings
     if len(args.dt.split(',')) == 1:
         dts = pd.to_datetime(args.dt, format='%Y-%m-%d %H:%M:%S')
@@ -37,6 +41,7 @@ if __name__ == "__main__":
                               format='%Y-%m-%d %H:%M:%S'))
     else:
         raise ValueError('Invalid dt input')
+
     # Get import struct spec
     if not args.struct_spec_path:
         ssp = os.path.join(os.getcwd(), 'ImportStructSpec.json')
@@ -62,11 +67,14 @@ if __name__ == "__main__":
     iss = {i: iss[i] for i in k}
     # Infer types from import struct spec
     types = [iss[x]['type'] for x in list(iss.keys())]
+
     # Get frame of matching files to process
     fdf = utils.get_files(dts, types)
+
     # Loop through files using index
     data = {}
     for dt in fdf.index:
+
         # Reformat iss with fn keys
         iss_n = {}
         for k in iss:
@@ -80,5 +88,28 @@ if __name__ == "__main__":
         ch.change_config_val("data_flags", iss_n)
         # Get raw data from files
         data[dt] = im.proc_iss(iss_n)
+
+        # Sort through and retrieve meta data flags
+        meta_flags = inspect.getfullargspec(MetaDataObject).args
+        meta_data = [(x, data[dt].pop(x, None)) for x in meta_flags]
+        meta_data = dict([x for x in meta_data if x[1] is not None])
+        meta_data['date_time'] = dt
+        meta_data['file_list'] = list(data.keys())
+        for fn in data:
+            try:
+                meta_data['serial_number'] = im.serial_number_from_fn(fn)
+                break
+            except LookupError:
+                pass
+        if 'serial_number' in meta_data:
+            pass
+        else:
+            raise RuntimeError("A UCASS file must exist between datetimes")
+        # Assign meta data object
+        md_obj = MetaDataObject(**meta_data)
+
+        # Next, assign the column data to the importer object
+        data[dt] = im.flatten_dict(data[dt])
+        i_obj = ImportObject(data[dt])
 
     pass

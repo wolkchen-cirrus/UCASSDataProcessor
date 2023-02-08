@@ -8,10 +8,10 @@ class DataStruct(object):
     """
     Template data structure
     """
-    def __init__(self):
+    def __init__(self, dat: dict):
         for cls in reversed(self.__class__.mro()):
             if hasattr(cls, 'init'):
-                cls.init(self)
+                cls.init(self, dat)
 
     def init(self, dat: dict):
         self.col_dict: dict = {}
@@ -30,16 +30,14 @@ class DataStruct(object):
                 if not isinstance(v, MatrixColumn):
                     raise TypeError
                 elif k not in [x['name'] for x in ch.getval('valid_flags')]:
-                    raise FileNotFoundError
+                    raise LookupError
 
-    def df(self):
+    def df(self) -> pd.DataFrame:
         """Returns matrix columns as a dataframe"""
         if not self.Time:
             raise AttributeError("Time not assigned to instance")
+        self._self_check()
         df = {}
-        for k, v in self.__dict__.items():
-            if len(v) != len(self):
-                pass
-            else:
-                df[k] = v
+        for k, v in self.col_dict.items():
+            df[k] = v
         return pd.DataFrame.from_dict(df).set_index('Time', drop=True)

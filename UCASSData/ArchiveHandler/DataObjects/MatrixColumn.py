@@ -34,6 +34,6 @@ class MatrixColumn(object):
     def _search_flags(flag: str) -> dict:
         field = [x for x in ch.getval('valid_flags') if x['name'] == flag]
         if len(field) != 1:
-            raise FileNotFoundError
+            raise LookupError
         else:
             return field[0]

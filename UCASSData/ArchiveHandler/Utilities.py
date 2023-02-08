@@ -71,7 +71,7 @@ def match_raw_files(match_types, files=None, default_type='UCASS', tol_min=20):
         # mfn is a list of the matched file names
         mfn = []
         # dt0 is the datetime; in_file is the input file
-        for dt0, in_file in zip(dt0s, files):
+        for dt0 in dt0s:
             # List of potential matches
             tm = os.listdir(get_log_path(None, mt))
             # Get match dts
