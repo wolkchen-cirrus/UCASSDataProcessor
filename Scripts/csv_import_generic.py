@@ -113,10 +113,7 @@ if __name__ == "__main__":
         md_obj = MetaDataObject(**meta_data)
 
         # Next, assign the column data to the importer object
-        # data[dt] = [im.matrix_dict_to_df(data[dt][f]) for f in data[dt]]
-        # df = im.sync_and_resample(data[dt], "0.1S")
-        # data[dt] = im.df_to_matrix_dict(df)
-        # data[dt]['date_time'] = dt
-        i_obj = ImportObject(data[dt])
+        df = im.sync_and_resample([data[dt][x].df() for x in data[dt]], "0.1S")
+        i_obj = ImportObject(im.df_to_dict(df) | {"date_time": dt})
 
     pass
