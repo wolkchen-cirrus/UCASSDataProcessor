@@ -7,6 +7,7 @@ from collections.abc import MutableMapping
 import dateutil.parser as dup
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
+from ..ArchiveHandler.DataObjects.MatrixDict import MatrixDict
 import datetime as dt
 import pandas as pd
 import warnings
@@ -163,7 +164,7 @@ def to_list(s) -> list:
         return [s]
 
 
-def df_to_matrix_dict(df: pd.DataFrame) -> dict:
+def df_to_dict(df: pd.DataFrame) -> dict:
     """
     Turns a pandas dataframe into a dict of matrix columns for input into
     import structs
@@ -205,6 +206,7 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
         if flag not in vf:
             ch.getconf('valid_flags')
             raise ReferenceError('Data flag \'%s\' is not valid' % flag)
+    print("All flags valid")
 
 
 def proc_iss(iss: dict) -> dict:
@@ -216,6 +218,7 @@ def proc_iss(iss: dict) -> dict:
 
     :returns: dictionary of data in matrices
     """
+    print("Processing data specified by import struct .json")
     check_valid_cols(iss)
 
     def _proc_cols(fn, cols, s_row, t):
@@ -232,7 +235,7 @@ def proc_iss(iss: dict) -> dict:
         d_out['Time'] = [infer_datetime(fn, x) for x in d_out['Time']]
         d_out = d_out.set_index(d_out['Time'])
         d_out = d_out.drop('Time', axis=1)
-        return df_to_matrix_dict(d_out)
+        return df_to_dict(d_out)
 
     def _proc_row(fn, proc_rows, t):
         if not proc_rows:
@@ -243,7 +246,7 @@ def proc_iss(iss: dict) -> dict:
             d = f.readlines()
             for rn in proc_rows:
                 pr = int(proc_rows[rn])
-                d_out[rn] = d[pr]
+                d_out[rn] = d[pr].split(',')
         return d_out
 
     data = {}
@@ -251,13 +254,18 @@ def proc_iss(iss: dict) -> dict:
         if k is np.nan:
             print("No file of type %s for measurement" % iss[k]['type'])
             continue
+        else:
+            print("Processing file %s" % k)
+            print(iss[k]['data'])
         lt = utils.infer_log_type(k)
         if lt == '.json':
             data[k] = mav.read_json_log(k, iss[k]['data'])
+            data[k]['type'] = iss[k]['type']
         elif lt == '.log':
             warnings.warn('Attempting to parse FC .log file, go make a coffee '
                           'this will take a while :D')
             data[k] = mav.read_mavlink_log(k, iss[k]['data'])
+            data[k]['type'] = iss[k]['type']
         elif lt == '.csv':
             proc = {}
             tp = iss[k]['type']
@@ -270,6 +278,7 @@ def proc_iss(iss: dict) -> dict:
                 _proc_row(k, proc['procrows'], tp) | {'type': tp}
         else:
             raise ValueError("Invalid log file extension %s" % lt)
+        data[k] = MatrixDict(data[k] | {"date_time": fn_datetime(k)})
 
     return data
 

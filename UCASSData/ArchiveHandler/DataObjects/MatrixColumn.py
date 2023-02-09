@@ -30,6 +30,9 @@ class MatrixColumn(object):
     def __len__(self) -> int:
         return self.val.shape[0]
 
+    def __get__(self) -> mt:
+        return self.val
+
     @staticmethod
     def _search_flags(flag: str) -> dict:
         field = [x for x in ch.getval('valid_flags') if x['name'] == flag]

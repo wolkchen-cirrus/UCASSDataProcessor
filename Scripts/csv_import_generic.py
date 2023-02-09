@@ -91,11 +91,15 @@ if __name__ == "__main__":
 
         # Sort through and retrieve meta data flags
         meta_flags = inspect.getfullargspec(MetaDataObject).args
-        meta_data = [(x, data[dt].pop(x, None)) for x in meta_flags]
+        meta_data = [(x, data[dt][f].__get__()[x]) for x in meta_flags
+                     for f in data[dt]
+                     if x in data[dt][f].__get__()]
         meta_data = dict([x for x in meta_data if x[1] is not None])
         meta_data['date_time'] = dt
-        meta_data['file_list'] = list(data.keys())
-        for fn in data:
+        meta_data['file_list'] = [utils.get_log_path
+                                  (x, data[dt][x].__get__()['type'])
+                                  for x in list(data[dt].keys())]
+        for fn in data[dt]:
             try:
                 meta_data['serial_number'] = im.serial_number_from_fn(fn)
                 break
@@ -104,12 +108,15 @@ if __name__ == "__main__":
         if 'serial_number' in meta_data:
             pass
         else:
-            raise RuntimeError("A UCASS file must exist between datetimes")
+            raise ValueError("A UCASS file must exist between datetimes")
         # Assign meta data object
         md_obj = MetaDataObject(**meta_data)
 
         # Next, assign the column data to the importer object
-        data[dt] = im.flatten_dict(data[dt])
+        # data[dt] = [im.matrix_dict_to_df(data[dt][f]) for f in data[dt]]
+        # df = im.sync_and_resample(data[dt], "0.1S")
+        # data[dt] = im.df_to_matrix_dict(df)
+        # data[dt]['date_time'] = dt
         i_obj = ImportObject(data[dt])
 
     pass

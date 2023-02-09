@@ -1,5 +1,6 @@
 import datetime as dt
 import pandas as pd
+import numpy as np
 from .MatrixColumn import MatrixColumn
 import UCASSData.ConfigHandler as ch
 
@@ -34,10 +35,8 @@ class DataStruct(object):
 
     def df(self) -> pd.DataFrame:
         """Returns matrix columns as a dataframe"""
-        if not self.Time:
-            raise AttributeError("Time not assigned to instance")
         self._self_check()
-        df = {}
-        for k, v in self.col_dict.items():
-            df[k] = v
-        return pd.DataFrame.from_dict(df).set_index('Time', drop=True)
+        md = dict([(k, np.squeeze(np.array(v.__get__())))
+                   for k, v in self.col_dict.items()])
+        md = md | {"Time": self.Time}
+        return pd.DataFrame.from_dict(md).set_index('Time', drop=True)

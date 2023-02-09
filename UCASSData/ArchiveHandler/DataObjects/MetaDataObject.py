@@ -35,8 +35,10 @@ class MetaDataObject(object):
         self.ucass_serial_number = serial_number
         self.bin_boundaries_adc = bbs
         if cali_coeffs is None:
+            print("No calibration specifed, looking up from serial number")
             self.cali_coeffs = \
                 im.get_ucass_calibration(self.ucass_serial_number)
+            print("Calibration found for %s" % self.ucass_serial_number)
         else:
             self.cali_coeffs = cali_coeffs
 
@@ -47,10 +49,13 @@ class MetaDataObject(object):
 
     @file_list.setter
     def file_list(self, val):
+        fl = []
         for v in val:
             if not os.path.exists(v):
                 raise FileNotFoundError("specify abs paths")
-        self._file_list = val
+            else:
+                fl.append(os.path.split(v)[-1])
+        self._file_list = fl
 
     @property
     def bin_boundaries_adc(self):
