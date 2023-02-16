@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
 from ...ArchiveHandler import ureg
@@ -46,6 +47,37 @@ class MatrixDict(DataStruct):
         print("Self check not implemented for MatrixDict")
         pass
 
+    def __sync2(self, other) -> dict:
+        df = pd.merge(self.df(), other.df(), how='outer', left_index=True,
+                      right_index=True, suffixes=(None, '_%%SUFFIX%%'))
+        df = df[df.columns.drop(list(df.filter(regex='%%SUFFIX%%')))]
+        dd = dict([(k, np.matrix(v).T)
+                   for k, v in df.to_dict(orient='list').items()])
+        dd['Time'] = df.index
+        return dd
+
     def __get__(self) -> dict:
         """return the dict plus non col values combined"""
         return self.col_dict | self.non_col | {"Time": self.Time}
+
+    def __iadd__(self, other):
+        """append matrix dicts"""
+        if not isinstance(other, MatrixDict):
+            raise TypeError
+        self.non_col = self.non_col | other.non_col
+        dd = self.__sync2(other)
+        self.Time = dd["Time"]
+        dd.pop("Time", None)
+        dd = dict([(k, MatrixColumn(k, v, len(self))) for k, v in dd.items()])
+        self.col_dict = dd
+        return self
+
+    def __add__(self, other):
+        """add matrix dicts"""
+        if not isinstance(other, MatrixDict):
+            raise TypeError
+        non_col = self.non_col | other.non_col
+        dd = self.__sync2(other)
+        dd = dict([(k, MatrixColumn(k, v, len(dd["Time"])))
+                   for k, v in dd.items()])
+        return MatrixDict(non_col | dd)

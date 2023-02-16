@@ -5,14 +5,13 @@ import os.path
 from UCASSData import ConfigHandler as ch
 from collections.abc import MutableMapping
 import dateutil.parser as dup
-from ..ArchiveHandler import MavLib as mav
-from ..ArchiveHandler import Utilities as utils
-from ..ArchiveHandler.DataObjects.MatrixDict import MatrixDict
-from ..ArchiveHandler import ureg
 import datetime as dt
 import pandas as pd
 import warnings
 import numpy as np
+from ..ArchiveHandler import MavLib as mav
+from ..ArchiveHandler import Utilities as utils
+from ..ArchiveHandler.DataObjects.MatrixDict import MatrixDict
 
 
 def get_ucass_calibration(serial_number: str) -> tuple:

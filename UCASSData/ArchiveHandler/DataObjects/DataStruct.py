@@ -33,10 +33,20 @@ class DataStruct(object):
                 elif k not in [x['name'] for x in ch.getval('valid_flags')]:
                     raise LookupError
 
-    def df(self) -> pd.DataFrame:
+    def df(self, period=None) -> pd.DataFrame:
         """Returns matrix columns as a dataframe"""
         self._self_check()
         md = dict([(k, np.squeeze(np.array(v.__get__())))
                    for k, v in self.col_dict.items()])
         md = md | {"Time": self.Time}
-        return pd.DataFrame.from_dict(md).set_index('Time', drop=True)
+        if period:
+            return pd.DataFrame.from_dict(md).set_index('Time', drop=True)\
+                .resample(period).mean().bfill()
+        else:
+            return pd.DataFrame.from_dict(md).set_index('Time', drop=True)
+
+    def __repr__(self):
+        return f'DataStruct({len(self)}, {len(self.col_dict)})'
+
+    def __bool__(self):
+        return bool(self.col_dict)
