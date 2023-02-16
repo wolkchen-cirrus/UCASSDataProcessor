@@ -64,7 +64,7 @@ def sync_and_resample(df_list: list, period_str: str,
     :return: The synchronised and resampled data frame.
     """
     df = df_list[0]
-    if keep_one is True:
+    if keep_one is False:
         suffixes = ('_x', '_y')
     else:
         suffixes = (None, '_%%SUFFIX%%')
@@ -239,7 +239,8 @@ def proc_iss(iss: dict) -> dict:
             s_row = 0
         else:
             s_row = int(s_row)
-        d_out = pd.read_csv(fn, header=s_row, names=cols)
+        names = [x[0] if isinstance(x, list) else x for x in cols]
+        d_out = pd.read_csv(fn, header=s_row, names=names)
         d_out['Time'] = [infer_datetime(fn, x) for x in d_out['Time']]
         d_out = d_out.set_index(d_out['Time'])
         d_out = d_out.drop('Time', axis=1)
@@ -268,12 +269,18 @@ def proc_iss(iss: dict) -> dict:
             print(iss[k]['data'])
         lt = utils.infer_log_type(k)
         if lt == '.json':
-            data[k] = mav.read_json_log(k, iss[k]['data'])
+            messages = dict([(k, [i[0] if isinstance(i, list)
+                                  else i for i in v])
+                             for k, v in iss[k]['data'].items()])
+            data[k] = mav.read_json_log(k, messages)
             data[k]['type'] = iss[k]['type']
         elif lt == '.log':
             warnings.warn('Attempting to parse FC .log file, go make a coffee '
                           'this will take a while :D')
-            data[k] = mav.read_mavlink_log(k, iss[k]['data'])
+            messages = dict([(k, [i[0] if isinstance(i, list)
+                                  else i for i in v])
+                             for k, v in iss[k]['data'].items()])
+            data[k] = mav.read_mavlink_log(k, messages)
             data[k]['type'] = iss[k]['type']
         elif lt == '.csv':
             proc = {}
@@ -308,8 +315,8 @@ def make_unit_spec(iss: dict) -> dict:
 
     _finditem(iss, 'data')
     fields = [s[i] for s in fields for i in s]
-    c = [i for s in fields for i in s if isinstance(i, list)]
-    r = [[j, k[1]] for j, k in [i for s in [list(x.items()) for x in fields
+    c = [tuple(i) for s in fields for i in s if isinstance(i, list)]
+    r = [(j, k[1]) for j, k in [i for s in [list(x.items()) for x in fields
                                             if isinstance(x, dict)]
                                 for i in s if isinstance(i[1], list)]]
     return dict(c+r)

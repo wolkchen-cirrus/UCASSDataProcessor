@@ -9,12 +9,12 @@ class DataStruct(object):
     """
     Template data structure
     """
-    def __init__(self, dat: dict):
+    def __init__(self, dat: dict, unit_spec: dict = None):
         for cls in reversed(self.__class__.mro()):
             if hasattr(cls, 'init'):
-                cls.init(self, dat)
+                cls.init(self, dat, unit_spec=unit_spec)
 
-    def init(self, dat: dict):
+    def init(self, dat: dict, unit_spec: dict = None):
         self.col_dict: dict = {}
         self.date_time: dt.datetime = dat['date_time']
         self.Time: pd.DatetimeIndex = dat['Time']

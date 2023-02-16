@@ -30,10 +30,17 @@ class MatrixDict(DataStruct):
 
     def __convert_units(self, tag: str, val: np.matrix):
         if tag not in self.__unit_spec:
+            print("%s has no unit to convert" % tag)
+            return val
+        elif self.__unit_spec[tag] == self.__out_unit[tag]:
+            print("%s is already at correct unit" % tag)
             return val
         else:
-            return (val * ureg(self.__unit_spec[tag]))\
+            print("converting %s from %s to %s" %
+                  (tag, self.__unit_spec[tag], self.__out_unit[tag]))
+            val = (val * ureg(self.__unit_spec[tag]))\
                 .to(ureg(self.__out_unit[tag]))
+            return val.magnitude
 
     def _self_check(self):
         print("Self check not implemented for MatrixDict")

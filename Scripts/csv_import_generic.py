@@ -94,6 +94,7 @@ if __name__ == "__main__":
                      for f in data
                      if x in data[f].__get__()]
         meta_data = dict([x for x in meta_data if x[1] is not None])
+        meta_data['description'] = "aa"
         meta_data['date_time'] = dt
         meta_data['file_list'] = [utils.get_log_path
                                   (x, data[x].__get__()['type'])
