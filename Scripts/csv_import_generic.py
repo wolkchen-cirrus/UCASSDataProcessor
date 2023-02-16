@@ -117,6 +117,7 @@ if __name__ == "__main__":
         d = list(data.values())[0]
         for dx in list(data.values())[1:]:
             d += dx
-        i_obj = ImportObject(d.__get__() | {"date_time": dt})
+        i_obj = ImportObject(d.__get__())
+        pass
 
     pass

@@ -14,7 +14,7 @@ class MatrixDict(DataStruct):
         if not unit_spec:
             raise ValueError("No units specified")
         else:
-            self.__unit_spec = unit_spec
+            self.unit_spec = unit_spec
 
         self.non_col: dict = {}
         self.__out_unit = dict([(x['name'], x['unit'])
@@ -30,16 +30,16 @@ class MatrixDict(DataStruct):
                 self.non_col[k] = v
 
     def __convert_units(self, tag: str, val: np.matrix):
-        if tag not in self.__unit_spec:
+        if tag not in self.unit_spec:
             print("%s has no unit to convert" % tag)
             return val
-        elif self.__unit_spec[tag] == self.__out_unit[tag]:
+        elif self.unit_spec[tag] == self.__out_unit[tag]:
             print("%s is already at correct unit" % tag)
             return val
         else:
             print("converting %s from %s to %s" %
-                  (tag, self.__unit_spec[tag], self.__out_unit[tag]))
-            val = (val * ureg(self.__unit_spec[tag]))\
+                  (tag, self.unit_spec[tag], self.__out_unit[tag]))
+            val = (val * ureg(self.unit_spec[tag]))\
                 .to(ureg(self.__out_unit[tag]))
             return val.magnitude
 

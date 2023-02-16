@@ -10,10 +10,15 @@ class ImportObject(DataStruct):
     def init(self, dat: dict, unit_spec: dict = None):
         if unit_spec:
             raise ValueError("do not specify unit_spec")
+        col_dict = {}
         for k, v in dat.items():
             if isinstance(v, mt):
-                self.col_dict[k] = MatrixColumn(k, v, len(self))
+                print("converting %s to matrix column" % k)
+                col_dict[k] = MatrixColumn(k, v, len(self))
+            elif isinstance(v, MatrixColumn):
+                col_dict[k] = v
             else:
                 print("%s cannot be assigned to matrix column" % k)
+        self.col_dict = col_dict
 
         self._self_check()

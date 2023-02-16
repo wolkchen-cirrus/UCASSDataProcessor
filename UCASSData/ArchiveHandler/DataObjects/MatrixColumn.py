@@ -33,6 +33,9 @@ class MatrixColumn(object):
     def __get__(self) -> mt:
         return self.val
 
+    def __repr__(self):
+        return f'DataStruct({len(self)}, {self.name})'
+
     @staticmethod
     def _search_flags(flag: str) -> dict:
         field = [x for x in ch.getval('valid_flags') if x['name'] == flag]

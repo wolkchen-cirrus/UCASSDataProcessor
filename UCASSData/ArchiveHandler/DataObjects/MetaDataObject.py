@@ -148,9 +148,5 @@ class MetaDataObject(object):
         """Time of record start since epoch in milliseconds"""
         return self._start_epoch
 
-    @start_epoch.setter
-    def start_epoch(self, val):
-        raise PermissionError('Do not re-assign epoch')
-
     def __repr__(self):
         return f'{self.ucass_serial_number}'
