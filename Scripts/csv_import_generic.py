@@ -72,7 +72,6 @@ if __name__ == "__main__":
     fdf = utils.get_files(dts, types)
 
     # Loop through files using index
-    data = {}
     for dt in fdf.index:
 
         # Reformat iss with fn keys
@@ -87,19 +86,20 @@ if __name__ == "__main__":
         # Save or add iss
         ch.change_config_val("data_flags", iss_n)
         # Get raw data from files
-        data[dt] = im.proc_iss(iss_n)
+        data = im.proc_iss(iss_n)
 
         # Sort through and retrieve meta data flags
         meta_flags = inspect.getfullargspec(MetaDataObject).args
-        meta_data = [(x, data[dt][f].__get__()[x]) for x in meta_flags
-                     for f in data[dt]
-                     if x in data[dt][f].__get__()]
+        meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
+                     for f in data
+                     if x in data[f].__get__()]
         meta_data = dict([x for x in meta_data if x[1] is not None])
         meta_data['date_time'] = dt
         meta_data['file_list'] = [utils.get_log_path
-                                  (x, data[dt][x].__get__()['type'])
-                                  for x in list(data[dt].keys())]
-        for fn in data[dt]:
+                                  (x, data[x].__get__()['type'])
+                                  for x in list(data.keys())]
+        # Assign serial number
+        for fn in data:
             try:
                 meta_data['serial_number'] = im.serial_number_from_fn(fn)
                 break
@@ -113,7 +113,8 @@ if __name__ == "__main__":
         md_obj = MetaDataObject(**meta_data)
 
         # Next, assign the column data to the importer object
-        df = im.sync_and_resample([data[dt][x].df() for x in data[dt]], "0.1S")
+        df = im.sync_and_resample([data[x].df() for x in data], "0.1S",
+                                  keep_one=True)
         i_obj = ImportObject(im.df_to_dict(df) | {"date_time": dt})
 
     pass

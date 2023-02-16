@@ -1,5 +1,5 @@
 // Example import specification structure. Leveling is as follows:
-// filename -> data -> cols -> column tags, must be in valid config
+// filename -> data -> cols -> column tag - unit tuple (or just tag)
 //                  -> srow -> start row for columnar input
 //                  -> procrows -> var name: row number (will import whole row)
 //          -> type: Met, FC, &c
@@ -8,7 +8,7 @@
 // column prioity. For example "Press" from file "1" will be taken over "Press"
 // from file "3"
 {
-  "1": {"data": {"cols": ["dt", "Temp", "Press", "RH"]}, "type": "Met"},
-  "2": {"data": {"cols": ["dt", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "C15", "C16", "ToF1", "ToF3", "ToF5", "ToF7", "Period", "CSum", "Glitch", "LToF", "RejRat"], "srow":  "5", "procrows": {"bbs":  "3"}}, "type": "UCASS"},
-  "3": {"data": {"ARSP": ["Airspeed"], "ATT": ["Roll", "Pitch", "Yaw"], "GPS": ["Lat", "Lng", "Alt", "Spd"], "BARO": ["Press"]}, "type": "FC Proc"}
+  "1": {"data": {"cols": [["Time", "s"], ["Temp", "degC"], ["Press", "h-Pa"], ["RH", "%"]]}, "type": "Met"},
+  "2": {"data": {"cols": [["Time", "s"], "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "C15", "C16", ["ToF1", "tof"], ["ToF3", "tof"], ["ToF5", "tof"], ["ToF5", "tof"], ["Period", "pp"], "CSum", "Glitch", "LToF", "RejRat"], "srow":  "5", "procrows": {"bbs":  "3"}}, "type": "UCASS"},
+  "3": {"data": {"ARSP": [["Airspeed", "mps"]], "ATT": [["Roll", "deg"], ["Pitch", "deg"], ["Yaw", "deg"]], "GPS": [["Lat", "deg"], ["Lng", "deg"], ["Alt", "deg"], ["Spd", "mps"]], "BARO": [["Press", "Pa"]]}, "type": "FC Proc"}
 }

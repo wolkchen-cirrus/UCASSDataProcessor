@@ -1,24 +1,39 @@
 import numpy as np
-import pandas as pd
-
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
+from ...ArchiveHandler import ureg
+from UCASSData import ConfigHandler as ch
 
 
 class MatrixDict(DataStruct):
     """Intermediate step for data import process"""
 
-    def init(self, dat: dict):
+    def init(self, dat: dict, unit_spec: dict = None):
+
+        if not unit_spec:
+            raise ValueError("No units specified")
+        else:
+            self.__unit_spec = unit_spec
 
         self.non_col: dict = {}
+        self.__out_unit = dict([(x['name'], x['unit'])
+                                for x in ch.getval('valid_flags')])
 
         for k, v in dat.items():
+            v = self.__convert_units(k, v)
             if k == "Time":
                 pass
             elif isinstance(v, np.matrix):
                 self.col_dict[k] = MatrixColumn(k, v, len(self))
             else:
                 self.non_col[k] = v
+
+    def __convert_units(self, tag: str, val: np.matrix):
+        if tag not in self.__unit_spec:
+            return val
+        else:
+            return (val * ureg(self.__unit_spec[tag]))\
+                .to(ureg(self.__out_unit[tag]))
 
     def _self_check(self):
         print("Self check not implemented for MatrixDict")

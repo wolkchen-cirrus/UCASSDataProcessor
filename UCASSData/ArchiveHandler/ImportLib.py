@@ -8,6 +8,7 @@ import dateutil.parser as dup
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
 from ..ArchiveHandler.DataObjects.MatrixDict import MatrixDict
+from ..ArchiveHandler import ureg
 import datetime as dt
 import pandas as pd
 import warnings
@@ -50,23 +51,27 @@ def get_ucass_calibration(serial_number: str) -> tuple:
         return gain, sl
 
 
-def sync_and_resample(df_list: list, period_str: str) -> pd.DataFrame:
+def sync_and_resample(df_list: list, period_str: str,
+                      keep_one: bool = False) -> pd.DataFrame:
     """
     A function to synchronise a number of pandas data frames, then resample
     with a given time period.
 
-    :param df_list: A list of pandas data frames to be synchronised.
-    :type df_list: list
-    :param period_str: The time period for resampling e.g. '0.1S'.
-    :type period_str: str
+    :param df_list: A list of pandas data frames to be synchronised
+    :param period_str: The time period for resampling e.g. '0.1S'
+    :param keep_one: if two col names are the same, keep one (True) or both
 
     :return: The synchronised and resampled data frame.
-    :rtype: pd.DataFrame
     """
     df = df_list[0]
+    if keep_one is True:
+        suffixes = ('_x', '_y')
+    else:
+        suffixes = (None, '_%%SUFFIX%%')
     for i in range(len(df_list)-1):
         df = pd.merge(df, df_list[i+1], how='outer', left_index=True,
-                      right_index=True)
+                      right_index=True, suffixes=suffixes)
+    df = df[df.columns.drop(list(df.filter(regex='%%SUFFIX%%')))]
     return df.dropna(how='all', axis=0).dropna(how='all', axis=1)\
         .resample(period_str).mean().bfill()
 
@@ -187,6 +192,8 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
 
     :param iss: import struct spec
     :param dkey: key where the col data is, default 'cols'
+
+    :raise ReferenceError: if one or more flags are not valid
     """
     fields = []
 
@@ -203,6 +210,8 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
     fields = [i for s in fields for i in s if not isinstance(s, str)]
     vf = [x['name'] for x in ch.getval('valid_flags')]
     for flag in fields:
+        if isinstance(flag, list):
+            flag = flag[0]
         if flag not in vf:
             ch.getconf('valid_flags')
             raise ReferenceError('Data flag \'%s\' is not valid' % flag)
@@ -220,13 +229,12 @@ def proc_iss(iss: dict) -> dict:
     """
     print("Processing data specified by import struct .json")
     check_valid_cols(iss)
+    unit_spec = make_unit_spec(iss)
 
     def _proc_cols(fn, cols, s_row, t):
         if not cols:
             return {}
         fn = utils.get_log_path(fn, t)
-        if 'Time' not in cols:
-            raise ValueError('File does not have a datetime index')
         if not s_row:
             s_row = 0
         else:
@@ -235,7 +243,8 @@ def proc_iss(iss: dict) -> dict:
         d_out['Time'] = [infer_datetime(fn, x) for x in d_out['Time']]
         d_out = d_out.set_index(d_out['Time'])
         d_out = d_out.drop('Time', axis=1)
-        return df_to_dict(d_out)
+        df_dict = df_to_dict(d_out)
+        return df_dict
 
     def _proc_row(fn, proc_rows, t):
         if not proc_rows:
@@ -278,9 +287,32 @@ def proc_iss(iss: dict) -> dict:
                 _proc_row(k, proc['procrows'], tp) | {'type': tp}
         else:
             raise ValueError("Invalid log file extension %s" % lt)
-        data[k] = MatrixDict(data[k] | {"date_time": fn_datetime(k)})
+        data[k] = MatrixDict(data[k] | {"date_time": fn_datetime(k)},
+                             unit_spec=unit_spec)
 
     return data
+
+
+def make_unit_spec(iss: dict) -> dict:
+
+    fields = []
+
+    def _finditem(obj, key):
+        if key in obj:
+            fields.append(obj[key])
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                item = _finditem(v, key)
+                if item is not None:
+                    return item
+
+    _finditem(iss, 'data')
+    fields = [s[i] for s in fields for i in s]
+    c = [i for s in fields for i in s if isinstance(i, list)]
+    r = [[j, k[1]] for j, k in [i for s in [list(x.items()) for x in fields
+                                            if isinstance(x, dict)]
+                                for i in s if isinstance(i[1], list)]]
+    return dict(c+r)
 
 
 def serial_number_from_fn(fn: str) -> str:

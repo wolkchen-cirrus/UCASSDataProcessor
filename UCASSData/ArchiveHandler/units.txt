@@ -1,0 +1,2 @@
+pic_period = 0.000030517578125 * second = pp
+tof_unit = 0.0000033333333333333 * second = tof
