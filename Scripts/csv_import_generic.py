@@ -11,8 +11,10 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 from argparse import ArgumentParser
 import UCASSData.ArchiveHandler.Utilities as utils
 import UCASSData.ArchiveHandler.ImportLib as im
-from UCASSData.ArchiveHandler.DataObjects.ImportObject import ImportObject
-from UCASSData.ArchiveHandler.DataObjects.MetaDataObject import MetaDataObject
+from UCASSData.ArchiveHandler.RawDataObjects.ImportObject \
+    import ImportObject
+from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject \
+    import MetaDataObject
 import inspect
 import UCASSData.ConfigHandler as ch
 import json

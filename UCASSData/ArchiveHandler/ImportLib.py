@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
-from ..ArchiveHandler.DataObjects.MatrixDict import MatrixDict
+from ..ArchiveHandler.RawDataObjects.MatrixDict import MatrixDict
 
 
 def get_ucass_calibration(serial_number: str) -> tuple:

@@ -42,6 +42,17 @@ class MetaDataObject(object):
         else:
             self.cali_coeffs = cali_coeffs
 
+    def __dict__(self):
+        return {
+                    "date_time": self.date_time,
+                    "start_epoch": self.start_epoch,
+                    "file_list": self.file_list,
+                    "bbs": self.bin_boundaries_adc,
+                    "description": self.description,
+                    "seial_number": self.ucass_serial_number,
+                    "cali_coeffs": self.cali_coeffs
+                }
+
     @property
     def file_list(self):
         """list of files which these data originated from"""

@@ -22,3 +22,6 @@ class ImportObject(DataStruct):
         self.col_dict = col_dict
 
         self._self_check()
+
+    def __dict__(self):
+        return {self.col_dict | self.Time}
