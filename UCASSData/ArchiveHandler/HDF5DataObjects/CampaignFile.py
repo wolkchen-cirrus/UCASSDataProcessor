@@ -26,7 +26,7 @@ class CampaignFile(object):
         self.__mode = None
         self.mode = mode
 
-        self.__dd: H5dd
+        self.__dd: H5dd | None = None
         self.__f = None
 
         self.h5ver: str = ch.getval('h5ver')
@@ -46,22 +46,32 @@ class CampaignFile(object):
     def __exit__(self):
         self.__f.close()
 
-    def write(self):
-        if bool(self):
+    def write(self, val):
+        self.__dd = val
+        if not bool(self):
             raise RuntimeError(f"File check is {bool(self)}")
+        dat = self.__dd.__get__()
 
     def read(self):
         pass
 
-    def __groups(self):
-        return self.__f.keys()
+    def __groups(self, group: str | list = None) -> list:
+        """returns hdf5 groups, acts as check if group input specified"""
+        if group:
+            group = [group] if isinstance(group, str) else group
+            group = [x if x in self.__f.keys() else None for x in group]
+            if None in group:
+                raise ValueError
+            else:
+                return group
+        else:
+            return list(self.__f.keys())
 
-    def __datasets(self):
-        ds = []
-        for gn in self.__groups():
-            pass
+    def __datasets(self, group: str | list = None) -> dict:
+        """returns hdf5 datasets for a single group or list thereof"""
+        return {gn: list(self.__f[gn].keys()) for gn in self.__groups(group)}
 
-    def __file_check(self):
+    def __file_check(self) -> bool:
         """Returns false if file is invalid or does not exist"""
         if not os.path.exists(self.fn):
             return False

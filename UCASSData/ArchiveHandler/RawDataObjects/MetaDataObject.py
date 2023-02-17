@@ -5,7 +5,8 @@ import UCASSData.ArchiveHandler.ImportLib as im
 
 class MetaDataObject(object):
     """
-    Object to store meta data during measurement period.
+    Object to store meta data during measurement period; fairly rigid, defines
+    minimum metadata
 
     :param serial_number: UCASS Serial Number
     :param bbs: UCASS bins as a list of ints (ADC vals)

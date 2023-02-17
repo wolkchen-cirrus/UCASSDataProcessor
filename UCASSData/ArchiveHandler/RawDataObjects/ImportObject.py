@@ -1,5 +1,5 @@
-from .MatrixColumn import MatrixColumn
-from .DataStruct import DataStruct
+from ..GenericDataObjects.MatrixColumn import MatrixColumn
+from ..GenericDataObjects.DataStruct import DataStruct
 from numpy import matrix as mt
 
 

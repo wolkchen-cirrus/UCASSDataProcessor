@@ -2,23 +2,29 @@ import numpy as np
 import pandas as pd
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
-from ...ArchiveHandler import ureg
+from UCASSData.ArchiveHandler import ureg
 from UCASSData import ConfigHandler as ch
 
 
 class MatrixDict(DataStruct):
     """Intermediate step for data import process"""
 
-    def init(self, dat: dict, unit_spec: dict = None):
+    def init(self, dat: dict, unit_spec: dict | str = None):
+
+        self.__out_unit = dict([(x['name'], x['unit'])
+                                for x in ch.getval('valid_flags')])
 
         if not unit_spec:
             raise ValueError("No units specified")
+        if isinstance(unit_spec, str):
+            if unit_spec == "default":
+                self.unit_spec = self.__out_unit
+            else:
+                raise ValueError
         else:
             self.unit_spec = unit_spec
 
         self.non_col: dict = {}
-        self.__out_unit = dict([(x['name'], x['unit'])
-                                for x in ch.getval('valid_flags')])
 
         for k, v in dat.items():
             v = self.__convert_units(k, v)
@@ -81,3 +87,9 @@ class MatrixDict(DataStruct):
         dd = dict([(k, MatrixColumn(k, v, len(dd["Time"])))
                    for k, v in dd.items()])
         return MatrixDict(non_col | dd)
+
+    def __delitem__(self, key):
+        try:
+            self.col_dict.pop(key, None)
+        except KeyError:
+            self.non_col.pop(key, None)
