@@ -318,7 +318,7 @@ def make_unit_spec(iss: dict) -> dict:
     r = [(j, k[1]) for j, k in [i for s in [list(x.items()) for x in fields
                                             if isinstance(x, dict)]
                                 for i in s if isinstance(i[1], list)]]
-    return dict(c+r)
+    return dict(c + r)
 
 
 def serial_number_from_fn(fn: str) -> str:

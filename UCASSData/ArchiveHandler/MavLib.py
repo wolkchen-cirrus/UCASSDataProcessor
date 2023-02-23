@@ -4,7 +4,6 @@ Library of tools to handle mavlink log data in raw data processing.
 
 import datetime as dt
 import pandas as pd
-import numpy as np
 import subprocess
 import os.path
 from ..ArchiveHandler import ImportLib as im
@@ -16,18 +15,17 @@ import array
 import warnings
 
 
-def read_mavlink_log(log_path, message_names):
+def read_mavlink_log(log_path: str, message_names: dict) -> dict:
     """
-    A function to read a mavlink log, with specified message and data names, into arrays. Calls the "mavlogdump.py" file
-    as a subprocess and therefore takes a long time to run; function depreciated in future versions, in favour of json.
+    A function to read a mavlink log, with specified message and data names,
+    into arrays. Calls the "mavlogdump.py" file as a subprocess and therefore
+    takes a long time to run; function depreciated in future versions, in
+    favour of json.
 
     :param log_path: The path to the mavlink '.log' file
-    :type log_path: str
-    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
-    :type message_names: dict
+    :param message_names: Specification of message names
 
     :return: The synchronised and resampled data frame.
-    :rtype: dict
     """
     def _proc_fc_row(fc_row, params):
         time = dt.datetime.strptime(fc_row[:22], '%Y-%m-%d %H:%M:%S.%f')
@@ -41,10 +39,13 @@ def read_mavlink_log(log_path, message_names):
                     break
         return time, output
 
-    warnings.warn('Feature will be discontinued in future versions', category=DeprecationWarning)
+    warnings.warn('Feature will be discontinued in future versions',
+                  category=DeprecationWarning)
 
-    mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'mavlogdump.py')
-    proc = subprocess.Popen(['python', mav_path, "--types", ','.join(message_names.keys()), log_path],
+    mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                            'mavlogdump.py')
+    proc = subprocess.Popen(['python', mav_path, "--types",
+                             ','.join(message_names.keys()), log_path],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     fd_out = proc.communicate()[0].decode("utf-8")
     fd_out = fd_out.split('\n')
@@ -64,24 +65,23 @@ def read_mavlink_log(log_path, message_names):
             fc_time_row, proc_row = _proc_fc_row(row, message_names[mess])
             fc_list.append(proc_row)
             fc_time.append(fc_time_row)
-        fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess], index=fc_time)
+        fc_dict[mess] = pd.DataFrame(fc_list, columns=message_names[mess],
+                                     index=fc_time)
 
     df = im.sync_and_resample(list(fc_dict.values()), '0.1S')
 
     return im.df_to_dict(df)
 
 
-def read_json_log(log_path, message_names):
+def read_json_log(log_path: str, message_names: dict) -> dict:
     """
-    A function to read a mavlink log, with specified message and data names, into arrays.
+    A function to read a mavlink log, with specified message and data names,
+    into arrays.
 
     :param log_path: The path to the json file
-    :type log_path: str
-    :param message_names: Specification of message names where message_names['name'] = '[var1, var2, ...]'
-    :type message_names: dict
+    :param message_names: Specification of message
 
-    :return: The synchronised and resampled data frame.
-    :rtype: dict
+    :return: The synchronised and resampled data frame
     """
     # Load JSON
     log_path = utils.get_log_path(log_path, 'FC Proc')
@@ -92,9 +92,11 @@ def read_json_log(log_path, message_names):
         # Get message names with listcomp!
         data = [x for x in log_dict if m == x['meta']['type']]
         # Merge meta and data, I love listcomp!
-        data = [x['data'] | {'timestamp': x['meta']['timestamp']} for x in data]
+        data = [x['data'] | {'timestamp': x['meta']['timestamp']}
+                for x in data]
         # Timestoomp --> dootime
-        data = [x | {'timestamp': dt.datetime.fromtimestamp(x['timestamp'])} for x in data]
+        data = [x | {'timestamp': dt.datetime.fromtimestamp(x['timestamp'])}
+                for x in data]
         # Format as dataframe with columns, and a timestamp index for syncing
         fc_dict[m] = pd.DataFrame(data).set_index('timestamp')
         # Remove unwanted data
@@ -107,14 +109,15 @@ def read_json_log(log_path, message_names):
     return im.df_to_dict(df)
 
 
-def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
+def log_to_json(fc_log: str, in_dir: str = 'FC', out_dir: str = 'FC Proc'):
 
     # Get path for outputs
     base = utils.get_log_path(None, out_dir)
 
     # Create path if it does not exist
     if not os.path.exists(base):
-        print('Creating data directory structure at base path %s' % ch.getval('base_data_path'))
+        print('Creating data directory structure at base path %s'
+              % ch.getval('base_data_path'))
         utils.make_dir_structure()
 
     # Convert input path to list if it is not
@@ -125,8 +128,10 @@ def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
 
         # Convert to abs path
         log = utils.get_log_path(log, in_dir)
-        out_file = os.path.join(base, os.path.split(log)[-1].replace('.log', '.json'))
-        mlog = mavutil.mavlink_connection(log, robust_parsing=True, dialect='ardupilotmega')
+        out_file = os.path.join(base, os.path.split(log)[-1]
+                                .replace('.log', '.json'))
+        mlog = mavutil.mavlink_connection(log, robust_parsing=True,
+                                          dialect='ardupilotmega')
 
         db = []
         exclude = ['BAD_DATA', 'FMT', 'PARM', 'MULT', 'FMTU']
@@ -144,20 +149,19 @@ def log_to_json(fc_log, in_dir='FC', out_dir='FC Proc'):
                 continue
             # Grab the timestamp.
             timestamp = getattr(m, '_timestamp', 0.0)
-            # Format our message as a Python dict, which gets us almost to proper JSON format
+            # Format our message as a Python dict
             data = m.to_dict()
             # Remove the mavpackettype value as we specify that later.
             del data['mavpackettype']
-            # Prepare the message as a single object with 'meta' and 'data' keys holding
-            # the message's metadata and actual data respectively.
+            # Prepare the message as a single object
             meta = {"type": m_type, "timestamp": timestamp}
-            # convert any array.array (e.g. packed-16-bit fft readings) into lists:
+            # convert any array.array into lists:
             for key in data.keys():
-                if type(data[key]) == array.array:
+                if isinstance(data[key], array.array):
                     data[key] = list(data[key])
-            # convert any byte-strings into utf-8 strings.  Don't die trying.
+            # convert any byte-strings into utf-8 strings. Don't die trying.
             for key in data.keys():
-                if type(data[key]) == bytes:
+                if isinstance(data[key], bytes):
                     data[key] = im.to_string(data[key])
             db.append({"meta": meta, "data": data})
 

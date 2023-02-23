@@ -19,6 +19,7 @@ class CampaignFile(object):
     :param fn: filename
     :param mode: file open mode
     """
+
     def __init__(self, fn: str, mode: str = 'r'):
         self.__fn = None
         self.fn = fn

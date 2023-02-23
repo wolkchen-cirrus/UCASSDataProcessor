@@ -1,0 +1,147 @@
+> /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/Scripts/csv_import_generic.py(1)<module>()
+-> """
+(Pdb) End of file
+(Pdb) (Pdb) Breakpoint 1 at /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py:88
+(Pdb) Num Type         Disp Enb   Where
+1   breakpoint   keep yes   at /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py:88
+(Pdb) {
+    "name": "data_flags",
+    "val": {
+        "FMITalon_20220928_14245100_00.json": {
+            "data": {
+                "ARSP": [
+                    [
+                        "Airspeed",
+                        "mps"
+                    ]
+                ],
+                "ATT": [
+                    [
+                        "Roll",
+                        "deg"
+                    ],
+                    [
+                        "Pitch",
+                        "deg"
+                    ],
+                    [
+                        "Yaw",
+                        "deg"
+                    ]
+                ],
+                "GPS": [
+                    [
+                        "Lat",
+                        "deg"
+                    ],
+                    [
+                        "Lng",
+                        "deg"
+                    ],
+                    [
+                        "Alt",
+                        "m"
+                    ],
+                    [
+                        "Spd",
+                        "mps"
+                    ]
+                ],
+                "BARO": [
+                    [
+                        "Press",
+                        "Pa"
+                    ]
+                ]
+            },
+            "type": "FC Proc"
+        },
+        "FMITalon_UCASS-AD-FMI02-004_20220928_14174400_00.csv": {
+            "data": {
+                "cols": [
+                    "Time",
+                    "C1",
+                    "C2",
+                    "C3",
+                    "C4",
+                    "C5",
+                    "C6",
+                    "C7",
+                    "C8",
+                    "C9",
+                    "C10",
+                    "C11",
+                    "C12",
+                    "C13",
+                    "C14",
+                    "C15",
+                    "C16",
+                    [
+                        "ToF1",
+                        "tof"
+                    ],
+                    [
+                        "ToF3",
+                        "tof"
+                    ],
+                    [
+                        "ToF5",
+                        "tof"
+                    ],
+                    [
+                        "ToF7",
+                        "tof"
+                    ],
+                    [
+                        "Period",
+                        "pp"
+                    ],
+                    "CSum",
+                    "Glitch",
+                    "LToF",
+                    "RejRat"
+                ],
+                "srow": "5",
+                "procrows": {
+                    "bbs": "3"
+                }
+            },
+            "type": "UCASS"
+        },
+        "NaN": {
+            "data": {
+                "cols": [
+                    "Time",
+                    [
+                        "Temp",
+                        "degC"
+                    ],
+                    [
+                        "Press",
+                        "hPa"
+                    ],
+                    [
+                        "RH",
+                        "%"
+                    ]
+                ]
+            },
+            "type": "Met"
+        }
+    },
+    "dtype": "dict",
+    "unit": "n/a",
+    "desc": "flags for data headers, read \"valid_flags\" config entry for details"
+}
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20220928_14245100_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+> /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py(88)read_json_log()
+-> with open(log_path, 'r') as f:
+(Pdb) {'log_path': '/home/cloudgirljess/Documents/UCASSData/UCASSData/Raw/FC Proc/FMITalon_20220928_14245100_00.json', 'message_names': {'ARSP': ['Airspeed'], 'ATT': ['Roll', 'Pitch', 'Yaw'], 'GPS': ['Lat', 'Lng', 'Alt', 'Spd'], 'BARO': ['Press']}}
+(Pdb) (Pdb) True
+(Pdb) *** IndentationError: expected an indented block after 'with' statement on line 1
+(Pdb) (Pdb) *** json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+(Pdb) *** json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
+(Pdb) 
