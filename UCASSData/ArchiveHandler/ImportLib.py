@@ -1,5 +1,5 @@
 """
-Contains functions for importing raw data into the software. 
+Contains functions for importing raw data into the software.
 """
 import os.path
 from UCASSData import ConfigHandler as ch
@@ -29,7 +29,7 @@ def get_ucass_calibration(serial_number: str) -> tuple:
                              serial_number)
     cal_file = None
     for fn in os.listdir(cali_path):
-        if 'CalData' in fn:
+        if '_CalData_' in fn:
             cal_file = fn
             break
     if not cal_file:

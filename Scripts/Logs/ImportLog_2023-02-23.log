@@ -1,13 +1,7 @@
-> /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/Scripts/csv_import_generic.py(1)<module>()
--> """
-(Pdb) End of file
-(Pdb) (Pdb) Breakpoint 1 at /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py:88
-(Pdb) Num Type         Disp Enb   Where
-1   breakpoint   keep yes   at /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py:88
-(Pdb) {
+{
     "name": "data_flags",
     "val": {
-        "FMITalon_20220928_14245100_00.json": {
+        "FMITalon_20220930_17133600_00.json": {
             "data": {
                 "ARSP": [
                     [
@@ -56,7 +50,7 @@
             },
             "type": "FC Proc"
         },
-        "FMITalon_UCASS-AD-FMI02-004_20220928_14174400_00.csv": {
+        "FMITalon_UCASS-AD-FMI02-004_20220930_17141600_00.csv": {
             "data": {
                 "cols": [
                     "Time",
@@ -135,13 +129,559 @@
 }
 Processing data specified by import struct .json
 All flags valid
-Processing file FMITalon_20220928_14245100_00.json
+Processing file FMITalon_20220930_17133600_00.json
 {'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
-> /home/cloudgirljess/Documents/UCASSDataProcessor/UCASSDataProcessor/UCASSData/ArchiveHandler/MavLib.py(88)read_json_log()
--> with open(log_path, 'r') as f:
-(Pdb) {'log_path': '/home/cloudgirljess/Documents/UCASSData/UCASSData/Raw/FC Proc/FMITalon_20220928_14245100_00.json', 'message_names': {'ARSP': ['Airspeed'], 'ATT': ['Roll', 'Pitch', 'Yaw'], 'GPS': ['Lat', 'Lng', 'Alt', 'Spd'], 'BARO': ['Press']}}
-(Pdb) (Pdb) True
-(Pdb) *** IndentationError: expected an indented block after 'with' statement on line 1
-(Pdb) (Pdb) *** json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-(Pdb) *** json.decoder.JSONDecodeError: Expecting value: line 1 column 1 (char 0)
-(Pdb) 
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-004_20220930_17141600_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No file of type Met for measurement
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-004
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221001_15130400_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AA-FMI02-001_20221001_15110600_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221001_15095200_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AA-FMI02-001
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221002_12394600_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221002_12332000_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No file of type Met for measurement
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221002_14421500_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221002_14314500_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No file of type Met for measurement
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221004_10030800_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221004_10050600_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221004_09575200_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221004_12221900_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221004_12194700_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221004_12172700_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221004_14264000_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221004_14234500_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221004_14222700_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221004_15131300_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221004_15100100_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221004_15075700_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
+Processing data specified by import struct .json
+All flags valid
+Processing file FMITalon_20221004_16343800_00.json
+{'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
+Airspeed is already at correct unit
+Roll is already at correct unit
+Pitch is already at correct unit
+Yaw is already at correct unit
+Lat is already at correct unit
+Lng is already at correct unit
+Alt is already at correct unit
+Spd is already at correct unit
+Press is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file FMITalon_UCASS-AD-FMI02-003_20221004_16324600_00.csv
+{'cols': ['Time', 'C1', 'C2', 'C3', 'C4', 'C5', 'C6', 'C7', 'C8', 'C9', 'C10', 'C11', 'C12', 'C13', 'C14', 'C15', 'C16', ['ToF1', 'tof'], ['ToF3', 'tof'], ['ToF5', 'tof'], ['ToF7', 'tof'], ['Period', 'pp'], 'CSum', 'Glitch', 'LToF', 'RejRat'], 'srow': '5', 'procrows': {'bbs': '3'}}
+C1 has no unit to convert
+C2 has no unit to convert
+C3 has no unit to convert
+C4 has no unit to convert
+C5 has no unit to convert
+C6 has no unit to convert
+C7 has no unit to convert
+C8 has no unit to convert
+C9 has no unit to convert
+C10 has no unit to convert
+C11 has no unit to convert
+C12 has no unit to convert
+C13 has no unit to convert
+C14 has no unit to convert
+C15 has no unit to convert
+C16 has no unit to convert
+converting ToF1 from tof to us
+converting ToF3 from tof to us
+converting ToF5 from tof to us
+converting ToF7 from tof to us
+converting Period from pp to s
+CSum has no unit to convert
+Glitch has no unit to convert
+LToF has no unit to convert
+RejRat has no unit to convert
+Time has no unit to convert
+bbs has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+Processing file BME280_FMITalon_20221004_16304400_00.csv
+{'cols': ['Time', ['Temp', 'degC'], ['Press', 'hPa'], ['RH', '%']]}
+Temp is already at correct unit
+Press is already at correct unit
+RH is already at correct unit
+Time has no unit to convert
+type has no unit to convert
+date_time has no unit to convert
+No calibration specifed, looking up from serial number
+Calibration found for UCASS-AD-FMI02-003
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+Self check not implemented for MatrixDict
+type cannot be assigned to matrix column
+date_time cannot be assigned to matrix column
+bbs cannot be assigned to matrix column
+Time cannot be assigned to matrix column
