@@ -7,6 +7,20 @@
         "desc": "global timestep for dataframes"
     },
     {
+        "name": "h5ver",
+        "val": "v110",
+        "dtype": "str",
+        "unit": "n/a",
+        "desc": "Version of HDF5 to use with the data archive"
+    },
+    {
+        "name": "groupDTformat",
+        "val": "%Y%m%d_%H%M%S",
+        "dtype": "str",
+        "unit": "n/a",
+        "desc": "date-time format for HDF5 groups"
+    },
+    {
         "name": "dir_structure",
         "val": {
             "Raw": {
@@ -33,82 +47,82 @@
             },
             {
                 "name": "C1",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 1"
             },
             {
                 "name": "C2",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 2"
             },
             {
                 "name": "C3",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 3"
             },
             {
                 "name": "C4",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 4"
             },
             {
                 "name": "C5",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 5"
             },
             {
                 "name": "C6",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 6"
             },
             {
                 "name": "C7",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 7"
             },
             {
                 "name": "C8",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 8"
             },
             {
                 "name": "C9",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 9"
             },
             {
                 "name": "C10",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 10"
             },
             {
                 "name": "C11",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 11"
             },
             {
                 "name": "C12",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 12"
             },
             {
                 "name": "C13",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 13"
             },
             {
                 "name": "C14",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 14"
             },
             {
                 "name": "C15",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 15"
             },
             {
                 "name": "C16",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "number of particles in bin 16"
             },
             {
@@ -138,52 +152,52 @@
             },
             {
                 "name": "CSum",
-                "unit": "8 bit integer",
+                "unit": "number",
                 "desc": "checksum; total counts"
             },
             {
                 "name": "Glitch",
-                "unit": "8 bit integer",
+                "unit": "number",
                 "desc": "number of glitch (short ToF) rejects"
             },
             {
                 "name": "LToF",
-                "unit": "8 bit integer",
+                "unit": "number",
                 "desc": "number of long time of flight rejects"
             },
             {
                 "name": "RejRat",
-                "unit": "8 bit integer",
+                "unit": "number",
                 "desc": "number of particle rejects"
             },
             {
                 "name": "Airspeed",
-                "unit": "m/s",
+                "unit": "mps",
                 "desc": "resultant airspeed"
             },
             {
                 "name": "Roll",
-                "unit": "degrees",
+                "unit": "deg",
                 "desc": "ucass roll angle"
             },
             {
                 "name": "Pitch",
-                "unit": "degrees",
+                "unit": "deg",
                 "desc": "ucass pitch angle"
             },
             {
                 "name": "Yaw",
-                "unit": "degrees",
+                "unit": "deg",
                 "desc": "ucass yaw angle"
             },
             {
                 "name": "Lat",
-                "unit": "dec",
+                "unit": "deg",
                 "desc": "decimal latitude"
             },
             {
                 "name": "Lng",
-                "unit": "dec",
+                "unit": "deg",
                 "desc": "decimal longitude"
             },
             {
@@ -193,17 +207,17 @@
             },
             {
                 "name": "Spd",
-                "unit": "m/s",
+                "unit": "mps",
                 "desc": "groundspeed of ucass"
             },
             {
                 "name": "Press",
-                "unit": "hpa",
+                "unit": "hPa",
                 "desc": "absolute barometric pressure"
             },
             {
                 "name": "Temp",
-                "unit": "c",
+                "unit": "degC",
                 "desc": "air temperature"
             },
             {
@@ -213,7 +227,7 @@
             },
             {
                 "name": "bbs",
-                "unit": "12 bit integer",
+                "unit": "number",
                 "desc": "list of bin boundaries (adc)"
             }
         ],
@@ -223,7 +237,7 @@
     },
     {
         "name": "base_data_path",
-        "val": "C:\\Users\\jg17acv\\University of Hertfordshire\\PI Group - Documents\\Data\\UCASS",
+        "val": "C:\\Users\\jg17acv\\University of Hertfordshire\\PI Group - Documents\\Data\\UCASSDataStorage",
         "dtype": "str",
         "unit": "n/a",
         "desc": "base path from which all data is accessed"
@@ -238,18 +252,56 @@
     {
         "name": "data_flags",
         "val": {
-            "BME280_FMITalon_20220930_11300800_00.csv": {
+            "FMITalon_20220928_14245100_00.json": {
                 "data": {
-                    "cols": [
-                        "Time",
-                        "T",
-                        "Press",
-                        "RH"
+                    "ARSP": [
+                        [
+                            "Airspeed",
+                            "mps"
+                        ]
+                    ],
+                    "ATT": [
+                        [
+                            "Roll",
+                            "deg"
+                        ],
+                        [
+                            "Pitch",
+                            "deg"
+                        ],
+                        [
+                            "Yaw",
+                            "deg"
+                        ]
+                    ],
+                    "GPS": [
+                        [
+                            "Lat",
+                            "deg"
+                        ],
+                        [
+                            "Lng",
+                            "deg"
+                        ],
+                        [
+                            "Alt",
+                            "m"
+                        ],
+                        [
+                            "Spd",
+                            "mps"
+                        ]
+                    ],
+                    "BARO": [
+                        [
+                            "Press",
+                            "Pa"
+                        ]
                     ]
                 },
-                "type": "Met"
+                "type": "FC Proc"
             },
-            "FMITalon_UCASS-AA-FMI02-002_20220930_11310200_00.csv": {
+            "FMITalon_UCASS-AD-FMI02-004_20220928_14174400_00.csv": {
                 "data": {
                     "cols": [
                         "Time",
@@ -269,11 +321,26 @@
                         "C14",
                         "C15",
                         "C16",
-                        "ToF1",
-                        "ToF3",
-                        "ToF5",
-                        "ToF7",
-                        "Period",
+                        [
+                            "ToF1",
+                            "tof"
+                        ],
+                        [
+                            "ToF3",
+                            "tof"
+                        ],
+                        [
+                            "ToF5",
+                            "tof"
+                        ],
+                        [
+                            "ToF7",
+                            "tof"
+                        ],
+                        [
+                            "Period",
+                            "pp"
+                        ],
                         "CSum",
                         "Glitch",
                         "LToF",
@@ -286,27 +353,25 @@
                 },
                 "type": "UCASS"
             },
-            "FMITalon_20220930_11334100_00.json": {
+            "NaN": {
                 "data": {
-                    "ARSP": [
-                        "Airspeed"
-                    ],
-                    "ATT": [
-                        "Roll",
-                        "Pitch",
-                        "Yaw"
-                    ],
-                    "GPS": [
-                        "Lat",
-                        "Lng",
-                        "Alt",
-                        "Spd"
-                    ],
-                    "BARO": [
-                        "Press"
+                    "cols": [
+                        "Time",
+                        [
+                            "Temp",
+                            "degC"
+                        ],
+                        [
+                            "Press",
+                            "hPa"
+                        ],
+                        [
+                            "RH",
+                            "%"
+                        ]
                     ]
                 },
-                "type": "FC Proc"
+                "type": "Met"
             }
         },
         "dtype": "dict",
