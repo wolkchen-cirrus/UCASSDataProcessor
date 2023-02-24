@@ -127,8 +127,8 @@
     "unit": "n/a",
     "desc": "flags for data headers, read \"valid_flags\" config entry for details"
 }
-Processing data specified by import struct .json
 All flags valid
+File check returns True
 Processing file FMITalon_20220930_17133600_00.json
 {'ARSP': [['Airspeed', 'mps']], 'ATT': [['Roll', 'deg'], ['Pitch', 'deg'], ['Yaw', 'deg']], 'GPS': [['Lat', 'deg'], ['Lng', 'deg'], ['Alt', 'm'], ['Spd', 'mps']], 'BARO': [['Press', 'Pa']]}
 Airspeed is already at correct unit

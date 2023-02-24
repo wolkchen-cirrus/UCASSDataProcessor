@@ -15,6 +15,8 @@ from UCASSData.ArchiveHandler.RawDataObjects.ImportObject \
     import ImportObject
 from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject \
     import MetaDataObject
+from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
+from UCASSData.ArchiveHandler.RawDataObjects.RawFile import RawFile
 import inspect
 import UCASSData.ConfigHandler as ch
 import json
@@ -89,7 +91,10 @@ if __name__ == "__main__":
         # Save or add iss
         ch.change_config_val("data_flags", iss_n)
         # Get raw data from files
-        data = im.proc_iss(iss_n)
+        iss_o = isso(iss_n)
+        with RawFile(iss_o) as rf:
+            data = rf.read()
+            pass
 
         # Sort through and retrieve meta data flags
         meta_flags = inspect.getfullargspec(MetaDataObject).args
