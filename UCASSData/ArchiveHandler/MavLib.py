@@ -8,7 +8,7 @@ import subprocess
 import os.path
 from ..ArchiveHandler import ImportLib as im
 from ..ArchiveHandler import Utilities as utils
-from UCASSData import ConfigHandler as ch
+from .. import ConfigHandler as ch
 from pymavlink import mavutil
 import json
 import array

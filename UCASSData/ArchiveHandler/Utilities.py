@@ -6,7 +6,7 @@ with raw data maintenance goes here.
 import pandas as pd
 import datetime as dt
 import numpy as np
-from UCASSData import ConfigHandler as ch
+from .. import ConfigHandler as ch
 from ..ArchiveHandler import ImportLib as im
 import os.path
 

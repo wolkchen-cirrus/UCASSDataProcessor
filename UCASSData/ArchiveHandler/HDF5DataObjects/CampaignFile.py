@@ -2,7 +2,7 @@ import os.path
 import h5py as h5
 from datetime import datetime as dt
 from .H5dd import H5dd
-from UCASSData import ConfigHandler as ch
+from ....UCASSData import ConfigHandler as ch
 
 
 class CampaignFile(object):

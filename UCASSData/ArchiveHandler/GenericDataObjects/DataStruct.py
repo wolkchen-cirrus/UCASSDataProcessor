@@ -2,7 +2,7 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 from .MatrixColumn import MatrixColumn
-import UCASSData.ConfigHandler as ch
+from ... import ConfigHandler as ch
 
 
 class DataStruct(object):

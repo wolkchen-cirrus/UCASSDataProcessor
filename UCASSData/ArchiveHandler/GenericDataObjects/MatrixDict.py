@@ -2,8 +2,8 @@ import numpy as np
 import pandas as pd
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
-from UCASSData.ArchiveHandler import ureg
-from UCASSData import ConfigHandler as ch
+from ...ArchiveHandler import ureg
+from ... import ConfigHandler as ch
 
 
 class MatrixDict(DataStruct):

@@ -2,7 +2,7 @@
 Contains functions for importing raw data into the software.
 """
 import os.path
-from UCASSData import ConfigHandler as ch
+from .. import ConfigHandler as ch
 from collections.abc import MutableMapping
 import dateutil.parser as dup
 import datetime as dt
@@ -11,7 +11,7 @@ import warnings
 import numpy as np
 from ..ArchiveHandler import MavLib as mav
 from ..ArchiveHandler import Utilities as utils
-from UCASSData.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
+from .GenericDataObjects.MatrixDict import MatrixDict
 
 
 def get_ucass_calibration(serial_number: str) -> tuple:
@@ -67,8 +67,8 @@ def sync_and_resample(df_list: list, period_str: str,
         suffixes = ('_x', '_y')
     else:
         suffixes = (None, '_%%SUFFIX%%')
-    for i in range(len(df_list)-1):
-        df = pd.merge(df, df_list[i+1], how='outer', left_index=True,
+    for i in range(len(df_list) - 1):
+        df = pd.merge(df, df_list[i + 1], how='outer', left_index=True,
                       right_index=True, suffixes=suffixes)
     df = df[df.columns.drop(list(df.filter(regex='%%SUFFIX%%')))]
     return df.dropna(how='all', axis=0).dropna(how='all', axis=1)\
@@ -90,8 +90,8 @@ def check_datetime_overlap(datetimes: list, tol_mins: int = 30):
     datetimes = to_list(datetimes)
     delta = []
     for date in datetimes:
-        for i in range(len(datetimes)-1):
-            delta.append((date - datetimes[i+1]).total_seconds()/60.0)
+        for i in range(len(datetimes) - 1):
+            delta.append((date - datetimes[i + 1]).total_seconds() / 60.0)
     if all(x > tol_mins for x in delta):
         raise ValueError("Time delta exceeds threshold (%i)" % tol_mins)
     else:
@@ -113,7 +113,7 @@ def infer_datetime(fn: str, dts: str):
     """
     sdt = fn_datetime(fn)
     dti = dup.parse(dts)
-    if (sdt-dti).total_seconds()/(60.0**2*24) > 1:
+    if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
         dti = dup.parse(dts, dayfirst=True)
         if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
             raise ValueError("Could not infer dt format, revise input")

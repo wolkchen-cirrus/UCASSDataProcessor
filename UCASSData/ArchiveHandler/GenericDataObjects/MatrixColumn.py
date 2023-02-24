@@ -1,5 +1,5 @@
 from numpy import matrix as mt
-import UCASSData.ConfigHandler as ch
+from ... import ConfigHandler as ch
 
 
 class MatrixColumn(object):

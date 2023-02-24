@@ -1,5 +1,5 @@
 from datetime import datetime as dt
-from UCASSData import ConfigHandler as ch
+from ....UCASSData import ConfigHandler as ch
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
 
 

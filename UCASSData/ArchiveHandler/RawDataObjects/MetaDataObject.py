@@ -1,6 +1,6 @@
 import datetime as dt
 import os.path
-import UCASSData.ArchiveHandler.ImportLib as im
+from .. import ImportLib as im
 
 
 class MetaDataObject(object):
@@ -14,6 +14,7 @@ class MetaDataObject(object):
     :param description: Description of data
     :param date_time: Date and time of measurement start
     """
+
     def __init__(self, date_time: dt.datetime = None,
                  serial_number: str = None, bbs: list = None,
                  cali_coeffs: tuple = None,
@@ -44,15 +45,13 @@ class MetaDataObject(object):
             self.cali_coeffs = cali_coeffs
 
     def __dict__(self):
-        return {
-                    "date_time": self.date_time,
-                    "start_epoch": self.start_epoch,
-                    "file_list": self.file_list,
-                    "bbs": self.bin_boundaries_adc,
-                    "description": self.description,
-                    "seial_number": self.ucass_serial_number,
-                    "cali_coeffs": self.cali_coeffs
-                }
+        return {"date_time": self.date_time,
+                "start_epoch": self.start_epoch,
+                "file_list": self.file_list,
+                "bbs": self.bin_boundaries_adc,
+                "description": self.description,
+                "seial_number": self.ucass_serial_number,
+                "cali_coeffs": self.cali_coeffs}
 
     @property
     def file_list(self):

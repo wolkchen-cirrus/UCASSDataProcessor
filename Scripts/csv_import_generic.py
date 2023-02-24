@@ -45,6 +45,7 @@ if __name__ == "__main__":
         raise ValueError('Invalid dt input')
 
     # Get import struct spec
+    # TODO: turn ISS into a class
     if not args.struct_spec_path:
         ssp = os.path.join(os.getcwd(), 'ImportStructSpec.json')
     else:
