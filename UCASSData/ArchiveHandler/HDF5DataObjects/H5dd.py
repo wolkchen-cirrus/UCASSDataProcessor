@@ -11,7 +11,7 @@ class H5dd(object):
         print(f'Creating HDF5 dict with group {self.gn}')
 
     def __add__(self, other):
-        self.md = self.md + other.dd
+        self.md = self.md + other.md
         return self
 
     def __delitem__(self, key):

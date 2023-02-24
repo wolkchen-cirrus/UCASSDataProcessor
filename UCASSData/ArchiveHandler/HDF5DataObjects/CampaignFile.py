@@ -42,7 +42,7 @@ class CampaignFile(object):
 
     def __enter__(self):
         self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
-        return self.__f
+        return self
 
     def __exit__(self):
         self.__f.close()

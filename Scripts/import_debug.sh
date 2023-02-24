@@ -5,7 +5,7 @@ dts=$1
 
 export PYTHONPATH="$PWD/.."
 
-now=$(date +%F)
+now=$(date +%s)
 lfn="ImportLog_$now.log"
 log="Logs/$lfn"
 python -m pdb csv_import_generic.py "$dts" 2>&1 | tee $log

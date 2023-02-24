@@ -94,7 +94,6 @@ if __name__ == "__main__":
         iss_o = isso(iss_n)
         with RawFile(iss_o) as rf:
             data = rf.read()
-            pass
 
         # Sort through and retrieve meta data flags
         meta_flags = inspect.getfullargspec(MetaDataObject).args

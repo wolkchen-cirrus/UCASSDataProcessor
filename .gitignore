@@ -2,3 +2,4 @@ venv/
 .idea/
 *.pyc
 UCASSConfig.json
+*.log
