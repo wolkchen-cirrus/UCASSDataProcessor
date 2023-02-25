@@ -6,6 +6,7 @@ class MatrixColumn(object):
     """
     Defines metadata for matrix column
     """
+
     def __init__(self, name: str, val: mt, dlen: int):
         self.name: str = name
         self.val: mt = val

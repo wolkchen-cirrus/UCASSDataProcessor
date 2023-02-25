@@ -4,11 +4,11 @@ from ..GenericDataObjects.MatrixDict import MatrixDict as md
 
 
 class H5dd(object):
-    def __init__(self, matrix_dict: md):
-        self.md: md = matrix_dict
-        self.date_time: dt = self.md.__get__()['date_time']
+    def __init__(self, matrix_dict: list[md]):
+        self.md: list[md] = matrix_dict
+        self.date_times: list[dt] = self.md.__get__()['date_time']
         self.__gn = self.date_time.strftime(ch.getval("groupDTformat"))
-        print(f'Creating HDF5 dict with group {self.gn}')
+        print(f'Creating HDF5 dict with group(s) {self.gn}')
 
     def __add__(self, other):
         self.md = self.md + other.md
