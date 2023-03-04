@@ -1,6 +1,7 @@
 __author__ = "Jessica Girdwood"
 __doc__ = """
-This python module is responsible for handling the JSON config file, including its initial creation.
+This python module is responsible for handling the JSON config file, including
+its initial creation.
 """
 
 import json

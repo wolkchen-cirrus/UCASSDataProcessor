@@ -8,19 +8,17 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 "YYYY-mm-dd HH:MM:SS,YYYY-mm-dd HH:MM:SS".
 """
 
-from argparse import ArgumentParser
-import UCASSData.ArchiveHandler.Utilities as utils
-import UCASSData.ArchiveHandler.ImportLib as im
-from UCASSData.ArchiveHandler.RawDataObjects.ImportObject \
-    import ImportObject
-from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject \
+from UCASSData.ArchiveHandler import Utilities as utils
+from UCASSData.ArchiveHandler import ImportLib as im
+from UCASSData.ArchiveHandler.RawDataObjects.ImportObject import ImportObject
+from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject\
     import MetaDataObject
 from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
 from UCASSData.ArchiveHandler.RawDataObjects.RawFile import RawFile
+from UCASSData import ConfigHandler as ch
+
+from argparse import ArgumentParser
 import inspect
-import UCASSData.ConfigHandler as ch
-import json
-import os
 import pandas as pd
 
 
@@ -47,25 +45,8 @@ if __name__ == "__main__":
         raise ValueError('Invalid dt input')
 
     # Get import struct spec
-    # TODO: turn ISS into a class
-    if not args.struct_spec_path:
-        ssp = os.path.join(os.getcwd(), 'ImportStructSpec.json')
-    else:
-        ssp = args.struct_spec_path
-    with open(ssp, 'r') as ssp:
-        iss = json.load(ssp)
-    try:
-        ch.add_config({"name": "data_flags",
-                       "val": iss,
-                       "dtype": "dict",
-                       "unit": "n/a",
-                       "desc": "flags for data headers, read "
-                               "\"valid_flags\" config entry for details"
-                       })
-        print("Written iss to config:")
-        ch.getconf("data_flags")
-    except FileExistsError:
-        pass
+    print("retrieving iss from config")
+    iss = ch.getval("data_flags")
     # Sort iss for priority assignment
     k = list(iss.keys())
     k.sort(reverse=True)
