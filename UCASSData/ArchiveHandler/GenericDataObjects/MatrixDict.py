@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
-from ...ArchiveHandler import ureg
+from ... import ureg
 from ... import ConfigHandler as ch
 
 

@@ -1,4 +1,3 @@
-__author__ = "Jessica Girdwood"
 __doc__ = """
 This python module is responsible for handling the JSON config file, including
 its initial creation.
@@ -11,7 +10,8 @@ from warnings import warn
 
 
 config_fn = 'UCASSConfig.json'
-config_path = os.path.join(os.path.split(os.path.abspath(__file__))[0], config_fn)
+config_path = os.path.join(os.path.split(os.path.abspath(__file__))
+                           [0], config_fn)
 
 
 class _ConfVal:

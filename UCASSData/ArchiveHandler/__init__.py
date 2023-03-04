@@ -7,11 +7,3 @@ data instance into an HDF5 file.
 
 
 from UCASSData.ArchiveHandler import *
-from pint import UnitRegistry
-import os.path
-
-
-unit_file = os.path.join(os.path.split(os.path.abspath(__file__))[0],
-                         'units.txt')
-ureg = UnitRegistry()
-ureg.load_definitions(unit_file)
