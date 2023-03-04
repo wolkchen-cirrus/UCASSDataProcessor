@@ -1,30 +1,30 @@
 #!/bin/sh
 # Assuming you are working in the Scripts directory
 
-dts=${!#}
-SCRIPT_PATH="$PWD/../UCASSData"
+INDIR="FC"
+OUTDIR="FC Proc"
 DEBUG=0
+SCRIPT_PATH="$PWD/../UCASSData"
 
-while getopts ":d" option;
+while getopts ":iod:" option;
 do
   case $option in
+    i) let INDIR=$OPTARG;;
+    o) let OUTDIR=$OPTARG;;
     d) let DEBUG=1;;
     *) echo "Invalid Option $OPTARG" && exit 1;;
   esac
 done
 
-echo "Debug is $DEBUG"
 export PYTHONPATH="$PWD/.."
-
 now=$(date +%s)
-lfn="ImportLog_$now.log"
+lfn="ConvertLog_$now.log"
 log=$(realpath "Logs/$lfn")
 echo "Log at: $log"
 
-echo "Starting import process for datetimes: $dts"
 cd $SCRIPT_PATH
 if [ $DEBUG = 1 ] ; then
-  python -m pdb csv_import_generic.py "$dts" 2>&1 | tee $log
+  python -m pdb log_to_json_all.py -d $INDIR -od $OUTDIR 2>&1 | tee $log
 else
-  python csv_import_generic.py "$dts" 2>&1 | tee $log
+  python log_to_json_all.py -d $INDIR -od $OUTDIR 2>&1 | tee $log
 fi

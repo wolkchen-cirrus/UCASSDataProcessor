@@ -9,6 +9,7 @@ while getopts ":p" option;
 do
   case $option in
     p) let ISS_PATH=$(realpath "${OPTARG}");;
+    *) echo "Invalid Option $OPTARG" && exit 1;;
   esac
 done
 
@@ -27,6 +28,7 @@ export PYTHONPATH="$PWD/.."
 now=$(date +%s)
 lfn="IssLog_$now.log"
 log=$(realpath "Logs/$lfn")
+echo "Log at: $log"
 
 cd $SCRIPT_PATH
 python write_iss.py $ISS_PATH 2>&1 | tee $log
