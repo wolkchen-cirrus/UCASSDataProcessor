@@ -43,7 +43,7 @@ def read_mavlink_log(log_path: str, message_names: dict) -> dict:
                   category=DeprecationWarning)
 
     mav_path = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'mavlogdump.py')
+                            '../mavlogdump.py')
     proc = subprocess.Popen(['python', mav_path, "--types",
                              ','.join(message_names.keys()), log_path],
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
