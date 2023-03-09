@@ -47,9 +47,15 @@ class CampaignFile(object):
     def __exit__(self):
         self.__f.close()
 
-    def write(self, val):
+    def set(self, val: H5dd):
         self.__dd = val
-        if not bool(self):
+
+    def write(self, val: H5dd = None):
+        if val:
+            self.__dd = val
+        elif not self.__dd:
+            raise AttributeError("data dict not set")
+        elif not bool(self):
             raise RuntimeError(f"File check is {bool(self)}")
         dat = self.__dd.__get__()
 
