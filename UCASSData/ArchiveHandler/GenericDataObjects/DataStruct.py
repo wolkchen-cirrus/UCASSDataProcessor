@@ -1,6 +1,7 @@
 import datetime as dt
 import pandas as pd
 import numpy as np
+import re
 from .MatrixColumn import MatrixColumn
 from ... import ConfigHandler as ch
 
@@ -9,6 +10,7 @@ class DataStruct(object):
     """
     Template data structure
     """
+
     def __init__(self, dat: dict, unit_spec: dict = None):
         self.__unit_spec = None
         self.__col_dict = None
@@ -35,7 +37,12 @@ class DataStruct(object):
             for k, v in self.col_dict.items():
                 if not isinstance(v, MatrixColumn):
                     raise TypeError
-                elif k not in [x['name'] for x in ch.getval('valid_flags')]:
+                try:
+                    flag = k.replace(re.search(r'(?=\d)\w+', k)
+                                     .group(), '#')
+                except AttributeError:
+                    pass
+                if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                     raise LookupError
 
     def df(self, period=None) -> pd.DataFrame:
@@ -67,7 +74,11 @@ class DataStruct(object):
         for k, v in val.items():
             if not isinstance(v, str):
                 raise TypeError
-            elif k not in [x['name'] for x in ch.getval('valid_flags')]:
+            try:
+                flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
+            except AttributeError:
+                pass
+            if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                 raise LookupError
         self.__unit_spec = val
 
@@ -82,7 +93,11 @@ class DataStruct(object):
         for k, v in val.items():
             if not isinstance(v, MatrixColumn):
                 raise TypeError
-            elif k not in [x['name'] for x in ch.getval('valid_flags')]:
+            try:
+                flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
+            except AttributeError:
+                pass
+            if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                 raise LookupError
         self.__col_dict = val
 

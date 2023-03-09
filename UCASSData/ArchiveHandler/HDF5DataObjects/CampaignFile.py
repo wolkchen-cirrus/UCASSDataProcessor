@@ -38,7 +38,8 @@ class CampaignFile(object):
         return self.__file_check()
 
     def __repr__(self):
-        return f'{self.fn} with {len(self.__groups())} groups'
+        return f'{self.fn}, Groups({len(self.__groups())}), \
+                 Data({len(self.__datasets)})'
 
     def __enter__(self):
         self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
@@ -47,11 +48,50 @@ class CampaignFile(object):
     def __exit__(self):
         self.__f.close()
 
-    def write(self, val):
-        self.__dd = val
-        if not bool(self):
-            raise RuntimeError(f"File check is {bool(self)}")
-        dat = self.__dd.__get__()
+    def set(self, val: H5dd):
+        if self.__dd is None:
+            self.__dd = val
+        else:
+            self.__dd = self.__dd + val
+
+    def write(self, val: H5dd | None):
+        if val:
+            self.__dd = val
+        elif not self.__dd:
+            raise AttributeError("data dict not set")
+        elif not bool(self):
+            print(f"File check is {bool(self)}")
+            if "w" not in self.mode:
+                raise AttributeError("Wrong mode to create file")
+            while True:
+                ui = input(f"Write over file {self.fn}? (y/n)")
+                if ui is "n":
+                    print("Aborting write")
+                    return
+                elif ui is "y":
+                    break
+                else:
+                    print(f"Invalid option {ui}")
+                    continue
+        elif self.mode is "r":
+            raise AttributeError("File opened in read mode, cannot write")
+        df = self.__dd.df()
+        dfm = self.__dd.df_meta()
+        nc = self.__dd.nc()
+        wg = self.__dd.gn
+        gm = self.__dd.gm()
+        print(f"Writing groups {wg} to file {self.fn}")
+        [self.__f.create_group(g) for g in wg]
+        for g in wg:
+            df[g].index.name = "Time"
+            dfi = df[g].to_record(index=True)
+            self.__f.g.create_dataset("raw", (dfi.shape[0],),
+                                      dtype='f', data=dfi)
+            self.__f.g.raw.attrs["Dataframe Meta Data"] = dfm[g]
+            [self.__f.g.create_dataset(k, (v.shape[0],), dtype='f', data=v)
+             for k, v in nc[g].items()]
+            for k, v in gm[g].__dict__().items():
+                self.__f.g.attrs[k] = v
 
     def read(self):
         pass

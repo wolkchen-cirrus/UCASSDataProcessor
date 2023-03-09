@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import re
 from .MatrixColumn import MatrixColumn
 from .DataStruct import DataStruct
 from ... import ureg
@@ -36,17 +37,21 @@ class MatrixDict(DataStruct):
                 self.non_col[k] = v
 
     def __convert_units(self, tag: str, val: np.matrix):
+        try:
+            flag = tag.replace(re.search(r'(?=\d)\w+', tag).group(), '#')
+        except AttributeError:
+            flag = tag
         if tag not in self.unit_spec:
             print("%s has no unit to convert" % tag)
             return val
-        elif self.unit_spec[tag] == self.__out_unit[tag]:
+        elif self.unit_spec[tag] == self.__out_unit[flag]:
             print("%s is already at correct unit" % tag)
             return val
         else:
             print("converting %s from %s to %s" %
-                  (tag, self.unit_spec[tag], self.__out_unit[tag]))
+                  (tag, self.unit_spec[tag], self.__out_unit[flag]))
             val = (val * ureg(self.unit_spec[tag]))\
-                .to(ureg(self.__out_unit[tag]))
+                .to(ureg(self.__out_unit[flag]))
             return val.magnitude
 
     def _self_check(self):

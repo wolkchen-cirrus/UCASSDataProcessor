@@ -1,4 +1,5 @@
 from numpy import matrix as mt
+import re
 from ... import ConfigHandler as ch
 
 
@@ -39,6 +40,10 @@ class MatrixColumn(object):
 
     @staticmethod
     def _search_flags(flag: str) -> dict:
+        try:
+            flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(), '#')
+        except AttributeError:
+            pass
         field = [x for x in ch.getval('valid_flags') if x['name'] == flag]
         if len(field) != 1:
             raise LookupError
