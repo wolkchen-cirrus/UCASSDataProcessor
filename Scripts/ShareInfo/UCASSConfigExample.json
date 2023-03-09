@@ -46,104 +46,14 @@
                 "desc": "date-time stamp"
             },
             {
-                "name": "C1",
+                "name": "C#",
                 "unit": "number",
-                "desc": "number of particles in bin 1"
+                "desc": "number of particles in bin #"
             },
             {
-                "name": "C2",
-                "unit": "number",
-                "desc": "number of particles in bin 2"
-            },
-            {
-                "name": "C3",
-                "unit": "number",
-                "desc": "number of particles in bin 3"
-            },
-            {
-                "name": "C4",
-                "unit": "number",
-                "desc": "number of particles in bin 4"
-            },
-            {
-                "name": "C5",
-                "unit": "number",
-                "desc": "number of particles in bin 5"
-            },
-            {
-                "name": "C6",
-                "unit": "number",
-                "desc": "number of particles in bin 6"
-            },
-            {
-                "name": "C7",
-                "unit": "number",
-                "desc": "number of particles in bin 7"
-            },
-            {
-                "name": "C8",
-                "unit": "number",
-                "desc": "number of particles in bin 8"
-            },
-            {
-                "name": "C9",
-                "unit": "number",
-                "desc": "number of particles in bin 9"
-            },
-            {
-                "name": "C10",
-                "unit": "number",
-                "desc": "number of particles in bin 10"
-            },
-            {
-                "name": "C11",
-                "unit": "number",
-                "desc": "number of particles in bin 11"
-            },
-            {
-                "name": "C12",
-                "unit": "number",
-                "desc": "number of particles in bin 12"
-            },
-            {
-                "name": "C13",
-                "unit": "number",
-                "desc": "number of particles in bin 13"
-            },
-            {
-                "name": "C14",
-                "unit": "number",
-                "desc": "number of particles in bin 14"
-            },
-            {
-                "name": "C15",
-                "unit": "number",
-                "desc": "number of particles in bin 15"
-            },
-            {
-                "name": "C16",
-                "unit": "number",
-                "desc": "number of particles in bin 16"
-            },
-            {
-                "name": "ToF1",
+                "name": "ToF#",
                 "unit": "us",
-                "desc": "time of flight bin 1"
-            },
-            {
-                "name": "ToF3",
-                "unit": "us",
-                "desc": "time of flight bin 3"
-            },
-            {
-                "name": "ToF5",
-                "unit": "us",
-                "desc": "time of flight bin 5"
-            },
-            {
-                "name": "ToF7",
-                "unit": "us",
-                "desc": "time of flight bin 7"
+                "desc": "time of flight bin #"
             },
             {
                 "name": "Period",
@@ -233,18 +143,18 @@
         ],
         "dtype": "list",
         "unit": "n/a",
-        "desc": "valid falgs which can be specified for import"
+        "desc": "valid falgs which can be specified for import, also serves as metadata"
     },
     {
         "name": "base_data_path",
-        "val": "C:\\Users\\jg17acv\\University of Hertfordshire\\PI Group - Documents\\Data\\UCASSDataStorage",
+        "val": "/home/cloudgirljess/Documents/UCASS/UCASSData",
         "dtype": "str",
         "unit": "n/a",
         "desc": "base path from which all data is accessed"
     },
     {
         "name": "ucass_calibration_path",
-        "val": "C:\\Users\\jg17acv\\University of Hertfordshire\\PI Group - Documents\\Projects\\UCASS\\Calibration\\CalibrationOutputs_JG20210125",
+        "val": "/home/cloudgirljess/Documents/UCASS/UCASSCali",
         "dtype": "str",
         "unit": "n/a",
         "desc": "path to ucass calibration variables"
@@ -252,56 +162,7 @@
     {
         "name": "data_flags",
         "val": {
-            "FMITalon_20220928_14245100_00.json": {
-                "data": {
-                    "ARSP": [
-                        [
-                            "Airspeed",
-                            "mps"
-                        ]
-                    ],
-                    "ATT": [
-                        [
-                            "Roll",
-                            "deg"
-                        ],
-                        [
-                            "Pitch",
-                            "deg"
-                        ],
-                        [
-                            "Yaw",
-                            "deg"
-                        ]
-                    ],
-                    "GPS": [
-                        [
-                            "Lat",
-                            "deg"
-                        ],
-                        [
-                            "Lng",
-                            "deg"
-                        ],
-                        [
-                            "Alt",
-                            "m"
-                        ],
-                        [
-                            "Spd",
-                            "mps"
-                        ]
-                    ],
-                    "BARO": [
-                        [
-                            "Press",
-                            "Pa"
-                        ]
-                    ]
-                },
-                "type": "FC Proc"
-            },
-            "FMITalon_UCASS-AD-FMI02-004_20220928_14174400_00.csv": {
+            "FMITalon_UCASS-AA-FMI02-001_20221012_15082700_00.csv": {
                 "data": {
                     "cols": [
                         "Time",
@@ -353,7 +214,56 @@
                 },
                 "type": "UCASS"
             },
-            "NaN": {
+            "FMITalon_20221012_15114200_00.json": {
+                "data": {
+                    "ARSP": [
+                        [
+                            "Airspeed",
+                            "mps"
+                        ]
+                    ],
+                    "ATT": [
+                        [
+                            "Roll",
+                            "deg"
+                        ],
+                        [
+                            "Pitch",
+                            "deg"
+                        ],
+                        [
+                            "Yaw",
+                            "deg"
+                        ]
+                    ],
+                    "GPS": [
+                        [
+                            "Lat",
+                            "deg"
+                        ],
+                        [
+                            "Lng",
+                            "deg"
+                        ],
+                        [
+                            "Alt",
+                            "m"
+                        ],
+                        [
+                            "Spd",
+                            "mps"
+                        ]
+                    ],
+                    "BARO": [
+                        [
+                            "Press",
+                            "Pa"
+                        ]
+                    ]
+                },
+                "type": "FC Proc"
+            },
+            "BME280_FMITalon_20221012_15083300_00.csv": {
                 "data": {
                     "cols": [
                         "Time",
