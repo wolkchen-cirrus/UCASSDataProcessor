@@ -101,7 +101,8 @@ if __name__ == "__main__":
         # Assign meta data object
         md_obj = MetaDataObject(**meta_data)
 
-        # Next, assign the column data to the importer object
+        # Next, assign the column data to the importer object. This is for
+        # validation and quality assurance.
         d = list(data.values())[0]
         for dx in list(data.values())[1:]:
             d += dx

@@ -1,4 +1,5 @@
 from ... import ConfigHandler as ch
+import re
 
 
 class iss(object):
@@ -39,6 +40,10 @@ class iss(object):
         for flag in fields:
             if isinstance(flag, list):
                 flag = flag[0]
+            try:
+                flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(), '#')
+            except AttributeError:
+                pass
             if flag not in vf:
                 ch.getconf('valid_flags')
                 raise ReferenceError('Data flag \'%s\' is not valid' % flag)

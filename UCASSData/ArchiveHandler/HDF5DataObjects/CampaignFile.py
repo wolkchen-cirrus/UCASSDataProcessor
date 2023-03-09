@@ -38,7 +38,8 @@ class CampaignFile(object):
         return self.__file_check()
 
     def __repr__(self):
-        return f'{self.fn} with {len(self.__groups())} groups'
+        return f'{self.fn}, Groups({len(self.__groups())}), \
+                 Data({len(self.__datasets)})'
 
     def __enter__(self):
         self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
@@ -56,8 +57,25 @@ class CampaignFile(object):
         elif not self.__dd:
             raise AttributeError("data dict not set")
         elif not bool(self):
-            raise RuntimeError(f"File check is {bool(self)}")
+            print(f"File check is {bool(self)}")
+            if self.mode is not "w":
+                raise AttributeError("Wrong mode to create file")
+            while True:
+                ui = input(f"Write over file {self.fn}? (y/n)")
+                if ui is "n":
+                    print("Aborting write")
+                    return
+                elif ui is "y":
+                    break
+                else:
+                    print(f"Invalid option {ui}")
+                    continue
+        elif self.mode is "r":
+            raise AttributeError("File opened in read mode, cannot write")
         dat = self.__dd.__get__()
+        wg = self.__dd.gn
+        print(f"Writing groups {wg} to file {self.fn}")
+        [self.__f.create_group(g) for g in wg]
 
     def read(self):
         pass
