@@ -33,6 +33,8 @@ class MatrixDict(DataStruct):
                 pass
             elif isinstance(v, np.matrix):
                 self.col_dict[k] = MatrixColumn(k, v, len(self))
+            elif isinstance(v, MatrixColumn):
+                self.col_dict[k] = v
             else:
                 self.non_col[k] = v
 
@@ -69,7 +71,8 @@ class MatrixDict(DataStruct):
 
     def __get__(self) -> dict:
         """return the dict plus non col values combined"""
-        return self.col_dict | self.non_col | {"Time": self.Time}
+        return self.col_dict | self.non_col | {"Time": self.Time} |\
+                                              {"date_time": self.date_time}
 
     def __iadd__(self, other):
         """append matrix dicts"""

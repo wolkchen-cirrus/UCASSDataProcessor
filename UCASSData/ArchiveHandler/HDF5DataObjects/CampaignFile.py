@@ -1,8 +1,9 @@
 import os.path
 import h5py as h5
+from .. import HDF5Lib as h5l
 from datetime import datetime as dt
 from .H5dd import H5dd
-from ....UCASSData import ConfigHandler as ch
+from ... import ConfigHandler as ch
 
 
 class CampaignFile(object):
@@ -45,7 +46,7 @@ class CampaignFile(object):
         self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
         return self
 
-    def __exit__(self):
+    def __exit__(self, type, val, trace):
         self.__f.close()
 
     def set(self, val: H5dd):
@@ -59,39 +60,45 @@ class CampaignFile(object):
             self.__dd = val
         elif not self.__dd:
             raise AttributeError("data dict not set")
-        elif not bool(self):
+        elif bool(self):
             print(f"File check is {bool(self)}")
-            if "w" not in self.mode:
+            if ("w" not in self.mode) or ("a" not in self.mode):
                 raise AttributeError("Wrong mode to create file")
-            while True:
-                ui = input(f"Write over file {self.fn}? (y/n)")
-                if ui is "n":
-                    print("Aborting write")
-                    return
-                elif ui is "y":
-                    break
-                else:
-                    print(f"Invalid option {ui}")
-                    continue
-        elif self.mode is "r":
+            if "w" in self.mode:
+                while True:
+                    ui = input(f"Write over file {self.fn}? (y/n)")
+                    if ui == "n":
+                        print("Aborting write")
+                        raise FileExistsError
+                    elif ui == "y":
+                        break
+                    else:
+                        print(f"Invalid option {ui}")
+                        continue
+        elif self.mode == "r":
             raise AttributeError("File opened in read mode, cannot write")
         df = self.__dd.df()
-        dfm = self.__dd.df_meta()
-        nc = self.__dd.nc()
+        nc = self.__dd.non_col()
         wg = self.__dd.gn
         gm = self.__dd.gm()
+        for g in wg:
+            try:
+                self.__groups(g)
+                raise FileExistsError
+            except ValueError:
+                pass
         print(f"Writing groups {wg} to file {self.fn}")
         [self.__f.create_group(g) for g in wg]
         for g in wg:
-            df[g].index.name = "Time"
-            dfi = df[g].to_record(index=True)
-            self.__f.g.create_dataset("raw", (dfi.shape[0],),
-                                      dtype='f', data=dfi)
-            self.__f.g.raw.attrs["Dataframe Meta Data"] = dfm[g]
-            [self.__f.g.create_dataset(k, (v.shape[0],), dtype='f', data=v)
-             for k, v in nc[g].items()]
+            group = self.__f[g]
+
+            print(f'Writing dataset to group {g}')
+            ds = group.create_dataset("columns", df[g].shape, data=df[g])
+
+            print(f'Writing metadata to dataset {ds} in group {g}')
+            h5l.dict_to_dset(nc[g], group)
             for k, v in gm[g].__dict__().items():
-                self.__f.g.attrs[k] = v
+                group.attrs[k] = v
 
     def read(self):
         pass
@@ -106,7 +113,10 @@ class CampaignFile(object):
             else:
                 return group
         else:
-            return list(self.__f.keys())
+            try:
+                return list(self.__f.keys())
+            except AttributeError:
+                return []
 
     def __datasets(self, group: str | list = None) -> dict:
         """returns hdf5 datasets for a single group or list thereof"""
@@ -132,7 +142,8 @@ class CampaignFile(object):
         if os.path.isabs(val):
             self.__fn = val
         else:
-            raise ValueError("must be abs path")
+            proc_dir = ch.getval("base_data_path")
+            self.__fn = os.path.join(proc_dir, "Processed", val)
 
     @property
     def mode(self):

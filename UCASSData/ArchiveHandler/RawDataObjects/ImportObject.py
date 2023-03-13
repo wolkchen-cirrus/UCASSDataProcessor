@@ -7,6 +7,7 @@ class ImportObject(DataStruct):
     """
     Object to provide import checking and protection, used by HDF5 modulator.
     """
+
     def init(self, dat: dict, unit_spec: dict = None):
         if unit_spec:
             raise ValueError("do not specify unit_spec")
@@ -24,4 +25,5 @@ class ImportObject(DataStruct):
         self._self_check()
 
     def __dict__(self):
-        return {self.col_dict | self.Time}
+        return self.col_dict | {"Time": self.Time} |\
+                               {"date_time": self.date_time}

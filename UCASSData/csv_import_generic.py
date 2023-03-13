@@ -10,12 +10,16 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 
 from UCASSData.ArchiveHandler import Utilities as utils
 from UCASSData.ArchiveHandler import ImportLib as im
-from UCASSData.ArchiveHandler.RawDataObjects.ImportObject import ImportObject
+from UCASSData.ArchiveHandler.RawDataObjects.ImportObject\
+    import ImportObject
 from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject\
     import MetaDataObject
 from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
 from UCASSData.ArchiveHandler.RawDataObjects.RawFile import RawFile
-from UCASSData import ConfigHandler as ch
+from UCASSData.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
+from UCASSData.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
+from UCASSData.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
+import UCASSData.ConfigHandler as ch
 
 from argparse import ArgumentParser
 import inspect
@@ -23,10 +27,8 @@ import pandas as pd
 
 
 parser = ArgumentParser(description=__doc__)
-parser.add_argument("-ssp", "--struct-spec-path", default=None,
-                    help="path to the import struct spec json")
-parser.add_argument("-a", "--append-file", default=None,
-                    help="hdf5 file to add to, if None will create new")
+parser.add_argument("-f", "--hdf5-filename", default=None,
+                    help="hdf5 file to add to, will create new if needed")
 parser.add_argument("dt", metavar="DATE",
                     help="Start and end date")
 args = parser.parse_args()
@@ -58,6 +60,7 @@ if __name__ == "__main__":
     fdf = utils.get_files(dts, types)
 
     # Loop through files using index
+    h5_data = H5dd(None, None)
     for dt in fdf.index:
 
         # Reformat iss with fn keys
@@ -106,7 +109,28 @@ if __name__ == "__main__":
         d = list(data.values())[0]
         for dx in list(data.values())[1:]:
             d += dx
+        d.date_time = dt
         i_obj = ImportObject(d.__get__())
-        pass
 
-    pass
+        # Format into HDF5 dict for processing
+        md = MatrixDict(i_obj.__dict__() | {"bbs": md_obj.__dict__()["bbs"]},
+                        unit_spec="default")
+        md.date_time = dt
+        h5_data = h5_data + H5dd(md, md_obj)
+
+    if args.hdf5_filename is None:
+        print("No HDF5 file specified, quitting")
+        raise SystemExit(0)
+
+    print("Creating directory structure")
+    utils.make_dir_structure()
+    print("Writing data to file")
+    h5fn = args.hdf5_filename
+    with CampaignFile(h5fn, mode='a') as h5cf:
+        try:
+            h5cf.write(h5_data)
+        except FileExistsError:
+            print("Cannot overwrite group")
+            raise SystemExit(1)
+
+    raise SystemExit(0)

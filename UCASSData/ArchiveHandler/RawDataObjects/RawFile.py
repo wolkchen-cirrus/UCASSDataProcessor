@@ -13,9 +13,6 @@ class RawFile(object):
     """
     This is essentially a wrapper for a raw data file(s). The file(s) is/are
     read only.
-
-    :param fn: filename
-    :param mode: file open mode
     """
 
     def __init__(self, iss: iss):
@@ -47,7 +44,7 @@ class RawFile(object):
             except AttributeError:
                 pass
 
-    def read(self) -> md:
+    def read(self) -> dict[md]:
         if not self.__file_check():
             raise RuntimeError(f"File check is {bool(self)}")
         iss = self.iss.dflags
@@ -81,9 +78,9 @@ class RawFile(object):
                         proc[key] = iss[k]['data'][key]
                     except KeyError:
                         proc[key] = None
-                data[k] = self.__proc_cols(f, k, proc['cols'],
+                data[k] = self.__proc_cols(k, proc['cols'],
                                            proc['srow'], tp)\
-                    | self.__proc_rows(f, k, proc['procrows'], tp)\
+                    | self.__proc_rows(f, proc['procrows'])\
                     | {'type': tp}
             else:
                 raise ValueError("Invalid log file extension %s" % lt)
@@ -106,7 +103,7 @@ class RawFile(object):
         return True
 
     @staticmethod
-    def __proc_cols(f, fn, cols, s_row, t):
+    def __proc_cols(fn, cols, s_row, t):
         if not cols:
             return {}
         fn = utils.get_log_path(fn, t)
@@ -123,15 +120,14 @@ class RawFile(object):
         return df_dict
 
     @staticmethod
-    def __proc_rows(f, fn, proc_rows, t):
+    def __proc_rows(f, proc_rows):
         if not proc_rows:
             return {}
-        fn = utils.get_log_path(fn, t)
         d_out = {}
         d = f.readlines()
         for rn in proc_rows:
-            pr = int(proc_rows[rn])
-            d_out[rn] = d[pr].split(',')
+            pr = int(proc_rows[rn]["row"])
+            d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"].split(':')[0]):int(proc_rows[rn]["cols"].split(':')[-1])]
         return d_out
 
     @property

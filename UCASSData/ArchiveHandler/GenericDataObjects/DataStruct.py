@@ -21,7 +21,7 @@ class DataStruct(object):
                 cls.init(self, dat, unit_spec=unit_spec)
 
     def init(self, dat: dict, unit_spec: dict = None):
-        self.unit_spec = unit_spec
+        self.unit_spec: dict = {}
         self.col_dict: dict = {}
         self.date_time: dt.datetime = dat['date_time']
         self.Time: pd.DatetimeIndex = dat['Time']
@@ -77,7 +77,7 @@ class DataStruct(object):
             try:
                 flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
             except AttributeError:
-                pass
+                flag = k
             if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                 raise LookupError
         self.__unit_spec = val

@@ -4,11 +4,13 @@
 dts=${!#}
 SCRIPT_PATH="$PWD/../UCASSData"
 DEBUG=0
+HDFILE=""
 
-while getopts ":d" option;
+while getopts ":df:" option;
 do
   case $option in
-    d) let DEBUG=1;;
+    d) DEBUG=1;;
+    f) HDFILE="--hdf5-filename $OPTARG";;
     *) echo "Invalid Option $OPTARG" && exit 1;;
   esac
 done
@@ -24,7 +26,7 @@ echo "Log at: $log"
 echo "Starting import process for datetimes: $dts"
 cd $SCRIPT_PATH
 if [ $DEBUG = 1 ] ; then
-  python -m pdb csv_import_generic.py "$dts" 2>&1 | tee $log
+  python -m pdb csv_import_generic.py $HDFILE "$dts" 2>&1 | tee $log
 else
-  python csv_import_generic.py "$dts" 2>&1 | tee $log
+  python csv_import_generic.py $HDFILE "$dts" 2>&1 | tee $log
 fi
