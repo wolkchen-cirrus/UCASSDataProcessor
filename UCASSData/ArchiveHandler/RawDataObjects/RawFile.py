@@ -127,7 +127,10 @@ class RawFile(object):
         d = f.readlines()
         for rn in proc_rows:
             pr = int(proc_rows[rn]["row"])
-            d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"].split(':')[0]):int(proc_rows[rn]["cols"].split(':')[-1])]
+            d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"]
+                                             .split(':')[0]):
+                                         int(proc_rows[rn]["cols"]
+                                             .split(':')[-1])]
         return d_out
 
     @property

@@ -1,5 +1,4 @@
 from datetime import datetime as dt
-import re
 from ... import ConfigHandler as ch
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
 from ..RawDataObjects.MetaDataObject import MetaDataObject as meta
@@ -66,7 +65,8 @@ class H5dd(object):
 
         def __df(mat_d):
             df = mat_d.df(period=p)
-            df['Time'] = [(d - dt(1970, 1, 1)).total_seconds() for d in df.index]
+            df['Time'] = [(d - dt(1970, 1, 1)).total_seconds()
+                          for d in df.index]
             return df.to_records(index=False)
 
         return {g: __df(x) for g, x in zip(self.gn, self.md)}

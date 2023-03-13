@@ -7,7 +7,6 @@ the campaign is a group, which has varying relevant datasets/metadata.
 import h5py
 from datetime import datetime as dt
 import numpy as np
-from .. import ConfigHandler as ch
 
 
 def dict_to_dset(dat: list[dict] | dict, grp: h5py.Group) -> h5py.Dataset:
@@ -29,20 +28,20 @@ def dict_to_dset(dat: list[dict] | dict, grp: h5py.Group) -> h5py.Dataset:
             if isinstance(v, str):
                 if v.isnumeric():
                     v = float(v)
-                    l = 1
+                    lv = 1
                 else:
                     print(f"skipping {v}")
                     continue
             elif isinstance(v, dt):
                 v = (v - dt(1970, 1, 1)).total_seconds()
-                l = 1
+                lv = 1
             elif hasattr(v, "__len__"):
                 v = np.asarray(v, dtype=float)
-                l = v.shape
+                lv = v.shape
             else:
                 print(f"skipping {v}")
                 continue
-            length.append(l)
+            length.append(lv)
             names.append(k)
             vals.append(v)
     return [grp.create_dataset(n, s, data=v)
