@@ -25,3 +25,4 @@ try:
     ch.getconf("data_flags")
 except FileExistsError:
     ch.change_config_val("data_flags", iss)
+    ch.getconf("data_flags")

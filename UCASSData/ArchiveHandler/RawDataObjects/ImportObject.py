@@ -1,6 +1,18 @@
 from ..GenericDataObjects.MatrixColumn import MatrixColumn
 from ..GenericDataObjects.DataStruct import DataStruct
 from numpy import matrix as mt
+from datetime import datetime
+
+
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({datetime.now()})', *args, **kwargs)
+
+
+print = timestamped_print
 
 
 class ImportObject(DataStruct):

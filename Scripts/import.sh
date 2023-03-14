@@ -1,7 +1,7 @@
 #!/bin/sh
 # Assuming you are working in the Scripts directory
 
-dts=${!#}
+dts=${@: -1}
 SCRIPT_PATH="$PWD/../UCASSData"
 DEBUG=0
 HDFILE=""
@@ -28,5 +28,5 @@ cd $SCRIPT_PATH
 if [ $DEBUG = 1 ] ; then
   python -m pdb csv_import_generic.py $HDFILE "$dts" 2>&1 | tee $log
 else
-  python csv_import_generic.py $HDFILE "$dts" 2>&1 | tee $log
+  PYTHONBREAKPOINT=0 python csv_import_generic.py $HDFILE "$dts" 2>&1 | tee $log
 fi

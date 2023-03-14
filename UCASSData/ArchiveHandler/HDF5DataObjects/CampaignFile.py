@@ -6,6 +6,17 @@ from .H5dd import H5dd
 from ... import ConfigHandler as ch
 
 
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({dt.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
+
 class CampaignFile(object):
     """
     Main object for data storage and manipulation with hdf5; HDF5 structure is

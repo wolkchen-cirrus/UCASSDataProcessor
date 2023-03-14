@@ -7,6 +7,18 @@ from .. import MavLib as mav
 from numpy import nan
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
 import warnings
+from datetime import datetime
+
+
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({datetime.now()})', *args, **kwargs)
+
+
+print = timestamped_print
 
 
 class RawFile(object):

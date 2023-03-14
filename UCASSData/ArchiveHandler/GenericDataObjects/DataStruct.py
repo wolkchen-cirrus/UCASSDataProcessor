@@ -6,6 +6,17 @@ from .MatrixColumn import MatrixColumn
 from ... import ConfigHandler as ch
 
 
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({dt.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
+
 class DataStruct(object):
     """
     Template data structure
@@ -41,7 +52,7 @@ class DataStruct(object):
                     flag = k.replace(re.search(r'(?=\d)\w+', k)
                                      .group(), '#')
                 except AttributeError:
-                    pass
+                    flag = k
                 if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                     raise LookupError
 
@@ -96,7 +107,7 @@ class DataStruct(object):
             try:
                 flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
             except AttributeError:
-                pass
+                flag = k
             if flag not in [x['name'] for x in ch.getval('valid_flags')]:
                 raise LookupError
         self.__col_dict = val

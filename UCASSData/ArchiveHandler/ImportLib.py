@@ -8,6 +8,46 @@ import dateutil.parser as dup
 import datetime as dt
 import pandas as pd
 import numpy as np
+from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
+
+
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({dt.datetime.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
+
+def get_iss_obj(iss: dict, fdf: pd.DataFrame, ind: dt.datetime) -> isso:
+    iss_n = {}
+    for k in iss:
+        # Get type from iss
+        t = iss[k]['type']
+        # Get filename from df
+        fn = fdf[t][ind]
+        # Rename the dict key
+        iss_n[fn] = iss[k]
+    # Get raw data from files
+    return isso(iss_n)
+
+
+def types_from_iss(iss: dict) -> list:
+    """returns file types from iss dict"""
+    return [iss[x]['type'] for x in list(iss.keys())]
+
+
+def get_iss() -> dict:
+    """Retreives and sorts import struct spec from config values"""
+    print("retrieving iss from config")
+    iss = ch.getval("data_flags")
+    # Sort iss for priority assignment
+    k = list(iss.keys())
+    k.sort(reverse=True)
+    return {i: iss[i] for i in k}
 
 
 def get_ucass_calibration(serial_number: str) -> tuple:

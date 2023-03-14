@@ -15,6 +15,17 @@ import array
 import warnings
 
 
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({dt.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
+
 def read_mavlink_log(log_path: str, message_names: dict) -> dict:
     """
     A function to read a mavlink log, with specified message and data names,

@@ -9,6 +9,18 @@ import numpy as np
 from .. import ConfigHandler as ch
 from ..ArchiveHandler import ImportLib as im
 import os.path
+from datetime import datetime
+
+
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({datetime.now()})', *args, **kwargs)
+
+
+print = timestamped_print
 
 
 def get_log_path(path: str | None, t: str) -> str:

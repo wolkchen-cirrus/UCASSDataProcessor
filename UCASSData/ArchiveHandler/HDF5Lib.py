@@ -10,10 +10,23 @@ import numpy as np
 from .. import ConfigHandler as ch
 
 
-def dict_to_dset(dat: list[dict] | dict, grp: h5py.Group) -> list[h5py.Dataset]:
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({dt.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
+
+def dict_to_dset(dat: list[dict] | dict,
+                 grp: h5py.Group) -> list[h5py.Dataset]:
     """
     turns dicts into h5 datasets and writes them to specified pointer; ensures
-    correct formatting. Will flatten list of dicts and write all to one pointer.
+    correct formatting. Will flatten list of dicts and write all to one
+    pointer.
     """
 
     if isinstance(dat, dict):

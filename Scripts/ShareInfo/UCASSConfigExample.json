@@ -21,6 +21,13 @@
         "desc": "date-time format for HDF5 groups"
     },
     {
+        "name": "nominalDTformat",
+        "val": "%Y-%m-%d %H:%M:%S",
+        "dtype": "str",
+        "unit": "n/a",
+        "desc": "date-time format for HDF5 groups"
+    },
+    {
         "name": "dir_structure",
         "val": {
             "Raw": {
@@ -147,14 +154,14 @@
     },
     {
         "name": "base_data_path",
-        "val": "/home/cloudgirljess/Documents/UCASS/UCASSData",
+        "val": "/home/jess/Documents/UCASS/UCASSData",
         "dtype": "str",
         "unit": "n/a",
         "desc": "base path from which all data is accessed"
     },
     {
         "name": "ucass_calibration_path",
-        "val": "/home/cloudgirljess/Documents/UCASS/UCASSCali",
+        "val": "/home/jess/Documents/UCASS/UCASSCali",
         "dtype": "str",
         "unit": "n/a",
         "desc": "path to ucass calibration variables"
@@ -162,7 +169,27 @@
     {
         "name": "data_flags",
         "val": {
-            "FMITalon_UCASS-AA-FMI02-001_20221012_15082700_00.csv": {
+            "1": {
+                "data": {
+                    "cols": [
+                        "Time",
+                        [
+                            "Temp",
+                            "degC"
+                        ],
+                        [
+                            "Press",
+                            "hPa"
+                        ],
+                        [
+                            "RH",
+                            "%"
+                        ]
+                    ]
+                },
+                "type": "Met"
+            },
+            "2": {
                 "data": {
                     "cols": [
                         "Time",
@@ -209,12 +236,15 @@
                     ],
                     "srow": "5",
                     "procrows": {
-                        "bbs": "3"
+                        "bbs": {
+                            "row": "3",
+                            "cols": "0:16"
+                        }
                     }
                 },
                 "type": "UCASS"
             },
-            "FMITalon_20221012_15114200_00.json": {
+            "3": {
                 "data": {
                     "ARSP": [
                         [
@@ -262,26 +292,6 @@
                     ]
                 },
                 "type": "FC Proc"
-            },
-            "BME280_FMITalon_20221012_15083300_00.csv": {
-                "data": {
-                    "cols": [
-                        "Time",
-                        [
-                            "Temp",
-                            "degC"
-                        ],
-                        [
-                            "Press",
-                            "hPa"
-                        ],
-                        [
-                            "RH",
-                            "%"
-                        ]
-                    ]
-                },
-                "type": "Met"
             }
         },
         "dtype": "dict",

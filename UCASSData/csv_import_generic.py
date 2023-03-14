@@ -14,18 +14,22 @@ from UCASSData.ArchiveHandler.RawDataObjects.ImportObject\
     import ImportObject
 from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject\
     import MetaDataObject
-from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
 from UCASSData.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from UCASSData.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from UCASSData.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
 from UCASSData.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
-import UCASSData.ConfigHandler as ch
 
 from argparse import ArgumentParser
 import inspect
 import pandas as pd
+from datetime import datetime
+
+print('############################################')
+print('#####Welcome to the generic data import#####')
+print('############################################')
 
 
+# Parsing args
 parser = ArgumentParser(description=__doc__)
 parser.add_argument("-f", "--hdf5-filename", default=None,
                     help="hdf5 file to add to, will create new if needed")
@@ -33,9 +37,20 @@ parser.add_argument("dt", metavar="DATE",
                     help="Start and end date")
 args = parser.parse_args()
 
+# Redefining print function with timestamp
+old_print = print
+
+
+def timestamped_print(*args, **kwargs):
+    old_print(f'({datetime.now()})', *args, **kwargs)
+
+
+print = timestamped_print
+
 if __name__ == "__main__":
 
     # Get datetime from input strings
+    print(f'Parsed datetime: {args.dt}')
     if len(args.dt.split(',')) == 1:
         dts = pd.to_datetime(args.dt, format='%Y-%m-%d %H:%M:%S')
     elif len(args.dt.split(',')) == 2:
@@ -46,16 +61,10 @@ if __name__ == "__main__":
     else:
         raise ValueError('Invalid dt input')
 
-    # Get import struct spec
-    print("retrieving iss from config")
-    iss = ch.getval("data_flags")
-    # Sort iss for priority assignment
-    k = list(iss.keys())
-    k.sort(reverse=True)
-    iss = {i: iss[i] for i in k}
+    # Get iss from config
+    iss = im.get_iss()
     # Infer types from import struct spec
-    types = [iss[x]['type'] for x in list(iss.keys())]
-
+    types = im.types_from_iss(iss)
     # Get frame of matching files to process
     fdf = utils.get_files(dts, types)
 
@@ -63,19 +72,10 @@ if __name__ == "__main__":
     h5_data = H5dd(None, None)
     for dt in fdf.index:
 
-        # Reformat iss with fn keys
-        iss_n = {}
-        for k in iss:
-            # Get type from iss
-            t = iss[k]['type']
-            # Get filename from df
-            fn = fdf[t][dt]
-            # Rename the dict key
-            iss_n[fn] = iss[k]
-        # Save or add iss
-        ch.change_config_val("data_flags", iss_n)
-        # Get raw data from files
-        iss_o = isso(iss_n)
+        # Reformat iss with fn keys and get object
+        iss_o = im.get_iss_obj(iss, fdf, dt)
+
+        print(f'Reading data from files {list(iss_o.dflags.keys())}')
         with RawFile(iss_o) as rf:
             data = rf.read()
 
@@ -133,4 +133,5 @@ if __name__ == "__main__":
             print("Cannot overwrite group")
             raise SystemExit(1)
 
+    breakpoint()
     raise SystemExit(0)
