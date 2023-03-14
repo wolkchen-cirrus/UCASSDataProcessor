@@ -92,13 +92,14 @@ class CampaignFile(object):
         for g in wg:
             group = self.__f[g]
 
-            print(f'Writing dataset to group {g}')
+            print(f'Writing dataset to group {group}')
             ds = group.create_dataset("columns", df[g].shape, data=df[g])
 
-            print(f'Writing metadata to dataset {ds} in group {g}')
+            print(f'Writing metadata to dataset {ds} in group {group}')
             h5l.dict_to_dset(nc[g], group)
-            for k, v in gm[g].__dict__().items():
-                group.attrs[k] = v
+
+            print(f'Writing attributes to group {group}')
+            h5l.metadict_to_attrs(gm[g].__dict__(), group)
 
     def read(self):
         pass
