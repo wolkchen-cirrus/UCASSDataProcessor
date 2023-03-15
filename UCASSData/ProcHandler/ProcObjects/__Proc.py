@@ -21,7 +21,6 @@ class Proc(object):
 
     def __int__(self, di: md):
         self.__di = None
-        self.__do = None
         for cls in reversed(self.__class__.mro()):
             if hasattr(cls, 'init'):
                 cls.init(self, di)
@@ -31,7 +30,7 @@ class Proc(object):
         return self.__proc()
 
     def __proc(self):
-        print("Undefined proc")
+        print("Undefined proc, returning input")
         return self.di
 
     @property
