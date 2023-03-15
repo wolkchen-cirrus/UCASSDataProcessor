@@ -64,8 +64,8 @@ def dict_to_dset(dat: list[dict] | dict,
 
 def metadict_to_attrs(dat: dict, grp: h5py.Group):
     """
-    turns dicts into h5 attributes and writes them to specified pointer; ensures
-    correct formatting.
+    turns dicts into h5 attributes and writes them to specified pointer;
+    ensures correct formatting.
     """
 
     def __list_formatter(li: list) -> str:

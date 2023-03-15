@@ -3,12 +3,16 @@ Contains functions for importing raw data into the software.
 """
 import os.path
 from .. import ConfigHandler as ch
+from . import Utilities as utils
 from collections.abc import MutableMapping
+from ..ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
+from ..ArchiveHandler.RawDataObjects.MetaDataObject import MetaDataObject
 import dateutil.parser as dup
+import inspect
 import datetime as dt
 import pandas as pd
 import numpy as np
-from UCASSData.ArchiveHandler.RawDataObjects.iss import iss as isso
+from ..ArchiveHandler.RawDataObjects.iss import iss as isso
 
 
 # Redefining print function with timestamp
@@ -20,6 +24,35 @@ def timestamped_print(*args, **kwargs):
 
 
 print = timestamped_print
+
+
+def metadata_from_rawfile_read(data: dict[md], date_time: dt,
+                               description: str = None) -> MetaDataObject:
+    """Interprests metadata from a dict of MatrixDict objects"""
+    # Sort through and retrieve meta data flags
+    meta_flags = inspect.getfullargspec(MetaDataObject).args
+    meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
+                 for f in data
+                 if x in data[f].__get__()]
+    meta_data = dict([x for x in meta_data if x[1] is not None])
+    meta_data['description'] = description
+    meta_data['date_time'] = date_time
+    meta_data['file_list'] = [utils.get_log_path
+                              (x, data[x].__get__()['type'])
+                              for x in list(data.keys())]
+    # Assign serial number
+    for fn in data:
+        try:
+            meta_data['serial_number'] = serial_number_from_fn(fn)
+            break
+        except LookupError:
+            pass
+    if 'serial_number' in meta_data:
+        pass
+    else:
+        raise ValueError("A UCASS file must exist between datetimes")
+    # Assign meta data object
+    return MetaDataObject(**meta_data)
 
 
 def get_iss_obj(iss: dict, fdf: pd.DataFrame, ind: dt.datetime) -> isso:

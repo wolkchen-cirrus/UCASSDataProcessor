@@ -72,6 +72,7 @@ class H5dd(object):
         return {g: x.__get__() for g, x in zip(self.gn, self.md)}
 
     def df(self) -> dict:
+        """main col data"""
         p = str(ch.getval("timestep")) + "S"
 
         def __df(mat_d):
@@ -82,10 +83,34 @@ class H5dd(object):
 
         return {g: __df(x) for g, x in zip(self.gn, self.md)}
 
+    def df_meta(self) -> dict:
+        """main col dataframe attributes; group: ({units}, {descriptions})"""
+        vf = ch.getval('valid_flags')
+        out = {}
+        for g, m in zip(self.gn, self.md):
+            desc = [x for x in vf if x["name"] in list(m.col_dict.keys())]
+            unit = {x['name']: x['unit'] for x in desc}
+            desc = {x['name']: x['desc'] for x in desc}
+            out[g] = (unit, desc)
+        return out
+
     def non_col(self) -> dict:
+        """Non col HDF dataframes"""
         return {g: x.non_col for g, x in zip(self.gn, self.md)}
 
+    def nc_meta(self) -> dict:
+        """non-col attributes; group: ({units}, {descriptions})"""
+        vf = ch.getval('valid_flags')
+        out = {}
+        for g, m in zip(self.gn, self.md):
+            desc = [x for x in vf if x["name"] in list(m.non_col.keys())]
+            unit = {x['name']: x['unit'] for x in desc}
+            desc = {x['name']: x['desc'] for x in desc}
+            out[g] = (unit, desc)
+        return out
+
     def gm(self) -> dict:
+        """Group metadata"""
         meta = {}
         for m in self.group_meta:
             g = m.date_time.strftime(ch.getval("groupDTformat"))

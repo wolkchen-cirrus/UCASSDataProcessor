@@ -89,7 +89,9 @@ class CampaignFile(object):
         elif self.mode == "r":
             raise AttributeError("File opened in read mode, cannot write")
         df = self.__dd.df()
+        dfm = self.__dd.df_meta()
         nc = self.__dd.non_col()
+        ncm = self.__dd.nc_meta()
         wg = self.__dd.gn
         gm = self.__dd.gm()
         for g in wg:
@@ -102,12 +104,26 @@ class CampaignFile(object):
         [self.__f.create_group(g) for g in wg]
         for g in wg:
             group = self.__f[g]
+            df_group = group.create_group("columns")
+            nc_group = group.create_group("extras")
 
             print(f'Writing dataset to group {group}')
-            ds = group.create_dataset("columns", df[g].shape, data=df[g])
+            ds = df_group.create_dataset("dataframe", df[g].shape, data=df[g])
 
-            print(f'Writing metadata to dataset {ds} in group {group}')
-            h5l.dict_to_dset(nc[g], group)
+            print(f'Writing metadata to dataset {ds}')
+            ug = df_group.create_group("units")
+            dg = df_group.create_group("descriptions")
+            h5l.metadict_to_attrs(dfm[g][0], ug)
+            h5l.metadict_to_attrs(dfm[g][1], dg)
+
+            print(f'Writing extra datasets in group {group}')
+            h5l.dict_to_dset(nc[g], nc_group)
+
+            print(f'Writing metadata to extra datasets')
+            ug = nc_group.create_group("units")
+            dg = nc_group.create_group("descriptions")
+            h5l.metadict_to_attrs(ncm[g][0], ug)
+            h5l.metadict_to_attrs(ncm[g][1], dg)
 
             print(f'Writing attributes to group {group}')
             h5l.metadict_to_attrs(gm[g].__dict__(), group)

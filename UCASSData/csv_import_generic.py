@@ -10,23 +10,20 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 
 from UCASSData.ArchiveHandler import Utilities as utils
 from UCASSData.ArchiveHandler import ImportLib as im
-from UCASSData.ArchiveHandler.RawDataObjects.ImportObject\
-    import ImportObject
-from UCASSData.ArchiveHandler.RawDataObjects.MetaDataObject\
-    import MetaDataObject
+from UCASSData.ArchiveHandler.RawDataObjects.ImportObject import ImportObject
 from UCASSData.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from UCASSData.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from UCASSData.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
 from UCASSData.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
 
 from argparse import ArgumentParser
-import inspect
 import pandas as pd
 from datetime import datetime
 
 print('############################################')
 print('#####Welcome to the generic data import#####')
 print('############################################')
+print('')
 
 
 # Parsing args
@@ -79,30 +76,8 @@ if __name__ == "__main__":
         with RawFile(iss_o) as rf:
             data = rf.read()
 
-        # Sort through and retrieve meta data flags
-        meta_flags = inspect.getfullargspec(MetaDataObject).args
-        meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
-                     for f in data
-                     if x in data[f].__get__()]
-        meta_data = dict([x for x in meta_data if x[1] is not None])
-        meta_data['description'] = "aa"
-        meta_data['date_time'] = dt
-        meta_data['file_list'] = [utils.get_log_path
-                                  (x, data[x].__get__()['type'])
-                                  for x in list(data.keys())]
-        # Assign serial number
-        for fn in data:
-            try:
-                meta_data['serial_number'] = im.serial_number_from_fn(fn)
-                break
-            except LookupError:
-                pass
-        if 'serial_number' in meta_data:
-            pass
-        else:
-            raise ValueError("A UCASS file must exist between datetimes")
-        # Assign meta data object
-        md_obj = MetaDataObject(**meta_data)
+        # Get metadata from the raw files
+        md_obj = im.metadata_from_rawfile_read(data, dt, description="test")
 
         # Next, assign the column data to the importer object. This is for
         # validation and quality assurance.
