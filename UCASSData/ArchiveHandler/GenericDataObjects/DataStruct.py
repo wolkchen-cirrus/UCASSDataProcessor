@@ -4,6 +4,7 @@ import numpy as np
 import re
 from .MatrixColumn import MatrixColumn
 from ... import ConfigHandler as ch
+from ..ArchiveHandler import ImportLib as im
 
 
 class DataStruct(object):
@@ -37,13 +38,7 @@ class DataStruct(object):
             for k, v in self.col_dict.items():
                 if not isinstance(v, MatrixColumn):
                     raise TypeError
-                try:
-                    flag = k.replace(re.search(r'(?=\d)\w+', k)
-                                     .group(), '#')
-                except AttributeError:
-                    flag = k
-                if flag not in [x['name'] for x in ch.getval('valid_flags')]:
-                    raise LookupError
+                im.check_flags(k)
 
     def df(self, period=None) -> pd.DataFrame:
         """Returns matrix columns as a dataframe"""
@@ -74,12 +69,7 @@ class DataStruct(object):
         for k, v in val.items():
             if not isinstance(v, str):
                 raise TypeError
-            try:
-                flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
-            except AttributeError:
-                flag = k
-            if flag not in [x['name'] for x in ch.getval('valid_flags')]:
-                raise LookupError
+            im.check_flags(k)
         self.__unit_spec = val
 
     @property
@@ -93,12 +83,7 @@ class DataStruct(object):
         for k, v in val.items():
             if not isinstance(v, MatrixColumn):
                 raise TypeError
-            try:
-                flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
-            except AttributeError:
-                flag = k
-            if flag not in [x['name'] for x in ch.getval('valid_flags')]:
-                raise LookupError
+            im.check_flags(k)
         self.__col_dict = val
 
     @property

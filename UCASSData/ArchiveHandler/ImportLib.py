@@ -13,6 +13,7 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 from ..ArchiveHandler.RawDataObjects.iss import iss as isso
+import re
 
 
 # Redefining print function with timestamp
@@ -24,6 +25,16 @@ def timestamped_print(*args, **kwargs):
 
 
 print = timestamped_print
+
+
+def check_flags(k: str):
+    """Checks if a single flag is valid"""
+    try:
+        flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
+    except AttributeError:
+        flag = k
+    if flag not in [x['name'] for x in ch.getval('valid_flags')]:
+        raise LookupError
 
 
 def metadata_from_rawfile_read(data: dict[md], date_time: dt,

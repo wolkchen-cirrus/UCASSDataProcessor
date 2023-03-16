@@ -6,5 +6,5 @@ class Conc(Proc):
     def init(self, di: md):
         return self.__proc()
 
-    def __proc(self):
+    def __proc(self, pt: str):
         return
