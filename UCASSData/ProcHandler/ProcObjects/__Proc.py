@@ -3,6 +3,7 @@ from ...ArchiveHandler import ImportLib as im
 from .__UnitArray import UnitArray as ua
 
 from datetime import datetime as dt
+from typing import final
 import pandas as pd
 import numpy as np
 
@@ -26,24 +27,20 @@ class Proc(object):
     :param di: MatrixDict object and data input.
     """
 
-    def __int__(self, di: md):
+    @final
+    def __init__(self, di: md, **kwargs):
+
         self.__di = None
-        for cls in reversed(self.__class__.mro()):
-            if hasattr(cls, 'init'):
-                cls.init(self, di)
+        self.__do = None
 
-    def init(self, di: md):
-        """
-        Called by __init__().
+        self.__self_check()
 
-        :param di: MatrixDict object and data input.
-
-        :return: processed data defined by __proc()
-        """
         self.di = di
-        return self.__proc()
+        self.do = self.__proc(**kwargs)
 
-    def __proc(self):
+        return self.do
+
+    def __proc(self, **kwargs):
         """Designed to be overwritten by subclass"""
         print("Undefined proc, returning input")
         return self.di
@@ -58,10 +55,19 @@ class Proc(object):
 
     def __df_to_ual(self, df: pd.DataFrame) -> list:
         dfd = df.to_dict(orient='list')
-        return [ua(k, np.matrix(v).T, len(self.__di)) for k, v in dfd.items()]
+        return [ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()]
+
+    @final
+    def __self_check(self):
+        """ensures valid subclass (placeholder)"""
+        return
+
+    def __len__(self):
+        return len(self.__di)
 
     @property
     def di(self):
+        """data input"""
         return self.__di
 
     @di.setter
@@ -69,3 +75,14 @@ class Proc(object):
         if not isinstance(val, md):
             raise TypeError
         self.__di = val
+
+    @property
+    def do(self):
+        """data output"""
+        return self.__do
+
+    @do.setter
+    def do(self, val):
+        if not isinstance(val, md):
+            raise TypeError
+        self.__do = val

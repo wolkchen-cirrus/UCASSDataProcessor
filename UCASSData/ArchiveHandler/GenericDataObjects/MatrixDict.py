@@ -113,3 +113,6 @@ class MatrixDict(DataStruct):
             self.col_dict.pop(key, None)
         except KeyError:
             self.non_col.pop(key, None)
+
+    def __len__(self):
+        return len(self.col_dict) + len(self.non_col)
