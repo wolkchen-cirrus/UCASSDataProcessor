@@ -94,7 +94,8 @@ class MatrixDict(DataStruct):
         dd = self.__sync2(other)
         self.Time = dd["Time"]
         dd.pop("Time", None)
-        dd = dict([(k, MatrixColumn(k, v, len(self))) for k, v in dd.items()])
+        dd = dict([(k, MatrixColumn(k, v, len(dd["Time"])))
+                   for k, v in dd.items()])
         self.col_dict = dd
         return self
 

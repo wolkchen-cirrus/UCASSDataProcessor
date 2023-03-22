@@ -62,6 +62,10 @@ class RawFile(object):
         iss = self.iss.dflags
         data = {}
         for k, f in zip(iss, self.__f):
+            try:
+                timezone = iss[k]["timezone"]
+            except KeyError:
+                timezone = None
             if k is nan:
                 print("No file of type %s for measurement" % iss[k]['type'])
                 continue
@@ -91,7 +95,7 @@ class RawFile(object):
                     except KeyError:
                         proc[key] = None
                 data[k] = self.__proc_cols(k, proc['cols'],
-                                           proc['srow'], tp)\
+                                           proc['srow'], tp, timezone)\
                     | self.__proc_rows(f, proc['procrows'])\
                     | {'type': tp}
             else:
@@ -115,7 +119,7 @@ class RawFile(object):
         return True
 
     @staticmethod
-    def __proc_cols(fn, cols, s_row, t):
+    def __proc_cols(fn, cols, s_row, t, tz):
         if not cols:
             return {}
         fn = utils.get_log_path(fn, t)
@@ -124,8 +128,13 @@ class RawFile(object):
         else:
             s_row = int(s_row)
         names = [x[0] if isinstance(x, list) else x for x in cols]
-        d_out = pd.read_csv(fn, header=s_row, names=names)
-        d_out['Time'] = [im.infer_datetime(fn, x) for x in d_out['Time']]
+        use_cols = [i for i, x in enumerate(names) if x]
+        d_out = pd.read_csv(fn, header=s_row, names=names, usecols=use_cols)
+        if not tz:
+            print("Assuming UTC")
+        else:
+            tz = int(tz)
+        d_out['Time'] = [im.infer_datetime(fn, x, tz) for x in d_out['Time']]
         d_out = d_out.set_index(d_out['Time'])
         d_out = d_out.drop('Time', axis=1)
         df_dict = im.df_to_dict(d_out)

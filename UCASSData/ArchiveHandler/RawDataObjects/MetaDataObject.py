@@ -20,15 +20,16 @@ class MetaDataObject(object):
     minimum metadata
 
     :param serial_number: UCASS Serial Number
-    :param bbs: UCASS bins as a list of ints (ADC vals)
-    :param cali_coeffs: UCASS calibration coefficients in order
+    :param bbs: OPC bins as a list of ints (ADC vals)
+    :param cali_coeffs: OPC calibration coefficients in order
     :param description: Description of data
     :param date_time: Date and time of measurement start
+    :param sample_area: Sample area of the OPC
     """
 
     def __init__(self, date_time: dt.datetime = None,
                  serial_number: str = None, bbs: list = None,
-                 cali_coeffs: tuple = None,
+                 cali_coeffs: tuple = None, sample_area: float = None,
                  description: str = None, file_list: list = None):
 
         self._date_time = None
@@ -40,6 +41,10 @@ class MetaDataObject(object):
         else:
             self.description = description
 
+        if sample_area is None:
+            self.SA = float(input("Sample area (m^2, parsed as float): "))
+        else:
+            self.SA = sample_area
         self.date_time = date_time
         self._start_epoch = (self.date_time - dt.datetime.utcfromtimestamp(0))\
             .total_seconds()
@@ -62,7 +67,8 @@ class MetaDataObject(object):
                 "bbs": self.bin_boundaries_adc,
                 "description": self.description,
                 "seial_number": self.ucass_serial_number,
-                "cali_coeffs": self.cali_coeffs}
+                "cali_coeffs": self.cali_coeffs,
+                "SA": self.SA}
 
     @property
     def file_list(self):

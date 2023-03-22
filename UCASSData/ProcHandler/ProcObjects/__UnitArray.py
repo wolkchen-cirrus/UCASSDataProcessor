@@ -10,13 +10,13 @@ class UnitArray(MatrixColumn):
     Array with a unit, and mathematical opperations defined.
     """
 
-    def __add__(self, other):
+    def __iadd__(self, other):
         if self.unit != other.unit:
             raise AttributeError("Unit mismatch")
         self.val = self.val + other.val
         return self
 
-    def __sub__(self, other):
+    def __isub__(self, other):
         if self.unit != other.unit:
             raise AttributeError("Unit mismatch")
         self.val = self.val - other.val

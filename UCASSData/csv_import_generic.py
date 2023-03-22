@@ -77,7 +77,8 @@ if __name__ == "__main__":
             data = rf.read()
 
         # Get metadata from the raw files
-        md_obj = im.metadata_from_rawfile_read(data, dt, description="test")
+        md_obj = im.metadata_from_rawfile_read(data, dt, description="test",
+                                               sample_area=5e-7)
 
         # Next, assign the column data to the importer object. This is for
         # validation and quality assurance.

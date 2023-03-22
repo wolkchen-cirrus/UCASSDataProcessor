@@ -38,7 +38,8 @@ def check_flags(k: str):
 
 
 def metadata_from_rawfile_read(data: dict[md], date_time: dt,
-                               description: str = None) -> MetaDataObject:
+                               description: str = None,
+                               sample_area: float = None) -> MetaDataObject:
     """Interprests metadata from a dict of MatrixDict objects"""
     # Sort through and retrieve meta data flags
     meta_flags = inspect.getfullargspec(MetaDataObject).args
@@ -51,6 +52,7 @@ def metadata_from_rawfile_read(data: dict[md], date_time: dt,
     meta_data['file_list'] = [utils.get_log_path
                               (x, data[x].__get__()['type'])
                               for x in list(data.keys())]
+    meta_data['sample_area'] = sample_area
     # Assign serial number
     for fn in data:
         try:
@@ -181,18 +183,16 @@ def check_datetime_overlap(datetimes: list, tol_mins: int = 30):
         return
 
 
-def infer_datetime(fn: str, dts: str):
+def infer_datetime(fn: str, dts: str, tz: int) -> dt.datetime:
     """
     Attempts to infer datetime string format using filename as anchor; pretty
     unstable tbh, try not to use this if possible
 
     :param fn: filename
-    :type fn: str
     :param dts: datetime string in rando format
-    :type dts: string
+    :param tz: timezone (e.g. +2, -2, &c)
 
     :returns: datetime
-    :rtype: dt.datetime
     """
 
     sdt = fn_datetime(fn)
@@ -201,7 +201,11 @@ def infer_datetime(fn: str, dts: str):
         dti = dup.parse(dts, dayfirst=True)
         if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
             raise ValueError("Could not infer dt format, revise input")
-    return dti
+
+    if not tz:
+        return dti
+    else:
+        return dti - dt.timedelta(hours=tz)
 
 
 def fn_datetime(fn: list or str) -> dt.datetime or pd.Timestamp:

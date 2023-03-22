@@ -6,6 +6,8 @@ from datetime import datetime as dt
 from typing import final
 import pandas as pd
 import numpy as np
+import ast
+import inspect
 
 
 # Redefining print function with timestamp
@@ -59,8 +61,10 @@ class Proc(object):
 
     @final
     def __self_check(self):
-        """ensures valid subclass (placeholder)"""
-        return
+        """ensures valid subclass"""
+        if any(isinstance(node, ast.Return) for node in
+               ast.walk(ast.parse(inspect.getsource(self.__proc)))) is False:
+            raise AttributeError("return not implemented in __proc")
 
     def __len__(self):
         return len(self.__di)
@@ -85,4 +89,4 @@ class Proc(object):
     def do(self, val):
         if not isinstance(val, md):
             raise TypeError
-        self.__do = val
+        self.__do = self.di + val
