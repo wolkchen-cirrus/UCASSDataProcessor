@@ -8,16 +8,21 @@ class MatrixColumn(object):
     Defines metadata for matrix column
     """
 
-    def __init__(self, name: str, val: mt, dlen: int):
-        self.name: str = name
+    def __init__(self, name: str | None, val: mt, dlen: int):
         self.val: mt = val
-        field = self._search_flags(self.name)
-        self.unit: str = field['unit']
-        self.desc: str = field['desc']
         self.dlen: int = dlen
-        self._self_check()
+        if name:
+            self.name: str = name
+            field = self.__search_flags(self.name)
+            self.unit: str = field['unit']
+            self.desc: str = field['desc']
+            self.__self_check()
+        else:
+            self.name = None
+            self.unit = None
+            self.desc = None
 
-    def _self_check(self):
+    def __self_check(self):
         if not isinstance(self.val, mt):
             raise TypeError
         elif self.val.shape[1] != 1:
@@ -39,7 +44,7 @@ class MatrixColumn(object):
         return f'DataStruct({len(self)}, {self.name})'
 
     @staticmethod
-    def _search_flags(flag: str) -> dict:
+    def __search_flags(flag: str) -> dict:
         try:
             flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(), '#')
         except AttributeError:

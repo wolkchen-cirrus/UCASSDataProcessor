@@ -20,3 +20,6 @@ class Calibrate(Proc):
             print("Already calibrated, nothing to do")
             return self.di
         return
+
+    def __repr__(self):
+        return "Calibrate"
