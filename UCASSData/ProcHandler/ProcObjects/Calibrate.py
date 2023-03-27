@@ -16,10 +16,11 @@ print = timestamped_print
 class Calibrate(Proc):
 
     def __proc(self, **kwargs):
-        if "bbs_um" in self.di.__dict__():
+        data = self.di.__dict__()
+        if "bbs_sca" in data:
             print("Already calibrated, nothing to do")
             return self.di
-        return
+        cof = data["cali_coeffs"]
 
     def __repr__(self):
         return "Calibrate"

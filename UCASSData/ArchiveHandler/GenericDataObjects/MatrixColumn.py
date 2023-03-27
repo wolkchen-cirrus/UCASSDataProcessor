@@ -1,6 +1,5 @@
 from numpy import matrix as mt
-import re
-from ... import ConfigHandler as ch
+from .. import ImportLib as im
 
 
 class MatrixColumn(object):
@@ -41,16 +40,8 @@ class MatrixColumn(object):
         return self.val
 
     def __repr__(self):
-        return f'DataStruct({len(self)}, {self.name})'
+        return f'MatrixColumn({len(self)}, {self.name})'
 
     @staticmethod
     def __search_flags(flag: str) -> dict:
-        try:
-            flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(), '#')
-        except AttributeError:
-            pass
-        field = [x for x in ch.getval('valid_flags') if x['name'] == flag]
-        if len(field) != 1:
-            raise LookupError
-        else:
-            return field[0]
+        return im.check_flags(flag, rt=True)

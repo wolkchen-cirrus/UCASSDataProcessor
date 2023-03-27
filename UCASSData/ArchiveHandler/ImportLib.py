@@ -27,7 +27,7 @@ def timestamped_print(*args, **kwargs):
 print = timestamped_print
 
 
-def check_flags(k: str):
+def check_flags(k: str, rt: bool = False) -> dict:
     """Checks if a single flag is valid"""
     try:
         flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
@@ -35,6 +35,8 @@ def check_flags(k: str):
         flag = k
     if flag not in [x['name'] for x in ch.getval('valid_flags')]:
         raise LookupError
+    elif rt is True:
+        return [x for x in ch.getval('valid_flags') if x['name'] == flag][0]
 
 
 def metadata_from_rawfile_read(data: dict[md], date_time: dt,
