@@ -1,41 +1,21 @@
 from numpy import matrix as mt
-from .. import ImportLib as im
+from ..ArchiveHandler.GenericDataObjects.MatrixColumn import MatrixColumn
 
 
-class DomainArray(object):
+class DomainArray(MatrixColumn):
     """non-col object where the domain is not time"""
 
     def __init__(self, name: str, val: mt, domain_name: str):
         self.val: mt = val
-        self.domain_name = domain_name
+        self.dname = domain_name
         self.name: str = name
         field = self.__search_flags(self.name)
+        dfield = self.__search_flags(self.dname)
         self.unit: str = field['unit']
+        self.dunit: str = dfield['unit']
         self.desc: str = field['desc']
-        self.__self_check()
-
-    def __self_check(self):
-        if not isinstance(self.val, mt):
-            raise TypeError
-        elif self.val.shape[1] != 2:
-            raise ValueError("2 cols: Domain, Range")
-        else:
-            for k, v in self.__dict__.items():
-                if v is None:
-                    raise AttributeError('%s is not set' % k)
-
-    def __len__(self) -> int:
-        return self.val.shape[0]
-
-    def __get__(self) -> mt:
-        return self.val
-
-    def __repr__(self):
-        return f'DomainArray({len(self)}, {self.name})'
-
-    @staticmethod
-    def __search_flags(flag: str) -> dict:
-        return im.check_flags(flag, rt=True)
+        self.ddesc: str = dfield['desc']
+        self.__self_check(2)
 
     @property
     def domain(self):

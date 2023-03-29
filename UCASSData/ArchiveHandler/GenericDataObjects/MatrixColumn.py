@@ -15,17 +15,17 @@ class MatrixColumn(object):
             field = self.__search_flags(self.name)
             self.unit: str = field['unit']
             self.desc: str = field['desc']
-            self.__self_check()
+            self.__self_check(1)
         else:
             self.name = None
             self.unit = None
             self.desc = None
 
-    def __self_check(self):
+    def __self_check(self, c: int):
         if not isinstance(self.val, mt):
             raise TypeError
-        elif self.val.shape[1] != 1:
-            raise ValueError("only 1 column")
+        elif self.val.shape[1] != c:
+            raise ValueError
         elif len(self) != self.dlen:
             raise ValueError("Length must be %i" % self.dlen)
         else:
