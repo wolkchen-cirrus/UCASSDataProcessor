@@ -1,4 +1,4 @@
-from UCASSData import ConfigHandler as ch
+from oproc import ConfigHandler as ch
 
 import json
 from argparse import ArgumentParser

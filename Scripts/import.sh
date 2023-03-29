@@ -2,7 +2,7 @@
 # Assuming you are working in the Scripts directory
 
 dts=${@: -1}
-SCRIPT_PATH="$PWD/../UCASSData"
+SCRIPT_PATH="$PWD/../oproc"
 DEBUG=0
 HDFILE=""
 

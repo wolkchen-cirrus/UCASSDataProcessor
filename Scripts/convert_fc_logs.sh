@@ -4,7 +4,7 @@
 INDIR="FC"
 OUTDIR="FC Proc"
 DEBUG=0
-SCRIPT_PATH="$PWD/../UCASSData"
+SCRIPT_PATH="$PWD/../oproc"
 
 while getopts ":iod:" option;
 do

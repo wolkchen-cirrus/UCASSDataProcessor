@@ -3,7 +3,7 @@
 
 ISS_PATH=""
 DEFAULT_PATH=$(realpath "ImportStructSpec.json")
-SCRIPT_PATH="$PWD/../UCASSData"
+SCRIPT_PATH="$PWD/../oproc"
 
 while getopts ":p" option;
 do

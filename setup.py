@@ -1,5 +1,5 @@
 import setuptools
-import UCASSData
+import oproc
 
 with open("README.md", "r") as f:
     long_description = f.read()
@@ -7,11 +7,11 @@ with open("README.md", "r") as f:
 packages = setuptools.find_packages()
 
 setuptools.setup(
-    name="UCASSData",
-    version=UCASSData.__version__,
-    author=UCASSData.__author__,
-    author_email=UCASSData.__email__,
-    description=UCASSData.__doc__,
+    name="oproc",
+    version=oproc.__version__,
+    author=oproc.__author__,
+    author_email=oproc.__email__,
+    description=oproc.__doc__,
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/JGirdwood/UCASSDataProcessor",

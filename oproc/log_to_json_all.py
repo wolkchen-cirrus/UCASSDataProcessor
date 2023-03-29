@@ -4,9 +4,9 @@ Converts all the flight logs to json databases for quick searching
 
 import os
 from argparse import ArgumentParser
-from . import ConfigHandler as ch
-from .ArchiveHandler import Utilities as utils
-from .ArchiveHandler import MavLib as MavLib
+from oproc import ConfigHandler as ch
+from oproc.ArchiveHandler import Utilities as utils
+from oproc.ArchiveHandler import MavLib as MavLib
 
 
 base = ch.getval('base_data_path')

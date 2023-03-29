@@ -9,7 +9,7 @@ __doc__ = """
 Processes data from OPC instruments, and manages the data repos.
 """
 
-from UCASSData import *
+from oproc import *
 from pint import UnitRegistry
 import os.path
 from datetime import datetime

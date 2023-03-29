@@ -2,7 +2,7 @@
 # Assuming you are working in the Scripts directory
 
 SHAREDIR=$(realpath "ShareInfo")
-MODDIR=$(realpath "../UCASSData")
+MODDIR=$(realpath "../oproc")
 
 rm -rf $SHAREDIR/UCASSConfig*
 
