@@ -49,14 +49,15 @@ if __name__ == "__main__":
     # Get datetime from input strings
     print(f'Parsed datetime: {args.dt}')
     if len(args.dt.split(',')) == 1:
-        dts = pd.to_datetime(args.dt, format='%Y-%m-%d %H:%M:%S')
+        dts = pd.to_datetime(args.dt, format='ISO8601')
     elif len(args.dt.split(',')) == 2:
         dts = (pd.to_datetime(args.dt.split(',')[0],
-                              format='%Y-%m-%d %H:%M:%S'),
+                              format='ISO8601'),
                pd.to_datetime(args.dt.split(',')[1],
-                              format='%Y-%m-%d %H:%M:%S'))
+                              format='ISO8601'))
     else:
         raise ValueError('Invalid dt input')
+    print(f'Processing datetime(s): {dts}')
 
     # Get iss from config
     iss = im.get_iss()

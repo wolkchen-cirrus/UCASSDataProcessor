@@ -2,7 +2,7 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 from .MatrixColumn import MatrixColumn
-from ..ArchiveHandler import ImportLib as im
+from .. import ImportLib as im
 
 
 class DataStruct(object):

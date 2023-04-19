@@ -7,7 +7,7 @@ import pandas as pd
 import datetime as dt
 import numpy as np
 from .. import ConfigHandler as ch
-from ..ArchiveHandler import ImportLib as im
+from . import ImportLib as im
 import os.path
 from datetime import datetime
 

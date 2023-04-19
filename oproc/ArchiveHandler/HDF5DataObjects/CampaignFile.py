@@ -129,7 +129,8 @@ class CampaignFile(object):
             h5l.metadict_to_attrs(gm[g].__dict__(), group)
 
     def read(self):
-        pass
+        if self.mode not in ['r', 'r+']:
+            raise ValueError("h5 file not opened in read mode")
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""

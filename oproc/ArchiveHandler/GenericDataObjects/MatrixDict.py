@@ -44,7 +44,7 @@ class MatrixDict(DataStruct):
             if k == "Time":
                 pass
             elif isinstance(v, np.matrix):
-                self.col_dict[k] = MatrixColumn(k, v, len(self))
+                self.col_dict[k] = MatrixColumn(k, v, len(self.Time))
             elif isinstance(v, MatrixColumn):
                 self.col_dict[k] = v
             else:
@@ -94,7 +94,7 @@ class MatrixDict(DataStruct):
         dd = self.__sync2(other)
         self.Time = dd["Time"]
         dd.pop("Time", None)
-        dd = dict([(k, MatrixColumn(k, v, len(dd["Time"])))
+        dd = dict([(k, MatrixColumn(k, v, len(self.Time)))
                    for k, v in dd.items()])
         self.col_dict = dd
         return self
@@ -105,7 +105,7 @@ class MatrixDict(DataStruct):
             raise TypeError
         non_col = self.non_col | other.non_col
         dd = self.__sync2(other)
-        dd = dict([(k, MatrixColumn(k, v, len(dd["Time"])))
+        dd = dict([(k, MatrixColumn(k, v, len(self.Time)))
                    for k, v in dd.items()])
         return MatrixDict(non_col | dd)
 

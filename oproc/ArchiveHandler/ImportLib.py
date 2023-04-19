@@ -1,18 +1,21 @@
 """
 Contains functions for importing raw data into the software.
 """
-import os.path
+
 from .. import ConfigHandler as ch
+from .. import tag_suffix as tf
 from . import Utilities as utils
-from collections.abc import MutableMapping
-from ..ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
-from ..ArchiveHandler.RawDataObjects.MetaDataObject import MetaDataObject
+from .GenericDataObjects.MatrixDict import MatrixDict as md
+from .RawDataObjects.MetaDataObject import MetaDataObject
+from .RawDataObjects.iss import iss as isso
+
 import dateutil.parser as dup
+from collections.abc import MutableMapping
+import os.path
 import inspect
 import datetime as dt
 import pandas as pd
 import numpy as np
-from ..ArchiveHandler.RawDataObjects.iss import iss as isso
 import re
 
 
@@ -27,16 +30,40 @@ def timestamped_print(*args, **kwargs):
 print = timestamped_print
 
 
-def check_flags(k: str, rt: bool = False) -> dict:
+def tag_generic_to_numeric(tag: str, q_list: list[str]) -> str:
+    """
+    Converts # to a number in tag. Returns all itterations of # with
+    pattern.
+    """
+    check_flags(tag, q_list=q_list)
+    if tf in tag:
+        template = tag_prefix(tag)
+        return [x for x in q_list if template in x
+                and not re.sub(r'[0-9]+', '', x.replace(template, ''))]
+    else:
+        return tag
+
+
+def tag_prefix(tag: str) -> str:
+    return re.sub(f'({tf})', '', tag)
+
+
+def check_flags(k: str, rt: bool = False, q_list: list[str] = None) -> dict:
     """Checks if a single flag is valid"""
+    if q_list:
+        vf = q_list
+    else:
+        vf = ch.getval('valid_flags')
+
     try:
-        flag = k.replace(re.search(r'(?=\d)\w+', k).group(), '#')
+        flag = k.replace(re.search(r'(?=\d)\w+', k).group(), tf)
     except AttributeError:
         flag = k
-    if flag not in [x['name'] for x in ch.getval('valid_flags')]:
+
+    if flag not in [x['name'] for x in vf]:
         raise LookupError
     elif rt is True:
-        return [x for x in ch.getval('valid_flags') if x['name'] == flag][0]
+        return [x for x in vf if x['name'] == flag][0]
 
 
 def metadata_from_rawfile_read(data: dict[md], date_time: dt,

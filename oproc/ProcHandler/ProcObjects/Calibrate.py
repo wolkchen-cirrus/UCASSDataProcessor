@@ -20,7 +20,10 @@ class Calibrate(Proc):
         if "bbs_sca" in data:
             print("Already calibrated, nothing to do")
             return self.di
+        else:
+            data = data["bbs"]
         cof = data["cali_coeffs"]
+        return [(x - cof[1]) / cof[0] for x in data]
 
     def __repr__(self):
         return "Calibrate"

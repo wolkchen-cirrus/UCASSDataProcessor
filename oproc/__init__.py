@@ -13,6 +13,7 @@ from oproc import *
 from pint import UnitRegistry
 import os.path
 from datetime import datetime
+import ConfigHandler as ch
 
 
 # Redefining print function with timestamp
@@ -31,3 +32,5 @@ unit_file = os.path.join(os.path.split(os.path.abspath(__file__))[0],
 ureg = UnitRegistry()
 ureg.load_definitions(unit_file)
 ureg.default_format = "~"
+
+tag_suffix = ch.getval("tag_suffix")
