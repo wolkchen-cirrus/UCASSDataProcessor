@@ -4,17 +4,11 @@ from .. import HDF5Lib as h5l
 from datetime import datetime as dt
 from .H5dd import H5dd
 from ... import ConfigHandler as ch
+from ... import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class CampaignFile(object):

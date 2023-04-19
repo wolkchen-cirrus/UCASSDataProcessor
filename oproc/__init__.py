@@ -12,19 +12,23 @@ Processes data from OPC instruments, and manages the data repos.
 from oproc import *
 from pint import UnitRegistry
 import os.path
-from datetime import datetime
+import datetime as dt
 import ConfigHandler as ch
 
 
-# Redefining print function with timestamp
-old_print = print
+def newprint():
+    old_print = print
 
+    def __round_seconds(obj: dt.datetime) -> dt.datetime:
+        if obj.microsecond >= 500_000:
+            obj += dt.timedelta(seconds=1)
+        return dt.datetime.timestamp(obj.replace(microsecond=0))
 
-def timestamped_print(*args, **kwargs):
-    old_print(f'({datetime.now()})', *args, **kwargs)
+    def timestamped_print(*args, **kwargs):
+        old_print(f'[\x1b[32m{__round_seconds(dt.datetime.now())}\x1b[0m]',
+                  *args, **kwargs)
 
-
-print = timestamped_print
+    return timestamped_print
 
 
 unit_file = os.path.join(os.path.split(os.path.abspath(__file__))[0],

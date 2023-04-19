@@ -1,18 +1,12 @@
 from datetime import datetime as dt
 from ... import ConfigHandler as ch
+from ... import newprint
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
 from ..RawDataObjects.MetaDataObject import MetaDataObject as meta
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class H5dd(object):

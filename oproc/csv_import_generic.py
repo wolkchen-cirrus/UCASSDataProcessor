@@ -15,16 +15,18 @@ from oproc.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
 from oproc.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
+from oproc import newprint
 
 from argparse import ArgumentParser
 import pandas as pd
-from datetime import datetime
 
-print('############################################')
-print('#####Welcome to the generic data import#####')
-print('############################################')
+print('####################################################')
+print('######## Welcome to the generic data import ########')
+print('####################################################')
 print('')
 
+# Redefining print function with timestamp
+print = newprint()
 
 # Parsing args
 parser = ArgumentParser(description=__doc__)
@@ -33,16 +35,6 @@ parser.add_argument("-f", "--hdf5-filename", default=None,
 parser.add_argument("dt", metavar="DATE",
                     help="Start and end date")
 args = parser.parse_args()
-
-# Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
 
 if __name__ == "__main__":
 

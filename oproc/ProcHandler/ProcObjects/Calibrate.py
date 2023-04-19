@@ -1,16 +1,9 @@
 from .__Proc import Proc
-from datetime import datetime as dt
+from ... import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class Calibrate(Proc):

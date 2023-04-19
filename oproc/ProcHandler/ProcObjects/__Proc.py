@@ -1,8 +1,8 @@
 from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 from ...ArchiveHandler import ImportLib as im
+from ... import newprint
 from .__UnitArray import UnitArray as ua
 
-from datetime import datetime as dt
 from typing import final
 import pandas as pd
 import numpy as np
@@ -11,14 +11,7 @@ import inspect
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class Proc(object):

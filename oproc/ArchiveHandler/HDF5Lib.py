@@ -8,17 +8,11 @@ import h5py
 from datetime import datetime as dt
 import numpy as np
 from .. import ConfigHandler as ch
+from .. import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 def dict_to_dset(dat: list[dict] | dict,

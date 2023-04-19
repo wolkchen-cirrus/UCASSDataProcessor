@@ -5,6 +5,7 @@ Contains functions for importing raw data into the software.
 from .. import ConfigHandler as ch
 from .. import tag_suffix as tf
 from . import Utilities as utils
+from .. import newprint
 from .GenericDataObjects.MatrixDict import MatrixDict as md
 from .RawDataObjects.MetaDataObject import MetaDataObject
 from .RawDataObjects.iss import iss as isso
@@ -20,14 +21,7 @@ import re
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 def tag_generic_to_numeric(tag: str, q_list: list[str]) -> str:

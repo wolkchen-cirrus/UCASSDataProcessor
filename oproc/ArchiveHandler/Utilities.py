@@ -3,24 +3,19 @@ Contains functions for data archive maintenance and searching. Anything to do
 with raw data maintenance goes here.
 """
 
+from .. import ConfigHandler as ch
+from .. import newprint
+from . import ImportLib as im
+
+import os.path
+from datetime import datetime
 import pandas as pd
 import datetime as dt
 import numpy as np
-from .. import ConfigHandler as ch
-from . import ImportLib as im
-import os.path
-from datetime import datetime
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 def get_log_path(path: str | None, t: str) -> str:
