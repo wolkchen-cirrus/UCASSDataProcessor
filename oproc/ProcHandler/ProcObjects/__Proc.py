@@ -1,8 +1,8 @@
 from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 from ...ArchiveHandler import ImportLib as im
+from ... import newprint
 from .__UnitArray import UnitArray as ua
 
-from datetime import datetime as dt
 from typing import final
 import pandas as pd
 import numpy as np
@@ -11,14 +11,7 @@ import inspect
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class Proc(object):
@@ -47,17 +40,19 @@ class Proc(object):
         print("Undefined proc, returning input")
         return self.di
 
-    def __getcols(self, tags: list | str):
-        """Gets columns with specified tags"""
+    def __getcols(self, tags: list | str) -> dict:
+        """Gets columns with specified tags, must be in col_dict"""
         if isinstance(tags, str):
             tags = [tags]
         [im.check_flags(x) for x in tags]
-        df = self.di.df()[tags]
+        df = self.di.df()
+        tags = [im.tag_generic_to_numeric(x, df.columns) for x in tags]
+        df = df[tags]
         return self.__df_to_ual(df)
 
-    def __df_to_ual(self, df: pd.DataFrame) -> list:
+    def __df_to_uad(self, df: pd.DataFrame) -> dict:
         dfd = df.to_dict(orient='list')
-        return [ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()]
+        return {k: ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()}
 
     @final
     def __self_check(self):

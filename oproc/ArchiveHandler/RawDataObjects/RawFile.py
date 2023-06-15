@@ -1,24 +1,18 @@
-import os.path
-import pandas as pd
 from .iss import iss
 from .. import Utilities as utils
+from ... import newprint
 from .. import ImportLib as im
 from .. import MavLib as mav
-from numpy import nan
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
+
+import os.path
+import pandas as pd
 import warnings
-from datetime import datetime
+from numpy import nan
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class RawFile(object):

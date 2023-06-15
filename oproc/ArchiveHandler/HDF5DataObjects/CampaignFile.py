@@ -4,17 +4,11 @@ from .. import HDF5Lib as h5l
 from datetime import datetime as dt
 from .H5dd import H5dd
 from ... import ConfigHandler as ch
+from ... import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class CampaignFile(object):
@@ -129,7 +123,8 @@ class CampaignFile(object):
             h5l.metadict_to_attrs(gm[g].__dict__(), group)
 
     def read(self):
-        pass
+        if self.mode not in ['r', 'r+']:
+            raise ValueError("h5 file not opened in read mode")
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""

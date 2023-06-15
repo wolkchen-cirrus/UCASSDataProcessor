@@ -15,16 +15,18 @@ from oproc.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
 from oproc.ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict
+from oproc import newprint
 
 from argparse import ArgumentParser
 import pandas as pd
-from datetime import datetime
 
-print('############################################')
-print('#####Welcome to the generic data import#####')
-print('############################################')
+print('####################################################')
+print('######## Welcome to the generic data import ########')
+print('####################################################')
 print('')
 
+# Redefining print function with timestamp
+print = newprint()
 
 # Parsing args
 parser = ArgumentParser(description=__doc__)
@@ -34,29 +36,20 @@ parser.add_argument("dt", metavar="DATE",
                     help="Start and end date")
 args = parser.parse_args()
 
-# Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
-
 if __name__ == "__main__":
 
     # Get datetime from input strings
     print(f'Parsed datetime: {args.dt}')
     if len(args.dt.split(',')) == 1:
-        dts = pd.to_datetime(args.dt, format='%Y-%m-%d %H:%M:%S')
+        dts = pd.to_datetime(args.dt, format='ISO8601')
     elif len(args.dt.split(',')) == 2:
         dts = (pd.to_datetime(args.dt.split(',')[0],
-                              format='%Y-%m-%d %H:%M:%S'),
+                              format='ISO8601'),
                pd.to_datetime(args.dt.split(',')[1],
-                              format='%Y-%m-%d %H:%M:%S'))
+                              format='ISO8601'))
     else:
         raise ValueError('Invalid dt input')
+    print(f'Processing datetime(s): {dts}')
 
     # Get iss from config
     iss = im.get_iss()

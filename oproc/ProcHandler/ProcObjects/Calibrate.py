@@ -1,17 +1,10 @@
 from .__Proc import Proc
-from datetime import datetime as dt
 from ..ProcHandler import ProcLib as pl
+from ... import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class Calibrate(Proc):
@@ -25,8 +18,11 @@ class Calibrate(Proc):
         if "bbs_sca" in data:
             print("Already calibrated, nothing to do")
             return self.di
+        else:
+            data = data["bbs"]
         cof = data["cali_coeffs"]
         mie_curve = pl.get_material_data(mat)
+        return [(x - cof[1]) / cof[0] for x in data]
 
     def __repr__(self):
         return "Calibrate"

@@ -1,17 +1,11 @@
 import datetime as dt
 import os.path
 from .. import ImportLib as im
+from ... import newprint
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.datetime.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 class MetaDataObject(object):

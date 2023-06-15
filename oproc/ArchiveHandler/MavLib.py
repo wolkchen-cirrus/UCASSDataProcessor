@@ -2,28 +2,23 @@
 Library of tools to handle mavlink log data in raw data processing.
 """
 
-import datetime as dt
-import pandas as pd
-import subprocess
-import os.path
 from ..ArchiveHandler import ImportLib as im
 from ..ArchiveHandler import Utilities as utils
 from .. import ConfigHandler as ch
+from .. import newprint
+
 from pymavlink import mavutil
 import json
 import array
 import warnings
+import datetime as dt
+import pandas as pd
+import subprocess
+import os.path
 
 
 # Redefining print function with timestamp
-old_print = print
-
-
-def timestamped_print(*args, **kwargs):
-    old_print(f'({dt.now()})', *args, **kwargs)
-
-
-print = timestamped_print
+print = newprint()
 
 
 def read_mavlink_log(log_path: str, message_names: dict) -> dict:
