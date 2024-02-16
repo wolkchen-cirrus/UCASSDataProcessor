@@ -7,8 +7,11 @@ the campaign is a group, which has varying relevant datasets/metadata.
 import h5py
 from datetime import datetime as dt
 import numpy as np
+import typing
+
 from .. import ConfigHandler as ch
 from .. import newprint
+from .RawDataObjects.MetaDataObject import MetaDataObject as meta
 
 
 # Redefining print function with timestamp
@@ -75,3 +78,42 @@ def metadict_to_attrs(dat: dict, grp: h5py.Group):
             # Attempt to just convert to UTF-8 string if all else fails
             val = str(v)
         grp.attrs[k] = val
+
+
+def attrs_to_dict(grp: h5py.Group | h5py.Dataset) -> dict:
+    """Gets attribtes and infers data type"""
+
+    def __convert_dtype(val, out):
+        if isinstance(val, out):
+            print(f"Already at correct type :)")
+            return val
+        if out == dt:
+            return dt.fromtimestamp(val)
+        try:
+            print(f"Testing if convertable directly, type:{out}")
+            return out(val)
+        except ValueError:
+            raise
+        print(f"Testing if iterable (last chance), type:{out}")
+        return out(val.split(','))
+
+    attrs = grp.attrs
+    meta_flags = typing.get_type_hints(meta)
+    for k, v in meta_flags.items():
+        if k in attrs:
+            print(f"assigning {k} with type {v}")
+            attrs[k] = __convert_dtype(attrs[k], v)
+
+    return attrs
+
+
+def dset_to_dict():
+
+
+
+
+
+
+
+
+    return

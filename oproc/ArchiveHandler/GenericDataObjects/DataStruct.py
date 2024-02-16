@@ -3,6 +3,10 @@ import pandas as pd
 import numpy as np
 from .MatrixColumn import MatrixColumn
 from .. import ImportLib as im
+from ... import newprint
+
+
+print = newprint()
 
 
 class DataStruct(object):

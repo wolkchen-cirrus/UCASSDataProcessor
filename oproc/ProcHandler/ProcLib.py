@@ -3,9 +3,13 @@ Library to store functions for processing data.
 """
 import os
 from .. import ConfigHandler as ch
+from .. import newprint
 import pandas as pd
 import numpy as np
 from .ProcObjects import DomainArray as da
+
+
+print = newprint()
 
 
 def get_material_data(material: str):

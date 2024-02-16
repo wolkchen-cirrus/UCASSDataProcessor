@@ -1,7 +1,8 @@
 import os.path
 import h5py as h5
-from .. import HDF5Lib as h5l
 from datetime import datetime as dt
+
+from .. import HDF5Lib as h5l
 from .H5dd import H5dd
 from ... import ConfigHandler as ch
 from ... import newprint
@@ -122,9 +123,12 @@ class CampaignFile(object):
             print(f'Writing attributes to group {group}')
             h5l.metadict_to_attrs(gm[g].__dict__(), group)
 
-    def read(self):
+    def read(self) -> H5dd:
+        """read the file. returns h5dd equ of what was written."""
         if self.mode not in ['r', 'r+']:
             raise ValueError("h5 file not opened in read mode")
+
+        groups = [x for x in self.__f.keys() if isinstance(x, h5.Group)]
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""
