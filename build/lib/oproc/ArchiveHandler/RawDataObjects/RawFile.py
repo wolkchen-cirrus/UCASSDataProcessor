@@ -8,7 +8,8 @@ from ..GenericDataObjects.MatrixDict import MatrixDict as md
 import os.path
 import pandas as pd
 import warnings
-import numpy as np
+from numpy import nan
+
 
 # Redefining print function with timestamp
 print = newprint()
@@ -27,7 +28,7 @@ class RawFile(object):
         self.fn: list = [utils.get_log_path
                          (f, self.iss.dflags[f]['type']) if not
                          os.path.isdir(utils.get_log_path(f, self.iss.dflags[f]
-                                                          ['type'])) else np.nan
+                                                          ['type'])) else nan
                          for f in list(iss.dflags.keys())]
 
         print(f'File check returns {bool(self)}')
@@ -39,7 +40,7 @@ class RawFile(object):
         return f'{self.fn} raw files'
 
     def __enter__(self):
-        self.__f = [open(f, 'r') if isinstance(f, str) else np.nan for f in self.fn]
+        self.__f = [open(f, 'r') if f is not nan else nan for f in self.fn]
         return self
 
     def __exit__(self, type, val, trace):
@@ -59,12 +60,12 @@ class RawFile(object):
                 timezone = iss[k]["timezone"]
             except KeyError:
                 timezone = None
-            if isinstance(k, str):
-                print("Processing file %s" % k)
-                print(iss[k]['data'])
-            else:
+            if k is nan:
                 print("No file of type %s for measurement" % iss[k]['type'])
                 continue
+            else:
+                print("Processing file %s" % k)
+                print(iss[k]['data'])
             lt = utils.infer_log_type(k)
             if lt == '.json':
                 messages = dict([(k, [i[0] if isinstance(i, list)
@@ -100,7 +101,7 @@ class RawFile(object):
     def __file_check(self) -> bool:
         """Returns false if file is invalid or does not exist"""
         if not list(filter(None, [os.path.exists(f)
-                                  if isinstance(f, str) else None
+                                  if f is not nan else None
                                   for f in self.fn])):
             return False
         try:
@@ -120,7 +121,7 @@ class RawFile(object):
             s_row = 0
         else:
             s_row = int(s_row)
-        names = [x[0] if isinstance(x, list) else x for x in cols if x != '']
+        names = [x[0] if isinstance(x, list) else x for x in cols]
         use_cols = [i for i, x in enumerate(names) if x]
         d_out = pd.read_csv(fn, header=s_row, names=names, usecols=use_cols)
         if not tz:
@@ -154,10 +155,7 @@ class RawFile(object):
     @fn.setter
     def fn(self, val: list):
         for fn in val:
-            print(fn)
-            if isinstance(fn, str):
-                pass
-            elif np.isnan(fn):
+            if fn is nan:
                 continue
             elif not os.path.isabs(fn):
                 raise ValueError("must be abs path")

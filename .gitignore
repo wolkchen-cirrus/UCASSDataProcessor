@@ -4,3 +4,4 @@ venv/
 UCASSConfig.json
 *.sublime*
 *.log
+*.swp

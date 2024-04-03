@@ -1,0 +1,2 @@
+[console_scripts]
+oproc = oproc.main:cli

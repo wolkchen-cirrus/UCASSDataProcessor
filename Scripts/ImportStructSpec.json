@@ -1,6 +1,0 @@
-{
-  "1": {"data": {"cols": ["Time", ["Temp", "degC"], ["Press", "hPa"], ["RH", "%"]]}, "type": "Met"},
-  "2": {"data": {"cols": ["Time", "C1", "C2", "C3", "C4", "C5", "C6", "C7", "C8", "C9", "C10", "C11", "C12", "C13", "C14", "C15", "C16", ["ToF1", "tof"], ["ToF3", "tof"], ["ToF5", "tof"], ["ToF7", "tof"], ["Period", "pp"], "CSum", "Glitch", "LToF", "RejRat"], "srow":  "5", "procrows": {"bbs":  {"row": "3", "cols": "0:16"}}}, "type": "UCASS"},
-  "3": {"data": {"ARSP": [["Airspeed", "mps"]], "ATT": [["Roll", "deg"], ["Pitch", "deg"], ["Yaw", "deg"]], "GPS": [["Lat", "deg"], ["Lng", "deg"], ["Alt", "m"], ["Spd", "mps"]], "BARO": [["Press", "Pa"]]}, "type": "FC Proc"},
-  "4": {"data": {"cols": ["Time", "", "", "", "", "", "", ["WD", "deg"]]}, "type": "Misc", "timezone": "+2"}
-}

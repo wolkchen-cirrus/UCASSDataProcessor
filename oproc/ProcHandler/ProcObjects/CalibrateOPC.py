@@ -7,7 +7,7 @@ from ... import newprint
 print = newprint()
 
 
-class Calibrate(Proc):
+class CalibrateOPC(Proc):
 
     def __proc(self, **kwargs):
         try:

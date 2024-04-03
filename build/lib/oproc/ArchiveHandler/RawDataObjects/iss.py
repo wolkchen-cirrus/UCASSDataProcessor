@@ -51,10 +51,7 @@ class iss(object):
                 pass
             if flag not in vf:
                 ch.getconf('valid_flags')
-                if flag == '':
-                    print('Skipping column')
-                else:
-                    raise ReferenceError('Data flag \'%s\' is not valid' % flag)
+                raise ReferenceError('Data flag \'%s\' is not valid' % flag)
         print("All flags valid")
 
     @property
