@@ -145,16 +145,24 @@ class CampaignFile(object):
         # columns group
         x00 = nth(nth(x, 0), 0)
         df = nth(x00, 0)
-        col_desc = list(nth(x00, 1).attrs)
-        col_units = list(nth(x00, 2).attrs)
+        col_desc = {k:v for k, v in zip(list(nth(x00, 1).attrs),\
+            [nth(x00, 1).attrs[list(nth(x00, 1).attrs)[i]] \
+             for i in range(len(list(nth(x00, 1).attrs)))])}
+        col_units = {k:v for k, v in zip(list(nth(x00, 2).attrs),\
+            [nth(x00, 2).attrs[list(nth(x00, 2).attrs)[i]] \
+             for i in range(len(list(nth(x00, 2).attrs)))])}
         # extras group
         x01 = nth(nth(x, 0), 1)
         nc = [nth(x01, i) for i in range(len(x01)) \
               if isinstance(nth(x01, i), h5.Dataset)]
         tmpgrp = [nth(x01, i) for i in range(len(x01)) \
                   if isinstance(nth(x01, i), h5.Group)]
-        ext_desc = list(tmpgrp[0].attrs)
-        ext_units = list(tmpgrp[1].attrs)
+        ext_desc = {k:v for k, v in zip(list(tmpgrp[0].attrs),\
+            [tmpgrp[0].attrs[list(tmpgrp[0].attrs)[i]] \
+             for i in range(len(list(tmpgrp[0].attrs)))])}
+        ext_units = {k:v for k, v in zip(list(tmpgrp[1].attrs),\
+            [tmpgrp[1].attrs[list(tmpgrp[1].attrs)[i]] \
+             for i in range(len(list(tmpgrp[1].attrs)))])}
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""

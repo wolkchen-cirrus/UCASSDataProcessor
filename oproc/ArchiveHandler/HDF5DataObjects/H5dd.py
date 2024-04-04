@@ -11,7 +11,8 @@ print = newprint()
 
 class H5dd(object):
     """
-    HDF5 data to be assigned to a file. Each md instance in list is one group
+    HDF5 data to be assigned to a file. Each md instance in list is one
+    group
     """
 
     def __init__(self, matrix_dict: list[md] | md | None,

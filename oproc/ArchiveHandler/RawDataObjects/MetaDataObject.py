@@ -1,3 +1,5 @@
+raise DeprecationWarning
+
 import datetime as dt
 import os.path
 from .. import ImportLib as im
