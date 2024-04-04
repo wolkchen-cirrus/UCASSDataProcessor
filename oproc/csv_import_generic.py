@@ -11,6 +11,7 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 from oproc.ArchiveHandler import Utilities as utils
 from oproc.ArchiveHandler import ImportLib as im
 from oproc.ArchiveHandler.RawDataObjects.ImportObject import ImportObject
+from oproc.ArchiveHandler.RawDataObjects.MetaDataObject import MetaDataObject
 from oproc.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
@@ -19,6 +20,40 @@ from oproc import newprint
 
 from argparse import ArgumentParser
 import pandas as pd
+import datetime as dt
+import inspect
+
+
+def metadata_from_rawfile_read(data, date_time: dt,
+                               description: str = None,
+                               sample_area: float = None) -> MetaDataObject:
+    """Interprests metadata from a dict of MatrixDict objects"""
+    # Sort through and retrieve meta data flags
+    meta_flags = inspect.getfullargspec(MetaDataObject).args
+    meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
+                 for f in data
+                 if x in data[f].__get__()]
+    meta_data = dict([x for x in meta_data if x[1] is not None])
+    meta_data['description'] = description
+    meta_data['date_time'] = date_time
+    meta_data['file_list'] = [utils.get_log_path
+                              (x, data[x].__get__()['type'])
+                              for x in list(data.keys())]
+    meta_data['sample_area'] = sample_area
+    # Assign serial number
+    for fn in data:
+        try:
+            meta_data['serial_number'] = im.serial_number_from_fn(fn)
+            break
+        except LookupError:
+            pass
+    if 'serial_number' in meta_data:
+        pass
+    else:
+        raise ValueError("A UCASS file must exist between datetimes")
+    # Assign meta data object
+    return MetaDataObject(**meta_data)
+
 
 print('####################################################')
 print('######## Welcome to the generic data import ########')
@@ -70,7 +105,7 @@ if __name__ == "__main__":
             data = rf.read()
 
         # Get metadata from the raw files
-        md_obj = im.metadata_from_rawfile_read(data, dt, description="test",
+        md_obj = metadata_from_rawfile_read(data, dt, description="test",
                                                sample_area=5e-7)
 
         # Next, assign the column data to the importer object. This is for

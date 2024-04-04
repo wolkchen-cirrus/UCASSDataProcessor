@@ -45,8 +45,12 @@ class CampaignFile(object):
         return self.__file_check()
 
     def __repr__(self):
-        return f'{self.fn}, Groups({len(self.__groups())}), \
-                 Data({len(self.__datasets)})'
+        try:
+            rstr = f'{self.fn}, Groups({len(self.__groups())}), \
+                    Data({len(self.__datasets)})'
+        except TypeError:
+            rstr = "Inactive Campaign File Object"
+        return rstr
 
     def __enter__(self):
         self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
@@ -54,6 +58,14 @@ class CampaignFile(object):
 
     def __exit__(self, type, val, trace):
         self.__f.close()
+
+    def open(self):
+        self.__f = h5.File(self.fn, self.mode, libver=('earliest', self.h5ver))
+        return self
+
+    def close(self):
+        self.__f.close()
+        self.__f = None
 
     def set(self, val: H5dd):
         if self.__dd is None:
@@ -128,7 +140,10 @@ class CampaignFile(object):
         if self.mode not in ['r', 'r+']:
             raise ValueError("h5 file not opened in read mode")
 
-        groups = [x for x in self.__f.keys() if isinstance(x, h5.Group)]
+        groups = [x for x in self.__f.keys()]
+        print("H5 groups: %s" % groups)
+        print([self.__f[x] for x in self.__f.keys()])
+        return self.__f
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""

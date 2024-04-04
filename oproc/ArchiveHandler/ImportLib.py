@@ -6,8 +6,8 @@ from .. import ConfigHandler as ch
 from .. import tag_suffix as tf
 from . import Utilities as utils
 from .. import newprint
-from .GenericDataObjects.MatrixDict import MatrixDict as md
-from .RawDataObjects.MetaDataObject import MetaDataObject
+#from .GenericDataObjects.MatrixDict import MatrixDict as md
+#from .RawDataObjects.MetaDataObject import MetaDataObject
 from .RawDataObjects.iss import iss as isso
 
 import dateutil.parser as dup
@@ -58,37 +58,6 @@ def check_flags(k: str, rt: bool = False, q_list: list[str] = None) -> dict:
         raise LookupError
     elif rt is True:
         return [x for x in vf if x['name'] == flag][0]
-
-
-def metadata_from_rawfile_read(data: dict[md], date_time: dt,
-                               description: str = None,
-                               sample_area: float = None) -> MetaDataObject:
-    """Interprests metadata from a dict of MatrixDict objects"""
-    # Sort through and retrieve meta data flags
-    meta_flags = inspect.getfullargspec(MetaDataObject).args
-    meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
-                 for f in data
-                 if x in data[f].__get__()]
-    meta_data = dict([x for x in meta_data if x[1] is not None])
-    meta_data['description'] = description
-    meta_data['date_time'] = date_time
-    meta_data['file_list'] = [utils.get_log_path
-                              (x, data[x].__get__()['type'])
-                              for x in list(data.keys())]
-    meta_data['sample_area'] = sample_area
-    # Assign serial number
-    for fn in data:
-        try:
-            meta_data['serial_number'] = serial_number_from_fn(fn)
-            break
-        except LookupError:
-            pass
-    if 'serial_number' in meta_data:
-        pass
-    else:
-        raise ValueError("A UCASS file must exist between datetimes")
-    # Assign meta data object
-    return MetaDataObject(**meta_data)
 
 
 def get_iss_obj(iss: dict, fdf: pd.DataFrame, ind: dt.datetime) -> isso:

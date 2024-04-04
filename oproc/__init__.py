@@ -13,7 +13,7 @@ from oproc import *
 from pint import UnitRegistry
 import os.path
 import datetime as dt
-import ConfigHandler as ch
+import oproc.ConfigHandler as ch
 
 
 def newprint():
