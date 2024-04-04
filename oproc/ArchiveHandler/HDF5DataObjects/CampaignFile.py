@@ -140,22 +140,21 @@ class CampaignFile(object):
         if self.mode not in ['r', 'r+']:
             raise ValueError("h5 file not opened in read mode")
 
-        groups = [x for x in self.__f.keys()]
         x = self.__f
-        # columns group (looks incomprehensible, sorry gary lol)
-        df = x[list(x.keys())[0]][list(x[list(x.keys())[0]].keys())[0]]\
-                [list(x[list(x.keys())[0]][list(x[list(x.keys())[0]]\
-                                                .keys())[0]].keys())[0]]
-        col_desc = list(x[list(x.keys())[0]][list(x[list(x.keys())[0]].keys())\
-            [0]][list(x[list(x.keys())[0]][list(x[list(x.keys())[0]].keys())\
-            [0]].keys())[1]].attrs)
-        col_units = list(x[list(x.keys())[0]][list(x[list(x.keys())[0]].keys())\
-            [0]][list(x[list(x.keys())[0]][list(x[list(x.keys())[0]].keys())\
-            [0]].keys())[2]].attrs)
+        nth = lambda o, i: o[list(o.keys())[i]]
+        # columns group
+        x00 = nth(nth(x, 0), 0)
+        df = nth(x00, 0)
+        col_desc = list(nth(x00, 1).attrs)
+        col_units = list(nth(x00, 2).attrs)
         # extras group
-        for in_h5obj in list(x[list(x.keys())[0]]\
-                          [list(x[list(x.keys())[0]].keys())[1]].keys()):
-            h5obj = 
+        x01 = nth(nth(x, 0), 1)
+        nc = [nth(x01, i) for i in range(len(x01)) \
+              if isinstance(nth(x01, i), h5.Dataset)]
+        tmpgrp = [nth(x01, i) for i in range(len(x01)) \
+                  if isinstance(nth(x01, i), h5.Group)]
+        ext_desc = list(tmpgrp[0].attrs)
+        ext_units = list(tmpgrp[1].attrs)
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""
