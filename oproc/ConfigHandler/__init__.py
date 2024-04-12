@@ -9,7 +9,7 @@ from pydoc import locate
 from warnings import warn
 
 
-config_fn = 'UCASSConfig.json'
+config_fn = 'OPROCConfig.json'
 config_path = os.path.join(os.path.split(os.path.abspath(__file__))
                            [0], config_fn)
 

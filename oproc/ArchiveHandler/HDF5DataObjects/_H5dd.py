@@ -15,21 +15,31 @@ class H5dd(object):
     group
     """
 
-    #def __init__(self, matrix_dict: list[md] | md | None,
-    #             group_meta: list[meta] | meta | None):
-    def __init__(self, matrix_dict: list[md] | md | None):
+    def __init__(self, matrix_dict: list[md] | md | None,
+                 group_meta: list[meta] | meta | None):
 
-        if matrix_dict is None:
+        if (matrix_dict is None) and (group_meta is None):
             print("Creating blank H5dd")
             self.group_meta = []
             self.md = []
             self.__gn = []
             self.date_times = []
+        elif (matrix_dict is None) or (group_meta is None):
+            raise ValueError("Both must be None")
         else:
+
             if not isinstance(matrix_dict, list):
                 matrix_dict = [matrix_dict]
             elif not isinstance(matrix_dict, md):
                 raise TypeError
+
+            if not isinstance(group_meta, list):
+                group_meta = [group_meta]
+            elif not isinstance(group_meta, meta):
+                raise TypeError
+
+            if len(group_meta) != len(matrix_dict):
+                raise ValueError
 
             self.group_meta = group_meta
             self.md: list[md] = matrix_dict
@@ -40,6 +50,7 @@ class H5dd(object):
             print(f'Creating HDF5 dict with group(s) {self.gn}')
 
     def __add__(self, other):
+        self.group_meta = self.group_meta + other.group_meta
         self.md = self.md + other.md
         self.__gn = self.__gn + other.gn
         self.date_times = self.date_times + other.date_times
