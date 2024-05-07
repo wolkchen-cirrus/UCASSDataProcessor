@@ -2,6 +2,9 @@ venv/
 .idea/
 *.pyc
 UCASSConfig.json
+OPROCConfig.json
 *.sublime*
 *.log
 *.swp
+*.egg-info
+build/

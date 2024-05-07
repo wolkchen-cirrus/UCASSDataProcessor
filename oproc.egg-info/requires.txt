@@ -1,7 +1,0 @@
-pint
-pandas
-numpy
-scipy
-matplotlib
-pymavlink
-click
