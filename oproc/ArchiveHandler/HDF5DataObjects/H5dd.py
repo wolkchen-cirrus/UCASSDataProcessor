@@ -15,13 +15,10 @@ class H5dd(object):
     group
     """
 
-    #def __init__(self, matrix_dict: list[md] | md | None,
-    #             group_meta: list[meta] | meta | None):
     def __init__(self, matrix_dict: list[md] | md | None):
 
         if matrix_dict is None:
             print("Creating blank H5dd")
-            self.group_meta = []
             self.md = []
             self.__gn = []
             self.date_times = []
@@ -31,7 +28,6 @@ class H5dd(object):
             elif not isinstance(matrix_dict, md):
                 raise TypeError
 
-            self.group_meta = group_meta
             self.md: list[md] = matrix_dict
             self.date_times: list[dt] = [x.__get__()['date_time']
                                          for x in self.md]
@@ -92,16 +88,6 @@ class H5dd(object):
             desc = {x['name']: x['desc'] for x in desc}
             out[g] = (unit, desc)
         return out
-
-    def gm(self) -> dict:
-        """Group metadata"""
-        meta = {}
-        for m in self.group_meta:
-            g = m.date_time.strftime(ch.getval("groupDTformat"))
-            if g not in self.gn:
-                raise AttributeError(f'{g} is not in {self}')
-            meta[g] = m
-        return meta
 
     def __check_gn(self):
         """Rasies error if invalid group"""

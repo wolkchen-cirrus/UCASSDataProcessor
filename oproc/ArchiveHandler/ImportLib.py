@@ -18,10 +18,40 @@ import datetime as dt
 import pandas as pd
 import numpy as np
 import re
+import pytz
+import json
 
 
 # Redefining print function with timestamp
 print = newprint()
+
+
+def read_instrument_data(name: str) -> dict:
+    """
+    function to get instrument data. Files must be named with a 
+    datetime
+    :param name: this is the name of the instrument, must be 
+    contained within the filename.
+    """
+    def __get_dt(fn):
+        x = pd.to_datetime(fn.split('_')[-1].split('.')[0], format='%Y%m%d')
+        return pytz.UTC.localize(x)
+    cali_path = ch.getval('instrument_data_path')
+    cal_file = []
+    for fn in os.listdir(cali_path):
+        if name in fn:
+            cal_file.append(fn)
+    if not cal_file:
+        raise FileNotFoundError("Calibration file does not exist")
+    cali_dt = [__get_dt(x) for x in cal_file]
+    now = dt.datetime.now(pytz.utc)
+    newest = max(x for x in cali_dt if x < now)
+    cal_file = cal_file[cali_dt.index(newest)]
+    cali_path = os.path.join(cali_path, cal_file)
+    
+    with open(cali_path) as cf:
+        cfd = dict(json.load(cf))
+    return cfd
 
 
 def tag_generic_to_numeric(tag: str, q_list: list[str]) -> str:
@@ -91,14 +121,14 @@ def get_iss() -> dict:
 def get_ucass_calibration(serial_number: str) -> tuple:
     """
     A function to retrieve the calibration coefficients of a UCASS unit, given
-    its serial number.
+    its serial number. (old function, do not use)
 
     :param serial_number: The serial number of the UCASS unit.
-    :type serial_number: str
 
     :return: gain (float) and sl (float), the calibration coefficients.
-    :rtype: tuple
     """
+
+    raise NotImplementedError
 
     cali_path = os.path.join(ch.getval('ucass_calibration_path'),
                              serial_number)
@@ -208,7 +238,6 @@ def fn_datetime(fn: list or str) -> dt.datetime or pd.Timestamp:
 
     :return: datetime of file as list or dt if dt specified
     """
-
     fn = to_list(fn)
     dti = []
     for f in fn:

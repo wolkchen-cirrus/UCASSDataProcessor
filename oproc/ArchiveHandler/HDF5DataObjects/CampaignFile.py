@@ -100,7 +100,6 @@ class CampaignFile(object):
         nc = self.__dd.non_col()
         ncm = self.__dd.nc_meta()
         wg = self.__dd.gn
-        gm = self.__dd.gm()
         for g in wg:
             try:
                 self.__groups(g)
@@ -131,9 +130,6 @@ class CampaignFile(object):
             dg = nc_group.create_group("descriptions")
             h5l.metadict_to_attrs(ncm[g][0], ug)
             h5l.metadict_to_attrs(ncm[g][1], dg)
-
-            print(f'Writing attributes to group {group}')
-            h5l.metadict_to_attrs(gm[g].__dict__(), group)
 
     def read(self) -> H5dd:
         """read the file. returns h5dd equ of what was written."""

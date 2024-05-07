@@ -196,7 +196,7 @@
     },
     {
         "name": "instrument_data_path",
-        "val": "/home/wolkchen/Documents/UCASS/InstrumentData",
+        "val": "/home/wolkchen/Documents/oproc/InstrumentData",
         "dtype": "str",
         "unit": "n/a",
         "desc": "path to instrument variables"
