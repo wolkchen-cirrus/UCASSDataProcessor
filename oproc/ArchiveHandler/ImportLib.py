@@ -28,10 +28,9 @@ print = newprint()
 
 def read_instrument_data(name: str) -> dict:
     """
-    function to get instrument data. Files must be named with a 
-    datetime
-    :param name: this is the name of the instrument, must be 
-    contained within the filename.
+    function to get instrument data. Files must be named with a datetime
+    :param name: this is the name of the instrument, must be contained within
+    the filename.
     """
     def __get_dt(fn):
         x = pd.to_datetime(fn.split('_')[-1].split('.')[0], format='%Y%m%d')
@@ -48,7 +47,6 @@ def read_instrument_data(name: str) -> dict:
     newest = max(x for x in cali_dt if x < now)
     cal_file = cal_file[cali_dt.index(newest)]
     cali_path = os.path.join(cali_path, cal_file)
-    
     with open(cali_path) as cf:
         cfd = dict(json.load(cf))
     return cfd
@@ -329,6 +327,19 @@ def check_valid_cols(iss: dict, dkey: str = 'cols'):
             ch.getconf('valid_flags')
             raise ReferenceError('Data flag \'%s\' is not valid' % flag)
     print("All flags valid")
+
+
+def get_instrument_sn(fn: str) -> str:
+    il = ch.getval("instrument_list")
+    fn = os.path.split(fn)[1]
+    fn = fn.split("_")
+    sn = [[x for x in fn if y in x] for y in il]
+    sn = [y for x in sn for y in x]
+    if len(sn) = 0:
+        print("No instruments found")
+        return
+    else:
+        return sn[0]
 
 
 def serial_number_from_fn(fn: str) -> str:

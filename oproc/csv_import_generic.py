@@ -11,7 +11,6 @@ must be in format "YYYY-mm-dd HH:MM:SS" or, if two datetimes are specified,
 from oproc.ArchiveHandler import Utilities as utils
 from oproc.ArchiveHandler import ImportLib as im
 from oproc.ArchiveHandler.RawDataObjects.ImportObject import ImportObject
-from oproc.ArchiveHandler.RawDataObjects.MetaDataObject import MetaDataObject
 from oproc.ArchiveHandler.RawDataObjects.RawFile import RawFile
 from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
@@ -22,37 +21,6 @@ from argparse import ArgumentParser
 import pandas as pd
 import datetime as dt
 import inspect
-
-
-def metadata_from_rawfile_read(data, date_time: dt,
-                               description: str = None,
-                               sample_area: float = None) -> MetaDataObject:
-    """Interprests metadata from a dict of MatrixDict objects"""
-    # Sort through and retrieve meta data flags
-    meta_flags = inspect.getfullargspec(MetaDataObject).args
-    meta_data = [(x, data[f].__get__()[x]) for x in meta_flags
-                 for f in data
-                 if x in data[f].__get__()]
-    meta_data = dict([x for x in meta_data if x[1] is not None])
-    meta_data['description'] = description
-    meta_data['date_time'] = date_time
-    meta_data['file_list'] = [utils.get_log_path
-                              (x, data[x].__get__()['type'])
-                              for x in list(data.keys())]
-    meta_data['sample_area'] = sample_area
-    # Assign serial number
-    for fn in data:
-        try:
-            meta_data['serial_number'] = im.serial_number_from_fn(fn)
-            break
-        except LookupError:
-            pass
-    if 'serial_number' in meta_data:
-        pass
-    else:
-        raise ValueError("A UCASS file must exist between datetimes")
-    # Assign meta data object
-    return MetaDataObject(**meta_data)
 
 
 print('####################################################')
@@ -104,9 +72,12 @@ if __name__ == "__main__":
         with RawFile(iss_o) as rf:
             data = rf.read()
 
-        # Get metadata from the raw files
-        md_obj = metadata_from_rawfile_read(data, dt, description="test",
-                                               sample_area=5e-7)
+        # Get instrument metadata from the metadata path specified in the conf
+        md_obj = []
+        lfn = list(fdf.loc[[dt]].values.flatten())
+        for cfn in lfn:
+            sn = im.get_instrument_sn(cfn)
+            md_obj.append(im.read_instrument_data(sn))
 
         # Next, assign the column data to the importer object. This is for
         # validation and quality assurance.
@@ -117,10 +88,13 @@ if __name__ == "__main__":
         i_obj = ImportObject(d.__get__())
 
         # Format into HDF5 dict for processing
+        # TODO: fafo with the mdobj until it works with the md object
+        # TODO: turn mdobj into dict with instrument name as key
+        # TODO: test!!
         md = MatrixDict(i_obj.__dict__() | {"bbs": md_obj.__dict__()["bbs"]},
                         unit_spec="default")
         md.date_time = dt
-        h5_data = h5_data + H5dd(md, md_obj)
+        h5_data = h5_data + H5dd(md)
 
     if args.hdf5_filename is None:
         print("No HDF5 file specified, quitting")
