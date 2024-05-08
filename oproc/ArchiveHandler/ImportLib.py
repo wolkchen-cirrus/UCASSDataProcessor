@@ -335,9 +335,8 @@ def get_instrument_sn(fn: str) -> str:
     fn = fn.split("_")
     sn = [[x for x in fn if y in x] for y in il]
     sn = [y for x in sn for y in x]
-    if len(sn) = 0:
-        print("No instruments found")
-        return
+    if len(sn) != 1:
+        return None
     else:
         return sn[0]
 

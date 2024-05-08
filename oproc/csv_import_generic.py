@@ -19,6 +19,7 @@ from oproc import newprint
 
 from argparse import ArgumentParser
 import pandas as pd
+import numpy as np
 import datetime as dt
 import inspect
 
@@ -62,7 +63,7 @@ if __name__ == "__main__":
     fdf = utils.get_files(dts, types)
 
     # Loop through files using index
-    h5_data = H5dd(None, None)
+    h5_data = H5dd(None)
     for dt in fdf.index:
 
         # Reformat iss with fn keys and get object
@@ -73,11 +74,20 @@ if __name__ == "__main__":
             data = rf.read()
 
         # Get instrument metadata from the metadata path specified in the conf
-        md_obj = []
+        md_obj = {}
         lfn = list(fdf.loc[[dt]].values.flatten())
         for cfn in lfn:
+            if isinstance(cfn, str):
+                pass
+            elif np.isnan(cfn):
+                continue
+            else:
+                cfn = str(cfn)
             sn = im.get_instrument_sn(cfn)
-            md_obj.append(im.read_instrument_data(sn))
+            if sn:
+                md_obj = md_obj | im.read_instrument_data(sn)
+            else:
+                continue
 
         # Next, assign the column data to the importer object. This is for
         # validation and quality assurance.
@@ -91,8 +101,7 @@ if __name__ == "__main__":
         # TODO: fafo with the mdobj until it works with the md object
         # TODO: turn mdobj into dict with instrument name as key
         # TODO: test!!
-        md = MatrixDict(i_obj.__dict__() | {"bbs": md_obj.__dict__()["bbs"]},
-                        unit_spec="default")
+        md = MatrixDict(i_obj.__dict__() | md_obj, unit_spec="default")
         md.date_time = dt
         h5_data = h5_data + H5dd(md)
 

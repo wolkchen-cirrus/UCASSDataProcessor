@@ -2,7 +2,6 @@ from datetime import datetime as dt
 from ... import ConfigHandler as ch
 from ... import newprint
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
-from ..RawDataObjects.MetaDataObject import MetaDataObject as meta
 
 
 # Redefining print function with timestamp
