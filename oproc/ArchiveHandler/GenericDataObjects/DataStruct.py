@@ -110,3 +110,4 @@ class DataStruct(object):
             raise TypeError
         else:
             self.__Time = val
+

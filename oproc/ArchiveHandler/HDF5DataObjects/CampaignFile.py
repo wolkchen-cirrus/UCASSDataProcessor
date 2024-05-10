@@ -1,8 +1,11 @@
 import os.path
 import h5py as h5
+import numpy as np
+import pandas as pd
 from datetime import datetime as dt
 
 from .. import HDF5Lib as h5l
+from ..GenericDataObjects.MatrixDict import MatrixDict as md
 from .H5dd import H5dd
 from ... import ConfigHandler as ch
 from ... import newprint
@@ -97,7 +100,7 @@ class CampaignFile(object):
             raise AttributeError("File opened in read mode, cannot write")
         df = self.__dd.df()
         dfm = self.__dd.df_meta()
-        nc = self.__dd.non_col()
+        nc = df | ncd.non_col()
         ncm = self.__dd.nc_meta()
         wg = self.__dd.gn
         for g in wg:
@@ -140,7 +143,11 @@ class CampaignFile(object):
         nth = lambda o, i: o[list(o.keys())[i]]
         # columns group
         x00 = nth(nth(x, 0), 0)
-        df = nth(x00, 0)
+        df = pd.DataFrame(np.array(nth(x00, 0)))
+        tmp_time = pd.DatetimeIndex(df["Time"].values)
+        df = dict([(k, np.matrix(v).T)
+                   for k, v in df.to_dict(orient='list').items()])
+        df["Time"] = tmp_time
         col_desc = {k:v for k, v in zip(list(nth(x00, 1).attrs),\
             [nth(x00, 1).attrs[list(nth(x00, 1).attrs)[i]] \
              for i in range(len(list(nth(x00, 1).attrs)))])}
@@ -148,9 +155,16 @@ class CampaignFile(object):
             [nth(x00, 2).attrs[list(nth(x00, 2).attrs)[i]] \
              for i in range(len(list(nth(x00, 2).attrs)))])}
         # extras group
+        def __to_list(i: list):
+            if len(i) == 1:
+                return i[0]
+            else:
+                return i
         x01 = nth(nth(x, 0), 1)
-        nc = [nth(x01, i) for i in range(len(x01)) \
-              if isinstance(nth(x01, i), h5.Dataset)]
+        nc = {k:__to_list(list(nth(x01, i))) for i, k in \
+              zip(range(len(x01)), x01.keys()) \
+              if isinstance(nth(x01, i), h5.Dataset)}
+        nc["date_time"] = dt.fromtimestamp(nc["date_time"])
         tmpgrp = [nth(x01, i) for i in range(len(x01)) \
                   if isinstance(nth(x01, i), h5.Group)]
         ext_desc = {k:v for k, v in zip(list(tmpgrp[0].attrs),\
@@ -159,6 +173,9 @@ class CampaignFile(object):
         ext_units = {k:v for k, v in zip(list(tmpgrp[1].attrs),\
             [tmpgrp[1].attrs[list(tmpgrp[1].attrs)[i]] \
              for i in range(len(list(tmpgrp[1].attrs)))])}
+
+        data_dict = md(df | nc, unit_spec=col_units | ext_units)
+        return H5dd(data_dict)
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""
