@@ -98,9 +98,6 @@ if __name__ == "__main__":
         i_obj = ImportObject(d.__get__())
 
         # Format into HDF5 dict for processing
-        # TODO: fafo with the mdobj until it works with the md object
-        # TODO: turn mdobj into dict with instrument name as key
-        # TODO: test!!
         md = MatrixDict(i_obj.__dict__() | md_obj, unit_spec="default")
         md.date_time = dt
         h5_data = h5_data + H5dd(md)
