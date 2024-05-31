@@ -7,6 +7,11 @@ import subprocess
 
 import oproc
 import oproc.ConfigHandler as ch
+from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
+from oproc import newprint
+
+# Redefining print function with timestamp
+print = newprint()
 
 def run_subprocess(args):
     filename = ch.getval("log_path")
@@ -41,10 +46,9 @@ def rdport(h5_file, dts):
 
 @cli.command()
 @click.argument('h5-path')
-def pdport(h5_path, dts):
-    m_path = os.path.dirname(oproc.__file__)
-    args = ['python', f"{m_path}/csv_import_generic.py", '-f', h5_file, dts]
-    _ = run_subprocess(args)
+def pdport(h5_path):
+    cf = CampaignFile(h5_path)
+    
 
 @cli.command()
 @click.argument('iss')
