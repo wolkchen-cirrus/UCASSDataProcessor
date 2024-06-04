@@ -8,6 +8,7 @@ import subprocess
 import oproc
 import oproc.ConfigHandler as ch
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
+from oproc.ProcHandler.ProcObjects.CalibrateOPC import CalibrateOPC
 from oproc import newprint
 
 # Redefining print function with timestamp
@@ -47,8 +48,12 @@ def rdport(h5_file, dts):
 @cli.command()
 @click.argument('h5-path')
 def pdport(h5_path):
-    cf = CampaignFile(h5_path)
-    
+    with CampaignFile(h5_path) as cf:
+        dd = cf.read()
+        md = dd.md
+    kwargs = {'material': 0, 'instrument': 0}
+    cobj = CalibrateOPC(md[0], **kwargs)
+    do = cobj.proc()
 
 @cli.command()
 @click.argument('iss')

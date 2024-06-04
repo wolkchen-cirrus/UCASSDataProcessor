@@ -12,8 +12,28 @@ from .ProcObjects import DomainArray as da
 print = newprint()
 
 
-def get_material_data(material: str):
+def require_vars(var_list: list, kwargs: dict):
+    for var in var_list:
+        present = False
+        for k in kwargs.keys():
+            if k == var:
+                present = True
+        if present is False:
+            raise ValueError(f'variable {var} not present in kwargs')
+    print('Var check passed')
+    return
 
+
+def not_require_vars(var_list: list, kwargs: dict):
+    try:
+        require_vars(var_list, kwargs)
+        raise ValueError(f'Output variable already in struct')
+    except ValueError:
+        print('Var check passed')
+        return
+
+
+def get_material_data(material: str):
     mat_path = os.path.join(ch.getval('ucass_calibration_path'),
                             'MaterialData', 'StandardFormat')
     mat_file = [x for x in os.listdir(mat_path) if f'_{material}_' in x]

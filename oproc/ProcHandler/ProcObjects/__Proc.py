@@ -1,5 +1,6 @@
 from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 from ...ArchiveHandler import ImportLib as im
+from .. import ProcLib as pl
 from ... import newprint
 from .__UnitArray import UnitArray as ua
 
@@ -8,6 +9,7 @@ import pandas as pd
 import numpy as np
 import ast
 import inspect
+import textwrap
 
 
 # Redefining print function with timestamp
@@ -27,18 +29,30 @@ class Proc(object):
 
         self.__di = None
         self.__do = None
+        self.unit_spec = None
+        self.args = kwargs
+        self.ivars = None
+        self.ovars = None
 
         self.__self_check()
-
         self.di = di
-        self.do = self.__proc(**kwargs)
 
-        return self.do
+        setup_exists = False
+        for cls in reversed(self.__class__.mro()):
+            if hasattr(cls, 'setup'):
+                cls.setup(self)
+                setup_exists = True
+        if not setup_exists:
+            raise AttributeError("setup not implemented in subclass")
+        self.__var_check()
 
-    def __proc(self, **kwargs):
-        """Designed to be overwritten by subclass"""
-        print("Undefined proc, returning input")
-        return self.di
+    def setup(self):
+        print("Running setup")
+        pass
+
+    def proc(self):
+        raise NotImplementedError("This object should be overwritten by\
+                                  subclass")
 
     def __getcols(self, tags: list | str) -> dict:
         """Gets columns with specified tags, must be in col_dict"""
@@ -54,11 +68,35 @@ class Proc(object):
         dfd = df.to_dict(orient='list')
         return {k: ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()}
 
+    def __var_check(self):
+        """Public self check to be called by procduring setup"""
+        if (not self.ivars) or (not self.ovars) or (not self.unit_spec):
+            raise ValueError("input and output tags, or unit spec,\
+                             not specified")
+        self.__var_search(self.ovars, self.args, self.di.__get__(),\
+                          inverse=True)
+        self.__var_search(self.ivars, self.args, self.di.__get__())
+
+    @staticmethod
+    def __var_search(var, arg_dict, arg_dict2, inverse=False):
+        if inverse:
+            try:
+                pl.not_require_vars(var, arg_dict)
+            except ValueError:
+                pl.not_require_vars(var, arg_dict2)
+        else:
+            try:
+                pl.require_vars(var, arg_dict)
+            except ValueError:
+                pl.require_vars(var, arg_dict2)
+
+
     @final
     def __self_check(self):
         """ensures valid subclass"""
-        if any(isinstance(node, ast.Return) for node in
-               ast.walk(ast.parse(inspect.getsource(self.__proc)))) is False:
+        codeblock = textwrap.dedent(inspect.getsource(self.proc))
+        if any(isinstance(node, ast.Return) for node in \
+               ast.walk(ast.parse(codeblock))) is False:
             raise AttributeError("return not implemented in __proc")
 
     def __len__(self):
@@ -82,6 +120,16 @@ class Proc(object):
 
     @do.setter
     def do(self, val):
-        if not isinstance(val, md):
+        if isinstance(val, md):
+            self.__do = self.di + val
+        elif isinstance(val, dict):
+            self.__do = self.di.add_nc(val, self.unit_spec)
+        else:
             raise TypeError
-        self.__do = self.di + val
+
+
+
+
+
+
+

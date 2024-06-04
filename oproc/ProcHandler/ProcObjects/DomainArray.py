@@ -1,5 +1,5 @@
 from numpy import matrix as mt
-from .. import ImportLib as im
+from ...ArchiveHandler import ImportLib as im
 
 
 class DomainArray(object):

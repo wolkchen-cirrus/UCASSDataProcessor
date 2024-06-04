@@ -1,6 +1,7 @@
 from .__Proc import Proc
-from ..ProcHandler import ProcLib as pl
+from .. import ProcLib as pl
 from ... import newprint
+from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 
 
 # Redefining print function with timestamp
@@ -9,20 +10,17 @@ print = newprint()
 
 class CalibrateOPC(Proc):
 
-    def __proc(self, **kwargs):
-        try:
-            mat = kwargs["material"]
-        except KeyError:
-            raise ValueError("Material must be assigned to kwargs")
-        data = self.di.__dict__()
-        if "bbs_sca" in data:
-            print("Already calibrated, nothing to do")
-            return self.di
-        else:
-            data = data["bbs"]
+    def setup(self):
+        self.ivars = ['bbs', 'cali_coeffs']
+        self.ovars = ['bbs_sca']
+        self.unit_spec = {'bbs_sca': 'm**2'}
+
+    def proc(self):
+        data = self.di.__get__()
+        bbs = data['bbs']
         cof = data["cali_coeffs"]
-        mie_curve = pl.get_material_data(mat)
-        return [(x - cof[1]) / cof[0] for x in data]
+        self.do = {"bbs_sca": [(x - cof[0]) / cof[1] for x in bbs]}
+        return self.do
 
     def __repr__(self):
         return "Calibrate"

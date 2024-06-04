@@ -6,6 +6,7 @@ from .DataStruct import DataStruct
 from ... import ureg
 from ... import newprint
 from ... import ConfigHandler as ch
+from ...ArchiveHandler import ImportLib as im
 
 
 # Redefining print function with timestamp
@@ -13,7 +14,7 @@ print = newprint()
 
 
 class MatrixDict(DataStruct):
-    """Intermediate step for data import process"""
+    """Main data object for processing and import"""
 
     def init(self, dat: dict, unit_spec: dict | str = None):
 
@@ -41,6 +42,7 @@ class MatrixDict(DataStruct):
             elif isinstance(v, MatrixColumn):
                 self.col_dict[k] = v
             else:
+                im.check_flags(k)
                 self.non_col[k] = v
 
     def __convert_units(self, tag: str, val: np.matrix):
@@ -79,18 +81,18 @@ class MatrixDict(DataStruct):
         return self.col_dict | self.non_col | {"Time": self.Time} |\
                                               {"date_time": self.date_time}
 
-    def __iadd__(self, other):
-        """append matrix dicts"""
-        if not isinstance(other, MatrixDict):
-            raise TypeError
-        self.non_col = self.non_col | other.non_col
-        dd = self.__sync2(other)
-        self.Time = dd["Time"]
-        dd.pop("Time", None)
-        dd = dict([(k, MatrixColumn(k, v, len(self.Time)))
-                   for k, v in dd.items()])
-        self.col_dict = dd
-        return self
+#    def __iadd__(self, other):
+#        """append matrix dicts"""
+#        if not isinstance(other, MatrixDict):
+#            raise TypeError
+#        self.non_col = self.non_col | other.non_col
+#        dd = self.__sync2(other)
+#        self.Time = dd["Time"]
+#        dd.pop("Time", None)
+#        dd = dict([(k, MatrixColumn(k, v, len(self.Time)))
+#                   for k, v in dd.items()])
+#        self.col_dict = dd
+#        return self
 
     def __add__(self, other):
         """add matrix dicts"""
@@ -102,6 +104,20 @@ class MatrixDict(DataStruct):
                    for k, v in dd.items()])
         return MatrixDict(non_col | dd)
 
+    def add_nc(self, nc: dict, units: dict):
+        """append a dict to the non col variable and update units"""
+        for k in nc.keys():
+            if k not in list(units.keys()):
+                raise ValueError(f"unit for {k} not specified")
+        self.unit_spec = self.unit_spec | units
+        for k, v in nc.items():
+            if k == "Time":
+                pass
+            v = self.__convert_units(k, v)
+            im.check_flags(k)
+            self.non_col[k] = v
+        return self
+
     def __delitem__(self, key):
         try:
             self.col_dict.pop(key, None)
@@ -110,3 +126,5 @@ class MatrixDict(DataStruct):
 
     def __len__(self):
         return len(self.col_dict) + len(self.non_col)
+
+

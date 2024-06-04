@@ -83,7 +83,7 @@ def check_flags(k: str, rt: bool = False, q_list: list[str] = None) -> dict:
         flag = k
 
     if flag not in [x['name'] for x in vf]:
-        raise LookupError
+        raise LookupError(f'{flag} Not found in valid tags variable')
     elif rt is True:
         return [x for x in vf if x['name'] == flag][0]
 
