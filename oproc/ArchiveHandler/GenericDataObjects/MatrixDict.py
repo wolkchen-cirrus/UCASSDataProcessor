@@ -100,9 +100,11 @@ class MatrixDict(DataStruct):
             raise TypeError
         non_col = self.non_col | other.non_col
         dd = self.__sync2(other)
-        dd = dict([(k, MatrixColumn(k, v, len(self.Time)))
+        Time = dd["Time"]
+        dd.pop("Time", None)
+        dd = dict([(k, MatrixColumn(k, v, len(Time)))
                    for k, v in dd.items()])
-        return MatrixDict(non_col | dd)
+        return MatrixDict(non_col | dd | {"Time":Time}, unit_spec="default")
 
     def add_nc(self, nc: dict, units: dict):
         """append a dict to the non col variable and update units"""

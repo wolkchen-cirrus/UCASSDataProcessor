@@ -86,6 +86,7 @@ if __name__ == "__main__":
             sn = im.get_instrument_sn(cfn)
             if sn:
                 md_obj = md_obj | im.read_instrument_data(sn)
+                im.read_instrument_data(sn)
             else:
                 continue
 
@@ -93,7 +94,7 @@ if __name__ == "__main__":
         # validation and quality assurance.
         d = list(data.values())[0]
         for dx in list(data.values())[1:]:
-            d += dx
+            d = d + dx
         d.date_time = dt
         i_obj = ImportObject(d.__get__())
 

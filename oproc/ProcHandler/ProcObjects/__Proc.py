@@ -54,19 +54,19 @@ class Proc(object):
         raise NotImplementedError("This object should be overwritten by\
                                   subclass")
 
-    def __getcols(self, tags: list | str) -> dict:
-        """Gets columns with specified tags, must be in col_dict"""
-        if isinstance(tags, str):
-            tags = [tags]
-        [im.check_flags(x) for x in tags]
-        df = self.di.df()
-        tags = [im.tag_generic_to_numeric(x, df.columns) for x in tags]
-        df = df[tags]
-        return self.__df_to_ual(df)
-
-    def __df_to_uad(self, df: pd.DataFrame) -> dict:
-        dfd = df.to_dict(orient='list')
-        return {k: ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()}
+#    def __getcols(self, tags: list | str) -> dict:
+#        """Gets columns with specified tags, must be in col_dict"""
+#        if isinstance(tags, str):
+#            tags = [tags]
+#        [im.check_flags(x) for x in tags]
+#        df = self.di.df()
+#        tags = [im.tag_generic_to_numeric(x, df.columns) for x in tags]
+#        df = df[tags]
+#        return self.__df_to_ual(df)
+#
+#    def __df_to_uad(self, df: pd.DataFrame) -> dict:
+#        dfd = df.to_dict(orient='list')
+#        return {k: ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()}
 
     def __var_check(self):
         """Public self check to be called by procduring setup"""
@@ -121,11 +121,17 @@ class Proc(object):
     @do.setter
     def do(self, val):
         if isinstance(val, md):
-            self.__do = self.di + val
+            dd = list(val.__get__().keys())
+            output = self.di + val
         elif isinstance(val, dict):
-            self.__do = self.di.add_nc(val, self.unit_spec)
+            dd = val
+            output = self.di.add_nc(val, self.unit_spec)
         else:
             raise TypeError
+        for ovar in self.ovars:
+            if ovar not in dd:
+                raise ValueError(f'ovar {ovar} not in vars {val}')
+        self.__do = output
 
 
 

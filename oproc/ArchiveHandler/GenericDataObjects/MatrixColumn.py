@@ -27,7 +27,8 @@ class MatrixColumn(object):
         elif self.val.shape[1] != c:
             raise ValueError
         elif len(self) != self.dlen:
-            raise ValueError("Length must be %i" % self.dlen)
+            raise ValueError(f"Length of {self.name} must be {self.dlen} not\
+                             {len(self)}")
         else:
             for k, v in self.__dict__.items():
                 if v is None:

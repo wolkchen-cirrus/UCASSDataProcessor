@@ -2,6 +2,7 @@
 Library to store functions for processing data.
 """
 import os
+import re
 from .. import ConfigHandler as ch
 from .. import newprint
 import pandas as pd
@@ -12,10 +13,35 @@ from .ProcObjects import DomainArray as da
 print = newprint()
 
 
+def get_all_suffix(var: str, din: dict) -> dict:
+    tag_suffix = ch.getval("tag_suffix")
+    if tag_suffix not in var:
+        raise ValueError(f"tag suffix is not in var {var}")
+    bval = var.replace(tag_suffix, '')
+    i = 0
+    dout = {}
+    while True:
+        test_str = bval + str(i)
+        try:
+            dout[test_str] = din[test_str]
+        except KeyError:
+            break
+        i = i+1
+    if not dout:
+        raise ValueError(f"suffix value {val} not in data")
+    else:
+        return dout
+
+
 def require_vars(var_list: list, kwargs: dict):
     for var in var_list:
+        tests = list(kwargs.keys())
+        tag_suffix = ch.getval("tag_suffix")
+        if tag_suffix in var:
+            tests = [x.replace(re.search(r'(?=\d)\w+', flag).group(),\
+                                    tag_suffix) for x in tests]
         present = False
-        for k in kwargs.keys():
+        for k in tests:
             if k == var:
                 present = True
         if present is False:

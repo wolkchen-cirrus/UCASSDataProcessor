@@ -71,14 +71,14 @@ class RawFile(object):
                                       else i for i in v])
                                  for k, v in iss[k]['data'].items()])
                 data[k] = mav.read_json_log(k, messages)
-                data[k]['type'] = iss[k]['type']
+#                data[k]['type'] = iss[k]['type']
             elif lt == '.log':
                 warnings.warn('Attempting to parse FC .log file')
                 messages = dict([(k, [i[0] if isinstance(i, list)
                                       else i for i in v])
                                  for k, v in iss[k]['data'].items()])
                 data[k] = mav.read_mavlink_log(k, messages)
-                data[k]['type'] = iss[k]['type']
+#                data[k]['type'] = iss[k]['type']
             elif lt == '.csv':
                 proc = {}
                 tp = iss[k]['type']
@@ -89,10 +89,11 @@ class RawFile(object):
                         proc[key] = None
                 data[k] = self.__proc_cols(k, proc['cols'],
                                            proc['srow'], tp, timezone)\
-                    | self.__proc_rows(f, proc['procrows'])\
-                    | {'type': tp}
+                    | self.__proc_rows(f, proc['procrows'])
+#                    | {'type': tp}
             else:
                 raise ValueError("Invalid log file extension %s" % lt)
+            print(f'inported data containing {data[k].keys()}')
             data[k] = md(data[k] | {"date_time": im.fn_datetime(k)},
                          unit_spec=self.iss.uspec)
         return data

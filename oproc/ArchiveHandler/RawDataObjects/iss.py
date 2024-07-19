@@ -46,7 +46,9 @@ class iss(object):
             if isinstance(flag, list):
                 flag = flag[0]
             try:
-                flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(), '#')
+                tag_suffix = ch.getval("tag_suffix")
+                flag = flag.replace(re.search(r'(?=\d)\w+', flag).group(),\
+                                    tag_suffix)
             except AttributeError:
                 pass
             if flag not in vf:
