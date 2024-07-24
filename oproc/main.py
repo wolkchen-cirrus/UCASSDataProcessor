@@ -8,7 +8,11 @@ import subprocess
 import oproc
 import oproc.ConfigHandler as ch
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
+from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
 from oproc.ProcHandler.ProcObjects.CalibrateOPC import CalibrateOPC
+from oproc.ProcHandler.ProcObjects.NConc import NConc
+from oproc.ProcHandler.ProcObjects.SampleVolume import SampleVolume
+from oproc.ProcHandler.ProcObjects.ProfileSplit import ProfileSplit
 from oproc import newprint
 
 # Redefining print function with timestamp
@@ -51,9 +55,16 @@ def pdport(h5_path):
     with CampaignFile(h5_path) as cf:
         dd = cf.read()
         md = dd.md
-    kwargs = {'material': 0, 'instrument': 0}
-    cobj = CalibrateOPC(md[0], **kwargs)
+    cobj = CalibrateOPC(md[0])
     do = cobj.proc()
+    svobj = SampleVolume(do)
+    do = svobj.proc()
+    ncobj = NConc(do)
+    do = ncobj.proc()
+    psobj = ProfileSplit(do)
+    do = psobj.proc()
+    with CampaignFile(h5_path, mode="w") as cf:
+        cf.write(H5dd(do))
 
 @cli.command()
 @click.argument('iss')

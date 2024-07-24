@@ -43,6 +43,9 @@ def dict_to_dset(dat: list[dict] | dict,
                 else:
                     print(f"skipping {v}")
                     continue
+            elif isinstance(v, (float, int)):
+                v = float(v)
+                lv = 1
             elif isinstance(v, dt):
                 v = (v - dt(1970, 1, 1)).total_seconds()
                 lv = 1
@@ -55,6 +58,8 @@ def dict_to_dset(dat: list[dict] | dict,
             length.append(lv)
             names.append(k)
             vals.append(v)
+    print(names)
+    print(vals)
     return [grp.create_dataset(n, s, data=v)
             for n, v, s in zip(names, vals, length)]
 

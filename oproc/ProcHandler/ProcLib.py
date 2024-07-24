@@ -18,7 +18,7 @@ def get_all_suffix(var: str, din: dict) -> dict:
     if tag_suffix not in var:
         raise ValueError(f"tag suffix is not in var {var}")
     bval = var.replace(tag_suffix, '')
-    i = 0
+    i = 1
     dout = {}
     while True:
         test_str = bval + str(i)
@@ -28,7 +28,7 @@ def get_all_suffix(var: str, din: dict) -> dict:
             break
         i = i+1
     if not dout:
-        raise ValueError(f"suffix value {val} not in data")
+        raise ValueError(f"suffix value {var} not in data")
     else:
         return dout
 
@@ -38,8 +38,14 @@ def require_vars(var_list: list, kwargs: dict):
         tests = list(kwargs.keys())
         tag_suffix = ch.getval("tag_suffix")
         if tag_suffix in var:
-            tests = [x.replace(re.search(r'(?=\d)\w+', flag).group(),\
-                                    tag_suffix) for x in tests]
+            to = []
+            for test in tests:
+                try:
+                    to.append(test.replace(
+                        re.search(r'(?=\d)\w+', test).group(), tag_suffix))
+                except AttributeError:
+                    to.append(test)
+            tests = to
         present = False
         for k in tests:
             if k == var:
@@ -53,10 +59,10 @@ def require_vars(var_list: list, kwargs: dict):
 def not_require_vars(var_list: list, kwargs: dict):
     try:
         require_vars(var_list, kwargs)
-        raise ValueError(f'Output variable already in struct')
     except ValueError:
         print('Var check passed')
         return
+    raise ValueError(f'Output variable already in struct')
 
 
 def get_material_data(material: str):

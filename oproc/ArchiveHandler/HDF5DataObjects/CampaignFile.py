@@ -77,7 +77,9 @@ class CampaignFile(object):
             self.__dd = self.__dd + val
 
     def write(self, val: H5dd | None):
-        if val:
+        if not isinstance(val, H5dd):
+            raise TypeError
+        elif val:
             self.__dd = val
         elif not self.__dd:
             raise AttributeError("data dict not set")
@@ -100,7 +102,8 @@ class CampaignFile(object):
             raise AttributeError("File opened in read mode, cannot write")
         df = self.__dd.df()
         dfm = self.__dd.df_meta()
-        nc = df | ncd.non_col()
+        nc = df | self.__dd.non_col()
+        print(nc)
         ncm = self.__dd.nc_meta()
         wg = self.__dd.gn
         for g in wg:
@@ -144,7 +147,8 @@ class CampaignFile(object):
         # columns group
         x00 = nth(nth(x, 0), 0)
         df = pd.DataFrame(np.array(nth(x00, 0)))
-        tmp_time = pd.DatetimeIndex(df["Time"].values)
+        tmp_time = pd.DatetimeIndex(pd.to_datetime(df["Time"].values,\
+                                                   unit='s'))
         df = dict([(k, np.matrix(v).T)
                    for k, v in df.to_dict(orient='list').items()])
         df["Time"] = tmp_time
@@ -164,7 +168,7 @@ class CampaignFile(object):
         nc = {k:__to_list(list(nth(x01, i))) for i, k in \
               zip(range(len(x01)), x01.keys()) \
               if isinstance(nth(x01, i), h5.Dataset)}
-        nc["date_time"] = dt.fromtimestamp(nc["date_time"])
+        nc["date_time"] = dt.utcfromtimestamp(nc["date_time"])
         tmpgrp = [nth(x01, i) for i in range(len(x01)) \
                   if isinstance(nth(x01, i), h5.Group)]
         ext_desc = {k:v for k, v in zip(list(tmpgrp[0].attrs),\
@@ -225,7 +229,8 @@ class CampaignFile(object):
 
     @mode.setter
     def mode(self, val):
-        if val not in ['r', 'r+', 'w', 'w-', 'x', 'a']:
-            raise ValueError
+        vals = ['r', 'r+', 'w', 'w-', 'x', 'a']
+        if val not in vals:
+            raise ValueError(f"mode {val} not found in {vals}")
         else:
             self.__mode = val

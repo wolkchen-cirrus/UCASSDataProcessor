@@ -22,6 +22,7 @@ import pandas as pd
 import numpy as np
 import datetime as dt
 import inspect
+import time
 
 
 print('####################################################')
@@ -86,7 +87,6 @@ if __name__ == "__main__":
             sn = im.get_instrument_sn(cfn)
             if sn:
                 md_obj = md_obj | im.read_instrument_data(sn)
-                im.read_instrument_data(sn)
             else:
                 continue
 

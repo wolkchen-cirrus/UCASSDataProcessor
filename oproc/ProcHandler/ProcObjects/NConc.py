@@ -20,11 +20,14 @@ class NConc(Proc):
     def proc(self):
         data = self.di.__get__()
         counts = pl.get_all_suffix('C#', data)
-        counts = pd.DataFrame.from_dict(counts, orient="columns").to_numpy()
+        counts = [v.__get__() for k, v in counts.items()]
+        counts = np.concatenate(counts, axis=1)
         counts = np.sum(counts, axis=1)
         sv = data["sample_volume"]
-        nc = np.divide(counts, sv)
-        self.do = nc
+        nc = np.divide(counts, sv.__get__())
+        self.do = md({"number_conc": nc, "date_time": data["date_time"],
+                     "Time": data["Time"]},\
+                     unit_spec="default")
         return self.do
 
     def __repr__(self):

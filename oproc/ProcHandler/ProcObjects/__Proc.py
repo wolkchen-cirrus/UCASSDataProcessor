@@ -54,20 +54,6 @@ class Proc(object):
         raise NotImplementedError("This object should be overwritten by\
                                   subclass")
 
-#    def __getcols(self, tags: list | str) -> dict:
-#        """Gets columns with specified tags, must be in col_dict"""
-#        if isinstance(tags, str):
-#            tags = [tags]
-#        [im.check_flags(x) for x in tags]
-#        df = self.di.df()
-#        tags = [im.tag_generic_to_numeric(x, df.columns) for x in tags]
-#        df = df[tags]
-#        return self.__df_to_ual(df)
-#
-#    def __df_to_uad(self, df: pd.DataFrame) -> dict:
-#        dfd = df.to_dict(orient='list')
-#        return {k: ua(k, np.matrix(v).T, len(v)) for k, v in dfd.items()}
-
     def __var_check(self):
         """Public self check to be called by procduring setup"""
         if (not self.ivars) or (not self.ovars) or (not self.unit_spec):
@@ -80,10 +66,8 @@ class Proc(object):
     @staticmethod
     def __var_search(var, arg_dict, arg_dict2, inverse=False):
         if inverse:
-            try:
-                pl.not_require_vars(var, arg_dict)
-            except ValueError:
-                pl.not_require_vars(var, arg_dict2)
+            pl.not_require_vars(var, arg_dict)
+            pl.not_require_vars(var, arg_dict2)
         else:
             try:
                 pl.require_vars(var, arg_dict)
@@ -121,16 +105,14 @@ class Proc(object):
     @do.setter
     def do(self, val):
         if isinstance(val, md):
-            dd = list(val.__get__().keys())
+            dd = val.__get__()
             output = self.di + val
         elif isinstance(val, dict):
             dd = val
             output = self.di.add_nc(val, self.unit_spec)
         else:
             raise TypeError
-        for ovar in self.ovars:
-            if ovar not in dd:
-                raise ValueError(f'ovar {ovar} not in vars {val}')
+        pl.require_vars(self.ovars, dd)
         self.__do = output
 
 
