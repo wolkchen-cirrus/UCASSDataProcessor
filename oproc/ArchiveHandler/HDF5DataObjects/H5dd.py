@@ -88,6 +88,8 @@ class H5dd(object):
             out[g] = (unit, desc)
         return out
 
+    #TODO: make metadata shit
+
     def __check_gn(self):
         """Rasies error if invalid group"""
         if len(self.md) != len(self.gn):

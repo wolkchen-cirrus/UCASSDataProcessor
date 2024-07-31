@@ -7,7 +7,6 @@ from .. import ConfigHandler as ch
 from .. import newprint
 import pandas as pd
 import numpy as np
-from .ProcObjects import DomainArray as da
 
 
 print = newprint()
@@ -34,6 +33,8 @@ def get_all_suffix(var: str, din: dict) -> dict:
 
 
 def require_vars(var_list: list, kwargs: dict):
+    if not isinstance(var_list, list):
+        var_list = [var_list]
     for var in var_list:
         tests = list(kwargs.keys())
         tag_suffix = ch.getval("tag_suffix")
@@ -65,22 +66,3 @@ def not_require_vars(var_list: list, kwargs: dict):
     raise ValueError(f'Output variable already in struct')
 
 
-def get_material_data(material: str):
-    mat_path = os.path.join(ch.getval('ucass_calibration_path'),
-                            'MaterialData', 'StandardFormat')
-    mat_file = [x for x in os.listdir(mat_path) if f'_{material}_' in x]
-    if not mat_file:
-        raise FileNotFoundError
-    elif len(mat_file) != 1:
-        mat_file = [x for x in mat_file if "_glmt" in x]
-        if len(mat_file) != 1:
-            raise LookupError("Multiple material files found")
-        else:
-            mat_file = mat_file[0]
-
-    data = pd.read_csv(mat_file, header=1, names=["1", "2", "sca", "radii"],
-                       usecols=[2, 3])
-    data = data.to_dict(orient='list')
-
-    return da("sca", np.matrix(data["sca"]).T, "radii",
-              np.matrix(data["radii"]).T)

@@ -1,8 +1,8 @@
 from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
+from ...ArchiveHandler.GenericDataObjects.MatrixColumn import MatrixColumn
 from ...ArchiveHandler import ImportLib as im
 from .. import ProcLib as pl
 from ... import newprint
-from .__UnitArray import UnitArray as ua
 
 from typing import final
 import pandas as pd
@@ -31,8 +31,8 @@ class Proc(object):
         self.__do = None
         self.unit_spec = None
         self.args = kwargs
-        self.ivars = None
-        self.ovars = None
+        self.__ivars = None
+        self.__ovars = None
 
         self.__self_check()
         self.di = di
@@ -54,6 +54,32 @@ class Proc(object):
         raise NotImplementedError("This object should be overwritten by\
                                   subclass")
 
+    def get_timevars(self):
+        dd = self.di.__get__()
+        return {'Time': dd['Time'], 'date_time': dd['date_time']}
+
+    def get_ivars(self, dimless=False):
+        """gets all the values for the ivars from md or kwargs"""
+        md_dict = self.di.__get__()
+        var_dict = {}
+        for k in self.ivars:
+            try:
+                var = md_dict[k]
+            except KeyError:
+                var = self.args[k]
+            if isinstance(var, MatrixColumn):
+                var = var.__get__()
+                if not isinstance(var, np.matrix):
+                    raise TypeError("should be a matrix in here, somesthing is\
+                                    wrong...")
+            if dimless == True:
+                try:
+                    var = np.asarray(var).ravel()
+                except AttributeError:
+                    pass
+            var_dict[k] = var
+        return var_dict
+
     def __var_check(self):
         """Public self check to be called by procduring setup"""
         if (not self.ivars) or (not self.ovars) or (not self.unit_spec):
@@ -64,15 +90,16 @@ class Proc(object):
         self.__var_search(self.ivars, self.args, self.di.__get__())
 
     @staticmethod
-    def __var_search(var, arg_dict, arg_dict2, inverse=False):
-        if inverse:
-            pl.not_require_vars(var, arg_dict)
-            pl.not_require_vars(var, arg_dict2)
-        else:
-            try:
-                pl.require_vars(var, arg_dict)
-            except ValueError:
-                pl.require_vars(var, arg_dict2)
+    def __var_search(var_list, arg_dict, arg_dict2, inverse=False):
+        for var in var_list:
+            if inverse:
+                pl.not_require_vars(var, arg_dict)
+                pl.not_require_vars(var, arg_dict2)
+            else:
+                try:
+                    pl.require_vars(var, arg_dict)
+                except ValueError:
+                    pl.require_vars(var, arg_dict2)
 
 
     @final
@@ -114,6 +141,28 @@ class Proc(object):
             raise TypeError
         pl.require_vars(self.ovars, dd)
         self.__do = output
+
+    @property
+    def ivars(self):
+        return self.__ivars
+
+    @ivars.setter
+    def ivars(self, val):
+        if not isinstance(val, list):
+            raise TypeError
+        else:
+            self.__ivars = val
+
+    @property
+    def ovars(self):
+        return self.__ovars
+
+    @ovars.setter
+    def ovars(self, val):
+        if not isinstance(val, list):
+            raise TypeError
+        else:
+            self.__ovars = val
 
 
 

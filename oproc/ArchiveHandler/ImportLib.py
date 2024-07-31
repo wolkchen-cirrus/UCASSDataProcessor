@@ -101,6 +101,18 @@ def get_iss_obj(iss: dict, fdf: pd.DataFrame, ind: dt.datetime) -> isso:
     return isso(iss_n)
 
 
+def get_iss_json(iss_path, obj: bool = False):
+    with open(iss_path, 'r') as cfp:
+        issd = json.load(cfp)
+    k = list(issd.keys())
+    k.sort(reverse=True)
+    issd = {i: issd[i] for i in k}
+    if obj == True:
+        return isso(issd)
+    else:
+        return issd
+
+
 def types_from_iss(iss: dict) -> list:
     """returns file types from iss dict"""
     return [iss[x]['type'] for x in list(iss.keys())]
@@ -341,14 +353,14 @@ def get_instrument_sn(fn: str) -> str:
         return sn[0]
 
 
-def serial_number_from_fn(fn: str) -> str:
-    fn = os.path.split(fn)[1]
-    fn = fn.split("_")
-    sn = [x for x in fn if "UCASS" in x]
-    if len(sn) != 1:
-        raise LookupError
-    else:
-        return sn[0]
+#def serial_number_from_fn(fn: str) -> str:
+#    fn = os.path.split(fn)[1]
+#    fn = fn.split("_")
+#    sn = [x for x in fn if "UCASS" in x]
+#    if len(sn) != 1:
+#        raise LookupError
+#    else:
+#        return sn[0]
 
 
 def flatten_dict(d: MutableMapping) -> MutableMapping:

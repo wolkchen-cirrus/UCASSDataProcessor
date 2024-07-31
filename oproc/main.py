@@ -13,6 +13,8 @@ from oproc.ProcHandler.ProcObjects.CalibrateOPC import CalibrateOPC
 from oproc.ProcHandler.ProcObjects.NConc import NConc
 from oproc.ProcHandler.ProcObjects.SampleVolume import SampleVolume
 from oproc.ProcHandler.ProcObjects.ProfileSplit import ProfileSplit
+from oproc.ProcHandler.ProcObjects.AirspeedMask import AirspeedMask
+from oproc.ProcHandler.ProcObjects.AOAMask import AOAMask
 from oproc import newprint
 
 # Redefining print function with timestamp
@@ -63,6 +65,10 @@ def pdport(h5_path):
     do = ncobj.proc()
     psobj = ProfileSplit(do)
     do = psobj.proc()
+    aoaobj = AOAMask(do, WD=100)
+    do = aoaobj.proc()
+    vzobj = AirspeedMask(do)
+    do = vzobj.proc()
     with CampaignFile(h5_path, mode="w") as cf:
         cf.write(H5dd(do))
 
