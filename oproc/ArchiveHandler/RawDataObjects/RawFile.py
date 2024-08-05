@@ -115,8 +115,7 @@ class RawFile(object):
             pass
         return True
 
-    @staticmethod
-    def __proc_cols(fn, cols, s_row, t, tz):
+    def __proc_cols(self, fn, cols, s_row, t, tz):
         if not cols:
             return {}
         fn = utils.get_log_path(fn, t)
@@ -124,17 +123,25 @@ class RawFile(object):
             s_row = 0
         else:
             s_row = int(s_row)
+        print(f'cols are{cols}')
         names = [x[0] if isinstance(x, list) else x for x in cols if x != '']
-        use_cols = [i for i, x in enumerate(names) if x]
+        print(names)
+        #use_cols = [i for i, x in enumerate(names) if x]
+        use_cols = [i for i, x in enumerate(cols) if x]
+        print(use_cols)
         d_out = pd.read_csv(fn, header=s_row, names=names, usecols=use_cols)
         if not tz:
             print("Assuming UTC")
         else:
             tz = int(tz)
-        d_out['Time'] = [im.infer_datetime(fn, x, tz) for x in d_out['Time']]
-        d_out = d_out.set_index(d_out['Time'])
-        d_out = d_out.drop('Time', axis=1)
-        df_dict = im.df_to_dict(d_out)
+        if self.__nc == True:
+            df_dict = im.df_to_dict(d_out, inc_index=False)
+        else:
+            d_out['Time'] = [im.infer_datetime(fn, x, tz) \
+                             for x in d_out['Time']]
+            d_out = d_out.set_index(d_out['Time'])
+            d_out = d_out.drop('Time', axis=1)
+            df_dict = im.df_to_dict(d_out)
         return df_dict
 
     @staticmethod
@@ -144,11 +151,22 @@ class RawFile(object):
         d_out = {}
         d = f.readlines()
         for rn in proc_rows:
-            pr = int(proc_rows[rn]["row"])
-            d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"]
-                                             .split(':')[0]):
-                                         int(proc_rows[rn]["cols"]
-                                             .split(':')[-1])]
+            print(f'row is {rn}')
+            print(proc_rows[rn])
+            try:
+                pr = int(proc_rows[rn]["row"])
+                d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"]
+                                                 .split(':')[0]):
+                                             int(proc_rows[rn]["cols"]
+                                                 .split(':')[-1])]
+            except TypeError:
+                pr = int(proc_rows[rn][0]["row"])
+                d_out[rn] = d[pr].split(',')[int(proc_rows[rn][0]["cols"]
+                                                 .split(':')[0]):
+                                             int(proc_rows[rn][0]["cols"]
+                                                 .split(':')[-1])]
+                d_out[rn] = [float(x) for x in d_out[rn]]
+        print(d_out)
         return d_out
 
     @property

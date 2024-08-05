@@ -103,7 +103,6 @@ class CampaignFile(object):
         df = self.__dd.df()
         dfm = self.__dd.df_meta()
         nc = df | self.__dd.non_col()
-        print(nc)
         ncm = self.__dd.nc_meta()
         wg = self.__dd.gn
         for g in wg:

@@ -54,6 +54,15 @@ class DataStruct(object):
         else:
             return pd.DataFrame.from_dict(md).set_index('Time', drop=True)
 
+    def df_dt_index(self, dts: tuple, index_method='nearest'):
+        df = self.df()
+        if isinstance(dts, tuple):
+            return df.iloc[df.index.get_indexer([dts[0]], method=index_method)[0]:
+                           df.index.get_indexer([dts[-1]], method=index_method)[0]]
+        else:
+            return df.iloc[df.index.get_indexer([dts], method=index_method)[0]:
+                           df.index.get_indexer([dts], method=index_method)[0] + 1]
+
     def __repr__(self):
         return f'DataStruct({len(self)}, {len(self.col_dict)})'
 

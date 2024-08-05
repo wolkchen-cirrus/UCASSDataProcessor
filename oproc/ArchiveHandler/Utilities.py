@@ -199,7 +199,7 @@ def infer_log_type(fn: str) -> str:
 
 
 def get_files(dts: tuple, types: list[str],
-              default_type="UCASS") -> pd.DataFrame:
+              default_type="UCASS", index_method='nearest') -> pd.DataFrame:
     """
     gets files from datetime or between two datetime vars; primarily invokes
     match_raw_files
@@ -212,9 +212,9 @@ def get_files(dts: tuple, types: list[str],
     types = im.to_list(types)
     df = match_raw_files(types, default_type=default_type)
     if isinstance(dts, tuple):
-        return df.iloc[df.index.get_indexer([dts[0]], method='nearest')[0]:
-                       df.index.get_indexer([dts[-1]], method='nearest')[0]]
+        return df.iloc[df.index.get_indexer([dts[0]], method=index_method)[0]:
+                       df.index.get_indexer([dts[-1]], method=index_method)[0]]
     else:
-        return df.iloc[df.index.get_indexer([dts], method='nearest')[0]:
-                       df.index.get_indexer([dts], method='nearest')[0] + 1]
+        return df.iloc[df.index.get_indexer([dts], method=index_method)[0]:
+                       df.index.get_indexer([dts], method=index_method)[0] + 1]
 

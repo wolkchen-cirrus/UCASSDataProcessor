@@ -23,6 +23,7 @@ import numpy as np
 import datetime as dt
 import inspect
 import time
+import os
 
 
 print('####################################################')
@@ -56,8 +57,9 @@ if __name__ == "__main__":
         raise ValueError('Invalid dt input')
     print(f'Processing datetime(s): {dts}')
 
-    # Get iss from config
-    iss = im.get_iss()
+    # Get iss from file
+    iss_name = os.environ["DEFAULT_ISS"]
+    iss = im.get_iss_json(iss_name)
     # Infer types from import struct spec
     types = im.types_from_iss(iss)
     # Get frame of matching files to process

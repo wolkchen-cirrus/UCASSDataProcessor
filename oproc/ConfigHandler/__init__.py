@@ -113,7 +113,8 @@ def _getitem(name, fcd):
     item_list = [(i, x) for i, x in enumerate(fcd) if name == x['name']]
     if len(item_list) != 1:
         if len(item_list) > 1:
-            raise AttributeError('More than one setting of name %s exists' % name)
+            raise AttributeError('More than one setting of name %s exists'\
+                                 % name)
         else:
             raise AttributeError('Name %s does not exist' % name)
     else:

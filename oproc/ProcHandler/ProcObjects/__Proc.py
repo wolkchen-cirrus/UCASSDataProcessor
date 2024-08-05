@@ -3,6 +3,7 @@ from ...ArchiveHandler.GenericDataObjects.MatrixColumn import MatrixColumn
 from ...ArchiveHandler import ImportLib as im
 from .. import ProcLib as pl
 from ... import newprint
+from ... import ConfigHandler as ch
 
 from typing import final
 import pandas as pd
@@ -58,36 +59,47 @@ class Proc(object):
         dd = self.di.__get__()
         return {'Time': dd['Time'], 'date_time': dd['date_time']}
 
+    def get_input_unit(self, var):
+        return self.di.unit_spec[var]
+
     def get_ivars(self, dimless=False):
         """gets all the values for the ivars from md or kwargs"""
         md_dict = self.di.__get__()
+        tag_suffix = ch.getval("tag_suffix")
         var_dict = {}
-        for k in self.ivars:
-            try:
-                var = md_dict[k]
-            except KeyError:
-                var = self.args[k]
-            if isinstance(var, MatrixColumn):
-                var = var.__get__()
-                if not isinstance(var, np.matrix):
-                    raise TypeError("should be a matrix in here, somesthing is\
-                                    wrong...")
-            if dimless == True:
+        for kvar in self.ivars:
+            if tag_suffix in kvar:
+                suffix_vars = pl.get_all_suffix(kvar, md_dict)
+                klist = list(suffix_vars.keys())
+            else:
+                klist = [kvar]
+            for k in klist:
                 try:
-                    var = np.asarray(var).ravel()
-                except AttributeError:
-                    pass
-            var_dict[k] = var
+                    var = md_dict[k]
+                except KeyError:
+                    var = self.args[k]
+                if isinstance(var, MatrixColumn):
+                    var = var.__get__()
+                    if not isinstance(var, np.matrix):
+                        raise TypeError("should be a matrix in here, somesthing is\
+                                        wrong...")
+                if dimless == True:
+                    try:
+                        var = np.asarray(var).ravel()
+                    except AttributeError:
+                        pass
+                var_dict[k] = var
         return var_dict
 
     def __var_check(self):
         """Public self check to be called by procduring setup"""
-        if (not self.ivars) or (not self.ovars) or (not self.unit_spec):
+        if (not self.ovars) or (not self.unit_spec):
             raise ValueError("input and output tags, or unit spec,\
                              not specified")
         self.__var_search(self.ovars, self.args, self.di.__get__(),\
                           inverse=True)
-        self.__var_search(self.ivars, self.args, self.di.__get__())
+        if self.ivars:
+            self.__var_search(self.ivars, self.args, self.di.__get__())
 
     @staticmethod
     def __var_search(var_list, arg_dict, arg_dict2, inverse=False):

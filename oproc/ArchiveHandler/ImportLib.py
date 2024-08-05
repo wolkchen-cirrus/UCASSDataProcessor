@@ -101,7 +101,9 @@ def get_iss_obj(iss: dict, fdf: pd.DataFrame, ind: dt.datetime) -> isso:
     return isso(iss_n)
 
 
-def get_iss_json(iss_path, obj: bool = False):
+def get_iss_json(iss_name, obj: bool = False):
+    iss_path = ch.getval("iss_path")
+    iss_path = os.path.join(iss_path, iss_name)
     with open(iss_path, 'r') as cfp:
         issd = json.load(cfp)
     k = list(issd.keys())
@@ -290,7 +292,7 @@ def to_list(s) -> list:
         return [s]
 
 
-def df_to_dict(df: pd.DataFrame) -> dict:
+def df_to_dict(df: pd.DataFrame, inc_index: bool = True) -> dict:
     """
     Turns a pandas dataframe into a dict of matrix columns for input into
     import structs
@@ -303,7 +305,12 @@ def df_to_dict(df: pd.DataFrame) -> dict:
     md = df.to_dict(orient='list')
     for key in md:
         md[key] = np.matrix(md[key]).T
-    md['Time'] = df.index
+    if inc_index == True:
+        md['Time'] = df.index
+    elif inc_index == False:
+        pass
+    else:
+        raise ValueError(f'invalid value of inc_index: {inc_index}')
     return md
 
 
