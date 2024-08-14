@@ -47,6 +47,7 @@ def check_aoa_fixedwing(pitch, yaw, gs, vz, alt, time, wa_deg,\
         _gnd_as[-1] = 0
         _gs = np.array([np.sin(y_rad), np.cos(y_rad), 0])
         _gs = np.multiply(g_ms, np.divide(_gs, __mag(_gs)))
+        #_ws_h = np.divide(_gnd_as - _gs, np.cos(np.deg2rad(180) - wa_rad))
         _ws_h = np.divide(_gnd_as - _gs, np.deg2rad(180) - np.cos(wa_rad))
         _ws = _ws_h + np.array([0, 0, ws_v])
         _r = _ws + _as

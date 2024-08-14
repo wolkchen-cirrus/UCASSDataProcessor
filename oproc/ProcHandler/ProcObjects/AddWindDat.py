@@ -17,9 +17,9 @@ print = newprint()
 
 def get_WD_data(date_time):
     try:
-        iss_path = os.environ["WD_ISS"]
+        iss_path = os.environ["WIND_ISS"]
     except KeyError:
-        raise RuntimeError("env var WD_ISS is not set")
+        raise RuntimeError("env var WIND_ISS is not set")
 
     issd = im.get_iss_json(iss_path, obj=False)
     types = im.types_from_iss(issd)
@@ -41,22 +41,22 @@ def get_WD_data(date_time):
     return data
 
 
-class AddWD(Proc):
+class AddWindDat(Proc):
 
     def setup(self):
         self.ivars = []
-        self.ovars = ['WD']
-        self.unit_spec = {'WD': 'deg'}
+        self.ovars = ['WD', 'WS']
+        self.unit_spec = {'WD': 'deg', 'WS':'mps'}
 
     def proc(self):
         tvars = self.get_timevars()
         WD_arr = get_WD_data(tvars['date_time'])
         WD = WD_arr.df_dt_index(tvars['date_time'])
-        self.do = {'WD': WD['WD'].to_list()[0]}
+        self.do = {'WD': WD['WD'].to_list()[0], 'WS': WD['WS'].to_list()[0]}
         return self.do
 
     def __repr__(self):
-        return "AddWD"
+        return "AddWindDat"
 
 
 

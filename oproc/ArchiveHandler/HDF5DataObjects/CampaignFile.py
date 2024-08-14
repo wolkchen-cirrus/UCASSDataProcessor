@@ -141,44 +141,50 @@ class CampaignFile(object):
         if self.mode not in ['r', 'r+']:
             raise ValueError("h5 file not opened in read mode")
 
+        g_list = self.__groups()
         x = self.__f
-        nth = lambda o, i: o[list(o.keys())[i]]
-        # columns group
-        x00 = nth(nth(x, 0), 0)
-        df = pd.DataFrame(np.array(nth(x00, 0)))
-        tmp_time = pd.DatetimeIndex(pd.to_datetime(df["Time"].values,\
-                                                   unit='s'))
-        df = dict([(k, np.matrix(v).T)
-                   for k, v in df.to_dict(orient='list').items()])
-        df["Time"] = tmp_time
-        col_desc = {k:v for k, v in zip(list(nth(x00, 1).attrs),\
-            [nth(x00, 1).attrs[list(nth(x00, 1).attrs)[i]] \
-             for i in range(len(list(nth(x00, 1).attrs)))])}
-        col_units = {k:v for k, v in zip(list(nth(x00, 2).attrs),\
-            [nth(x00, 2).attrs[list(nth(x00, 2).attrs)[i]] \
-             for i in range(len(list(nth(x00, 2).attrs)))])}
-        # extras group
-        def __to_list(i: list):
-            if len(i) == 1:
-                return i[0]
-            else:
-                return i
-        x01 = nth(nth(x, 0), 1)
-        nc = {k:__to_list(list(nth(x01, i))) for i, k in \
-              zip(range(len(x01)), x01.keys()) \
-              if isinstance(nth(x01, i), h5.Dataset)}
-        nc["date_time"] = dt.utcfromtimestamp(nc["date_time"])
-        tmpgrp = [nth(x01, i) for i in range(len(x01)) \
-                  if isinstance(nth(x01, i), h5.Group)]
-        ext_desc = {k:v for k, v in zip(list(tmpgrp[0].attrs),\
-            [tmpgrp[0].attrs[list(tmpgrp[0].attrs)[i]] \
-             for i in range(len(list(tmpgrp[0].attrs)))])}
-        ext_units = {k:v for k, v in zip(list(tmpgrp[1].attrs),\
-            [tmpgrp[1].attrs[list(tmpgrp[1].attrs)[i]] \
-             for i in range(len(list(tmpgrp[1].attrs)))])}
+        h5d = H5dd(None)
+        for g, _ in enumerate(g_list):
+            nth = lambda o, i: o[list(o.keys())[i]]
+            #nth = lambda o, i: list(o.keys())[i]
+            # columns group
+            print(x)
+            x00 = nth(nth(x, g), 0)
+            df = pd.DataFrame(np.array(nth(x00, 0)))
+            tmp_time = pd.DatetimeIndex(pd.to_datetime(df["Time"].values,\
+                                                       unit='s'))
+            df = dict([(k, np.matrix(v).T)
+                       for k, v in df.to_dict(orient='list').items()])
+            df["Time"] = tmp_time
+            col_desc = {k:v for k, v in zip(list(nth(x00, 1).attrs),\
+                [nth(x00, 1).attrs[list(nth(x00, 1).attrs)[i]] \
+                 for i in range(len(list(nth(x00, 1).attrs)))])}
+            col_units = {k:v for k, v in zip(list(nth(x00, 2).attrs),\
+                [nth(x00, 2).attrs[list(nth(x00, 2).attrs)[i]] \
+                 for i in range(len(list(nth(x00, 2).attrs)))])}
+            # extras group
+            def __to_list(i: list):
+                if len(i) == 1:
+                    return i[0]
+                else:
+                    return i
+            x01 = nth(nth(x, g), 1)
+            nc = {k:__to_list(list(nth(x01, i))) for i, k in \
+                  zip(range(len(x01)), x01.keys()) \
+                  if isinstance(nth(x01, i), h5.Dataset)}
+            nc["date_time"] = dt.utcfromtimestamp(nc["date_time"])
+            tmpgrp = [nth(x01, i) for i in range(len(x01)) \
+                      if isinstance(nth(x01, i), h5.Group)]
+            ext_desc = {k:v for k, v in zip(list(tmpgrp[0].attrs),\
+                [tmpgrp[0].attrs[list(tmpgrp[0].attrs)[i]] \
+                 for i in range(len(list(tmpgrp[0].attrs)))])}
+            ext_units = {k:v for k, v in zip(list(tmpgrp[1].attrs),\
+                [tmpgrp[1].attrs[list(tmpgrp[1].attrs)[i]] \
+                 for i in range(len(list(tmpgrp[1].attrs)))])}
 
-        data_dict = md(df | nc, unit_spec=col_units | ext_units)
-        return H5dd(data_dict)
+            data_dict = md(df | nc, unit_spec=col_units | ext_units)
+            h5d = h5d + H5dd(data_dict)
+        return h5d
 
     def __groups(self, group: str | list = None) -> list:
         """returns hdf5 groups, acts as check if group input specified"""

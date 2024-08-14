@@ -9,6 +9,8 @@ import oproc
 import oproc.ConfigHandler as ch
 from oproc.ArchiveHandler.HDF5DataObjects.CampaignFile import CampaignFile
 from oproc.ArchiveHandler.HDF5DataObjects.H5dd import H5dd
+#from oproc.ArchiveHandler import ImportLib as im
+from oproc.ArchiveHandler import Utilities as utils
 from oproc.ProcHandler.ProcObjects.CalibrateOPC import CalibrateOPC
 from oproc.ProcHandler.ProcObjects.NConc import NConc
 from oproc.ProcHandler.ProcObjects.MConc import MConc
@@ -16,10 +18,12 @@ from oproc.ProcHandler.ProcObjects.SampleVolume import SampleVolume
 from oproc.ProcHandler.ProcObjects.ProfileSplit import ProfileSplit
 from oproc.ProcHandler.ProcObjects.AirspeedMask import AirspeedMask
 from oproc.ProcHandler.ProcObjects.AddMaterial import AddMaterial
-from oproc.ProcHandler.ProcObjects.AddWD import AddWD
+from oproc.ProcHandler.ProcObjects.AddWindDat import AddWindDat
 from oproc.ProcHandler.ProcObjects.BinCentres import BinCentres
 from oproc.ProcHandler.ProcObjects.BinRadii import BinRadii
+from oproc.ProcHandler.ProcObjects.EffectiveRadius import EffectiveRadius
 from oproc.ProcHandler.ProcObjects.AOAMask import AOAMask
+from oproc.ProcHandler.ProcObjects.AirspeedCorrection import AirspeedCorrection
 from oproc import newprint
 
 # Redefining print function with timestamp
@@ -27,10 +31,12 @@ print = newprint()
 
 
 os.environ["WORKING_INSTRUMENT"] = "UCASS"
+os.environ["AIRSPEED_TYPE"] = "corrected"
 os.environ["WORKING_MATERIAL"] = "water"
 os.environ["DEFAULT_ISS"] = "pace2022_iss.json"
 os.environ["MATERIAL_ISS"] = "ucass_scs_iss.json"
-os.environ["WD_ISS"] = "sammal_wd_iss.json"
+os.environ["WIND_ISS"] = "sammal_wd_iss.json"
+os.environ["PLOT_STYLE"] = "CopernicusPlots"
 
 
 def run_subprocess(args):
@@ -53,8 +59,9 @@ def cli():
     return
 
 @cli.command()
-def test():
-    print("here")
+def list():
+    list = utils.match_raw_files(['UCASS','Met','FC Proc'])
+    print(list)
 
 @cli.command()
 @click.argument('dts')
@@ -69,31 +76,41 @@ def rdport(h5_file, dts):
 def pdport(h5_path):
     with CampaignFile(h5_path) as cf:
         dd = cf.read()
-        md = dd.md
-    cobj = CalibrateOPC(md[0])
-    do = cobj.proc()
-    svobj = SampleVolume(do)
-    do = svobj.proc()
-    ncobj = NConc(do)
-    do = ncobj.proc()
-    psobj = ProfileSplit(do)
-    do = psobj.proc()
-    wdobj = AddWD(do)
-    do = wdobj.proc()
-    aoaobj = AOAMask(do)
-    do = aoaobj.proc()
-    vzobj = AirspeedMask(do)
-    do = vzobj.proc()
-    matobj = AddMaterial(do)
-    do = matobj.proc()
-    bcsobj = BinCentres(do)
-    do = bcsobj.proc()
-    brobj = BinRadii(do)
-    do = brobj.proc()
-    mcobj = MConc(do)
-    do = mcobj.proc()
+        md_list = dd.md
+    h5 = H5dd(None)
+    for md in md_list:
+        cobj = CalibrateOPC(md)
+        do = cobj.proc()
+        wdobj = AddWindDat(do)
+        do = wdobj.proc()
+        ascobj = AirspeedCorrection(do)
+        do = ascobj.proc()
+        svobj = SampleVolume(do)
+        do = svobj.proc()
+        ncobj = NConc(do)
+        do = ncobj.proc()
+        psobj = ProfileSplit(do)
+        do = psobj.proc()
+        aoaobj = AOAMask(do)
+        do = aoaobj.proc()
+        vzobj = AirspeedMask(do)
+        do = vzobj.proc()
+        matobj = AddMaterial(do)
+        do = matobj.proc()
+        bcsobj = BinCentres(do)
+        do = bcsobj.proc()
+        brobj = BinRadii(do)
+        do = brobj.proc()
+        mcobj = MConc(do)
+        do = mcobj.proc()
+        erobj = EffectiveRadius(do)
+        do = erobj.proc()
+
+        h5 = h5 + H5dd(do)
+
     with CampaignFile(h5_path, mode="w") as cf:
-        cf.write(H5dd(do))
+        print(md_list)
+        cf.write(h5)
 
 @cli.command()
 @click.argument('iss')

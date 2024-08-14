@@ -41,7 +41,7 @@ def get_log_path(path: str | None, t: str) -> str:
     if os.path.exists(path):
         return path
     else:
-        raise FileNotFoundError('Path does not exist in structure')
+        raise FileNotFoundError(f'Path {path} does not exist in structure')
 
 
 def match_raw_files(match_types: list | str, files: list | str | None = None,

@@ -1,5 +1,6 @@
 from .__Proc import Proc
 from .. import ProcLib as pl
+import numpy as np
 from ... import newprint
 from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 
@@ -19,7 +20,9 @@ class CalibrateOPC(Proc):
         data = self.di.__get__()
         bbs = data['bbs']
         cof = data["cali_coeffs"]
-        self.do = {"bbs_sca": [(x - cof[0]) / cof[1] for x in bbs]}
+        sca = np.array([(x - cof[0]) / cof[1] for x in bbs])
+        sca[sca < 0] = np.nan
+        self.do = {"bbs_sca": list(sca)}
         return self.do
 
     def __repr__(self):
