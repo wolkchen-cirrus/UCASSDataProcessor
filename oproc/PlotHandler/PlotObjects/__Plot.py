@@ -2,6 +2,7 @@ from ...ArchiveHandler.GenericDataObjects.MatrixDict import MatrixDict as md
 from ...ArchiveHandler.GenericDataObjects.MatrixColumn import MatrixColumn
 from ... import newprint
 from ... import ConfigHandler as ch
+from .PlotSpec import PlotSpec as ps
 
 from typing import final
 from matplotlib import pyplot as plt
@@ -35,32 +36,57 @@ class Plot(object):
         self.__di = None
         self.__ivars = None
         self.__plot_spec = None
+        #TODO: make props for fig and ax
+        self.__fig = None
+        self.__ax = None
 
         self.args = kwargs
-        self.plot_spec = plot_spec
+        if not isinstance(plot_spec, ps):
+            raise TypeError
+        else:
+            self.__plot_spec = plot_spec
         self.__self_check()
         self.di = di
 
-        setup_exists = False
-        for cls in reversed(self.__class__.mro()):
-            if hasattr(cls, 'setup'):
-                cls.setup(self)
-                setup_exists = True
-        if not setup_exists:
-            raise AttributeError("setup not implemented in subclass")
         self.__var_check()
-        #TODO: Run some kind of init figure method here
+        self.__run_subclass_method("init_fig")
+        self.__run_subclass_method("init_plot")
+        #TODO: make plot method have a default state
 
-#    def setup(self):
-#        print("Running setup")
-#        pass
-
-    def plot(self, ivars):
+    def init_plot(self):
+        #TODO: add default value
         raise NotImplementedError("This object should be overwritten by\
                                   subclass")
 
+    def __run_subclass_method(self, method_name: str, missing_error=False):
+        __exists = False
+        for cls in reversed(self.__class__.mro()):
+            if hasattr(cls, method_name):
+                method = getattr(cls, method_name)
+                __exists = True
+        if not __exists:
+            if missing_error == True:
+                raise AttributeError("method not implemented in subclass")
+            elif hasattr(cls, method_name):
+                method = getattr(self, method_name)
+            else:
+                raise AttributeError("method not implemented in class")
+
+        method(self)
+
     def get_input_unit(self, var):
         return self.di.unit_spec[var]
+
+    def init_fig(self):
+        if self.fig:
+            print("figure object exists")
+            return
+        else:
+            fig, ax = plt.subplots(self.shape[0], self.shape[1])
+            self.fig = fig
+            if not isinstance(ax, list):
+                ax = [ax]
+            self.ax = ax
 
     def get_ivars(self, dimless=False):
         """gets all the values for the ivars from md or kwargs"""
@@ -114,6 +140,10 @@ class Plot(object):
     def __len__(self):
         return self.__nplots
 
+    @staticmethod
+    def __valist(test: list, tp: str) -> bool:
+        return all(isinstance(sub, locate(tp)) for sub in test)
+
     @property
     def di(self):
         """data input"""
@@ -153,9 +183,17 @@ class Plot(object):
     def shape(self):
         return self.plot_spec.shape
 
+    @property
+    def plot_spec(self):
+        return self.__plot_spec
 
+    @property
+    def fig(self):
+        return self.__fig
 
-
+    @property
+    def ax(self):
+        return self.__ax
 
 
 
