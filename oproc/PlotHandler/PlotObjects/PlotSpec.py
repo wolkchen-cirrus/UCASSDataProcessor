@@ -1,27 +1,27 @@
 import pandas as pd
 import numpy as np
+from pydoc import locate
 
 
-class __PSS(object):
+class PSS(object):
     def __init__(self, pssd: dict):
         self.data = None
         self.n_lines = None
-        self.n_data = None
+        self.n_dims = None
         [setattr(self, k, v) for k, v in pssd.items() if k in self.__dict__]
+        self.data = np.asarray(self.data)
         self.__check()
 
     def __check(self):
-        if not isinstance(self.val, locate(self.dtype)):
-            raise TypeError
         for k, v in self.__dict__.items():
             if v is None:
                 raise AttributeError('%s is not set' % k)
 
 
 class PlotSpec(object):
-    def __init__(self, nrows: int, ncols: int, din: dict[list[str]] \
-                plot_spec: np.ndarray | dict[list[int]] | None | int = None, \
-                dim_list: np.ndarray | dict[list[int]] | None | int = None):
+    def __init__(self, nrows: int, ncols: int, din: list[list[str]], \
+                plot_spec: np.ndarray | list[list[int]] | None | int = None, \
+                dim_list: np.ndarray | list[list[int]] | None | int = None):
 
         self.__shape = None
         self.__plot_spec = None
@@ -30,17 +30,20 @@ class PlotSpec(object):
         self.__pss = None
 
         self.shape = (nrows, ncols)
-        self.din = din
         self.dim_list = dim_list
         self.plot_spec = plot_spec
+        self.din = din
         self.pss = self.__make_pss()
 
         if (self.dim_list.shape != self.shape) or \
-           (self.plot_spec != self.shape):
+           (self.plot_spec.shape != self.shape):
             raise ValueError
 
     def __get__(self):
         return self.pss
+
+    def __len__(self):
+        return np.prod(self.shape)
 
     def __make_pss(self) -> np.ndarray:
 
@@ -48,13 +51,15 @@ class PlotSpec(object):
             return {"data": din, "n_dims": dim, "n_lines": ndat}
 
         pss = []
+        index = 0
         for row in range(self.shape[0]):
             pssrw = []
             for col in range(self.shape[1]):
-                pss_inst = __PSS(__make_pss_entry(self.din[row, col],\
-                                              self.dim_list[row, col],\
-                                              self.plot_spec[row, col]))
+                pss_inst = PSS(__make_pss_entry(self.din[index],\
+                                            self.dim_list[row, col],\
+                                            self.plot_spec[row, col]))
                 pssrw.append(pss_inst)
+                index += 1
             pss.append(pssrw)
         return np.array(pss)
 
@@ -64,26 +69,33 @@ class PlotSpec(object):
 
     @staticmethod
     def __valist(test: list, tp: str) -> bool:
-        return all(isinstance(sub, locate(tp)) for sub in test)
+        if isinstance(tp, str):
+            return all(isinstance(sub, locate(tp)) for sub in test)
+        else:
+            return all(isinstance(sub, tp) for sub in test)
 
     def __check_din(self, val) -> bool:
         if len(val) != np.prod(self.shape):
             return False
-        dims = pd.DataFrame(self.dim_list).to_dict(orient='tight')['data']
-        dims = [x for xs in dims for x in xs]
-        for v, d in zip(val, dims):
-            if not isinstance(v, list):
+        # dims = pd.DataFrame(self.dim_list).to_dict(orient='tight')['data']
+        # dims = [x for xs in dims for x in xs]
+        dims = self.dim_list
+        for v, i in zip(val, range(np.prod(self.shape))):
+            d = self.dim_list[self.plot_coords(i)]
+            n = self.plot_spec[self.plot_coords(i)]
+            if not isinstance(v, np.ndarray):
                 return False
-            elif len(v) != d:
+            elif v.shape[1] != d:
+                return False
+            elif v.shape[0] != n:
                 return False
             else:
                 continue
         return True
 
-    @staticmethod
-    def __set_spec(val, base_type="int"):
-        if isinstance(val, dict):
-            tval = list(val.values())
+    def __set_spec(self, val, base_type="int"):
+        if isinstance(val, list):
+            tval = val # It's like this for legacy reasons, don't @ me
             flat_tval = [x for xs in tval for x in xs]
             if len(set(map(len, val.values()))) != 1:
                 raise ValueError
@@ -101,6 +113,13 @@ class PlotSpec(object):
             return self.__blank_df(self.shape[0], self.shape[1], 1)
         else:
             raise TypeError
+
+    def plot_coords(self, number: int):
+        coords = (int(np.floor(number/self.shape[1])), number % self.shape[1])
+        if coords[0] > self.shape[0]:
+            raise ValueError("number exceeds max plots")
+        else:
+            return coords
 
     @property
     def plot_spec(self):
@@ -135,7 +154,7 @@ class PlotSpec(object):
         if not self.__check_din(val):
             raise ValueError
         else:
-            self.__din = val
+            self.__din = np.asarray(val)
 
     @property
     def shape(self):
@@ -160,16 +179,17 @@ class PlotSpec(object):
     def pss(self, val):
         if not isinstance(val, np.ndarray):
             raise TypeError
-        elif not self.__valist([x for xs in val.tolist() for x in xs], \
-                               "__PSS"):
+        elif not self.__valist([x for xs in val.tolist() for x in xs], PSS):
             raise TypeError
         elif val.shape != self.shape:
             raise ValueError
         else:
             self.__pss = val
 
-
-
+    @property
+    def ivars(self):
+        x = self.din
+        return np.unique(np.asarray(x).flatten())
 
 
 

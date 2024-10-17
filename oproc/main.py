@@ -4,6 +4,8 @@ import time
 import sys
 import os
 import subprocess
+import numpy as np
+from matplotlib import pyplot as plt
 
 import oproc
 import oproc.ConfigHandler as ch
@@ -25,6 +27,8 @@ from oproc.ProcHandler.ProcObjects.EffectiveRadius import EffectiveRadius
 from oproc.ProcHandler.ProcObjects.AOAMask import AOAMask
 from oproc.ProcHandler.ProcObjects.AirspeedCorrection import AirspeedCorrection
 from oproc import newprint
+from oproc.PlotHandler.PlotObjects.LinePlot2D import LinePlot2D
+from oproc.PlotHandler.PlotObjects.PlotSpec import PlotSpec
 
 # Redefining print function with timestamp
 print = newprint()
@@ -36,7 +40,7 @@ os.environ["WORKING_MATERIAL"] = "water"
 os.environ["DEFAULT_ISS"] = "pace2022_iss.json"
 os.environ["MATERIAL_ISS"] = "ucass_scs_iss.json"
 os.environ["WIND_ISS"] = "sammal_wd_iss.json"
-os.environ["PLOT_STYLE"] = "CopernicusPlots"
+os.environ["PLOT_STYLE"] = "CopernicusStyle"
 
 
 def run_subprocess(args):
@@ -70,6 +74,21 @@ def rdport(h5_file, dts):
     m_path = os.path.dirname(oproc.__file__)
     args = ['python', f"{m_path}/csv_import_generic.py", '-f', h5_file, dts]
     _ = run_subprocess(args)
+
+@cli.command()
+@click.argument('h5-path')
+def plot(h5_path):
+    plot_args = {'mask': ['PMask1']}
+    with CampaignFile(h5_path) as cf:
+        dd = cf.read()
+        md_list = dd.md
+        ps = PlotSpec(1, 2, [np.matrix(['effective_radius', 'Alt']),
+                             np.matrix(['number_conc', 'Alt'])],
+                     plot_spec=1,
+                     dim_list=2)
+    for md in md_list:
+        LinePlot2D(md, ps, **plot_args)
+    plt.show()
 
 @cli.command()
 @click.argument('h5-path')

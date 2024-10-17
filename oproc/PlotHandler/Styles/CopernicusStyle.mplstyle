@@ -1,6 +1,19 @@
-axes.titlesize : 24
-axes.labelsize : 20
-lines.linewidth : 3
-lines.markersize : 10
-xtick.labelsize : 16
-ytick.labelsize : 16
+figure.figsize : 4.72,4.72
+figure.titlesize : 10
+figure.titleweight : bold
+
+font.family : serif
+font.serif : CMU Serif
+text.usetex : true
+
+axes.titlesize : 10
+axes.titleweight : bold
+axes.labelsize : 8
+axes.prop_cycle : cycler(linestyle=['-','--','-.',':'])
+
+lines.linewidth : 1
+lines.markersize : 2
+lines.color : 'k'
+
+xtick.labelsize : 8
+ytick.labelsize : 8
