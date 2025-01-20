@@ -22,17 +22,25 @@ class MatrixColumn(object):
             self.desc = None
 
     def __self_check(self, c: int):
-        if not isinstance(self.val, mt):
-            raise TypeError
-        elif self.val.shape[1] != c:
-            raise ValueError
-        elif len(self) != self.dlen:
-            raise ValueError(f"Length of {self.name} must be {self.dlen} not\
-                             {len(self)}")
-        else:
-            for k, v in self.__dict__.items():
-                if v is None:
-                    raise AttributeError('%s is not set' % k)
+        i = 0
+        while True:
+            if not isinstance(self.val, mt):
+                raise TypeError
+            elif self.val.shape[1] != c:
+                if i != 0:
+                    raise ValueError
+                else:
+                    self.val = self.val.T
+                    i += 1
+                    continue
+            elif len(self) != self.dlen:
+                raise ValueError(f"Length of {self.name} must be {self.dlen} not\
+                                 {len(self)}")
+            else:
+                for k, v in self.__dict__.items():
+                    if v is None:
+                        raise AttributeError('%s is not set' % k)
+                break
 
     def __len__(self) -> int:
         return self.val.shape[0]

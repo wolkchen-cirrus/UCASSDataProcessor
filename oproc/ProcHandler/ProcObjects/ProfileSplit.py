@@ -11,7 +11,7 @@ print = newprint()
 
 
 def split_by_pressure(press_hpa: np.matrix, press_lim,\
-                      prom: int = 20, exp_range: tuple = (1, 5)) -> np.matrix:
+                      prom: int = 15, exp_range: tuple = (1, 5)) -> np.matrix:
     """This is the findpeaks function from the old software with a few mods"""
     norm_press_hpa = press_hpa.astype(float) - float(press_hpa[0,0])
     norm_press_hpa = np.squeeze(np.asarray(norm_press_hpa))
@@ -44,6 +44,8 @@ def split_by_pressure(press_hpa: np.matrix, press_lim,\
             prom += 10
             counter += 1
             if (counter > 200) or (num_prof < exp_range[0]):
+                print(num_prof)
+                input()
                 raise ValueError("Problem detecting peaks")
         else:
             break

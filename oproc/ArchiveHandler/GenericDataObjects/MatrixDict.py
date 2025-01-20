@@ -34,6 +34,9 @@ class MatrixDict(DataStruct):
         self.non_col: dict = {}
 
         for k, v in dat.items():
+            #print(v)
+            #print(k)
+            #input()
             v = self.__convert_units(k, v)
             if k == "Time":
                 pass

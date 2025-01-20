@@ -9,7 +9,8 @@ setup(
         'scipy',
         'matplotlib',
         'pymavlink',
-        'click'
+        'click',
+        'tabulate'
     ],
     entry_points={
         'console_scripts': [

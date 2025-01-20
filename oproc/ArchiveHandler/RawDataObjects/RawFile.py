@@ -1,9 +1,12 @@
 from .iss import iss
 from .. import Utilities as utils
 from ... import newprint
+from ... import ConfigHandler as ch
+from ...ProcHandler import ProcLib as pl
 from .. import ImportLib as im
 from .. import MavLib as mav
 from ..GenericDataObjects.MatrixDict import MatrixDict as md
+from ..GenericDataObjects.MatrixDict import MatrixColumn as mc
 
 import os.path
 import pandas as pd
@@ -39,7 +42,8 @@ class RawFile(object):
         return f'{self.fn} raw files'
 
     def __enter__(self):
-        self.__f = [open(f, 'r') if isinstance(f, str) else np.nan for f in self.fn]
+        self.__f = [open(f, 'r') if isinstance(f, str) \
+                    else np.nan for f in self.fn]
         return self
 
     def __exit__(self, type, val, trace):
@@ -50,6 +54,8 @@ class RawFile(object):
                 pass
 
     def read(self) -> dict[md]:
+        #TODO: pass separator into read function separately for rows and cols,
+        #this is a silly way of doing it and legacy
         if not self.__file_check():
             raise RuntimeError(f"File check is {bool(self)}")
         iss = self.iss.dflags
@@ -65,7 +71,12 @@ class RawFile(object):
             else:
                 print("No file of type %s for measurement" % iss[k]['type'])
                 continue
-            lt = utils.infer_log_type(k)
+            try:
+                lt = iss[k]['ext']
+            except KeyError:
+                print("inferring log type, could lead to errors; code is shit\
+                      skill issue &c")
+                lt = utils.infer_log_type(k)
             if lt == '.json':
                 messages = dict([(k, [i[0] if isinstance(i, list)
                                       else i for i in v])
@@ -88,6 +99,18 @@ class RawFile(object):
                 data[k] = self.__proc_cols(k, proc['cols'],
                                            proc['srow'], tp, timezone)\
                     | self.__proc_rows(f, proc['procrows'])
+            elif lt == '.tab':
+                proc = {}
+                tp = iss[k]['type']
+                for key in ['cols', 'srow', 'procrows']:
+                    try:
+                        proc[key] = iss[k]['data'][key]
+                    except KeyError:
+                        proc[key] = None
+                data[k] = self.__proc_cols(k, proc['cols'],
+                                           proc['srow'], tp, timezone,
+                                           sep='\t')\
+                    | self.__proc_rows(f, proc['procrows'], sep='\t')
             else:
                 raise ValueError("Invalid log file extension %s" % lt)
             print(f'imported data containing {data[k].keys()}')
@@ -115,7 +138,7 @@ class RawFile(object):
             pass
         return True
 
-    def __proc_cols(self, fn, cols, s_row, t, tz):
+    def __proc_cols(self, fn, cols, s_row, t, tz, sep=','):
         if not cols:
             return {}
         fn = utils.get_log_path(fn, t)
@@ -123,13 +146,10 @@ class RawFile(object):
             s_row = 0
         else:
             s_row = int(s_row)
-        print(f'cols are{cols}')
         names = [x[0] if isinstance(x, list) else x for x in cols if x != '']
-        print(names)
-        #use_cols = [i for i, x in enumerate(names) if x]
         use_cols = [i for i, x in enumerate(cols) if x]
-        print(use_cols)
-        d_out = pd.read_csv(fn, header=s_row, names=names, usecols=use_cols)
+        d_out = pd.read_csv(fn, header=s_row, names=names, usecols=use_cols,
+                            sep=sep)
         if not tz:
             print("Assuming UTC")
         else:
@@ -137,15 +157,32 @@ class RawFile(object):
         if self.__nc == True:
             df_dict = im.df_to_dict(d_out, inc_index=False)
         else:
-            d_out['Time'] = [im.infer_datetime(fn, x, tz) \
-                             for x in d_out['Time']]
-            d_out = d_out.set_index(d_out['Time'])
-            d_out = d_out.drop('Time', axis=1)
-            df_dict = im.df_to_dict(d_out)
+            try:
+                d_out['Time'] = [im.infer_datetime(fn, x, tz) \
+                                 for x in d_out['Time']]
+                d_out = d_out.set_index(d_out['Time'])
+                d_out = d_out.drop('Time', axis=1)
+                df_dict = im.df_to_dict(d_out)
+            except KeyError:
+                ts = ch.getval('tag_suffix')
+                t_prts = pl.get_all_suffix(f'Time_p{ts}', d_out)
+                dlen = len(im.to_list(list(t_prts.values()))[0])
+                t_prts = {k: mc(k, np.matrix(v), dlen).__get__()\
+                          for k, v in t_prts.items()}
+                t_prts = np.concatenate(list(t_prts.values()), axis=1)
+                t_prts = [' '.join(str(idx) for idx in sub)\
+                                    for sub in t_prts.tolist()]
+                t_prts = [im.infer_datetime(fn, x, tz) for x in t_prts]
+                d_out["Time"] = t_prts
+                d_out = d_out.set_index(d_out['Time'])
+                cols_to_drop = d_out.columns\
+                        [d_out.columns.str.contains('Time')]
+                d_out = d_out.drop(cols_to_drop, axis=1)
+                df_dict = im.df_to_dict(d_out)
         return df_dict
 
     @staticmethod
-    def __proc_rows(f, proc_rows):
+    def __proc_rows(f, proc_rows, sep=','):
         if not proc_rows:
             return {}
         d_out = {}
@@ -155,18 +192,17 @@ class RawFile(object):
             print(proc_rows[rn])
             try:
                 pr = int(proc_rows[rn]["row"])
-                d_out[rn] = d[pr].split(',')[int(proc_rows[rn]["cols"]
+                d_out[rn] = d[pr].split(sep)[int(proc_rows[rn]["cols"]
                                                  .split(':')[0]):
                                              int(proc_rows[rn]["cols"]
                                                  .split(':')[-1])]
             except TypeError:
                 pr = int(proc_rows[rn][0]["row"])
-                d_out[rn] = d[pr].split(',')[int(proc_rows[rn][0]["cols"]
+                d_out[rn] = d[pr].split(sep)[int(proc_rows[rn][0]["cols"]
                                                  .split(':')[0]):
                                              int(proc_rows[rn][0]["cols"]
                                                  .split(':')[-1])]
                 d_out[rn] = [float(x) for x in d_out[rn]]
-        print(d_out)
         return d_out
 
     @property

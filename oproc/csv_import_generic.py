@@ -59,12 +59,12 @@ if __name__ == "__main__":
 
     # Get iss from file
     iss_name = os.environ["DEFAULT_ISS"]
+    main_type = os.environ["WORKING_INSTRUMENT"]
     iss = im.get_iss_json(iss_name)
     # Infer types from import struct spec
     types = im.types_from_iss(iss)
     # Get frame of matching files to process
-    fdf = utils.get_files(dts, types)
-
+    fdf = utils.get_files(dts, types, default_type=main_type)
     # Loop through files using index
     h5_data = H5dd(None)
     for dt in fdf.index:

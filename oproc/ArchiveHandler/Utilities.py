@@ -64,7 +64,7 @@ def match_raw_files(match_types: list | str, files: list | str | None = None,
         files = os.listdir(get_log_path(None, default_type))
     match_types = im.to_list(match_types)
     # Get datetime from files
-    dt0s = im.fn_datetime(files)
+    dt0s = im.to_list(im.fn_datetime(files))
     # Make df with dt index for storage (match frame)
     mf = pd.DataFrame(index=pd.DatetimeIndex(dt0s))
     # mt can be 'Met', 'UCASS', &c
@@ -76,7 +76,7 @@ def match_raw_files(match_types: list | str, files: list | str | None = None,
             # List of potential matches
             tm = os.listdir(get_log_path(None, mt))
             # Get match dts
-            fdt = im.fn_datetime(tm)
+            fdt = im.to_list(im.fn_datetime(tm))
             # Get deltas
             delta_dt = [abs((x - dt0).total_seconds() / 60.0) for x in fdt]
             if min(delta_dt) > tol_min:
@@ -192,7 +192,10 @@ def infer_log_type(fn: str) -> str:
     :return: File extension
     """
     _, ext = os.path.splitext(fn)
-    if (ext != '.log') and (ext != '.json') and (ext != '.csv'):
+    if (ext != '.log') and \
+       (ext != '.json') and \
+       (ext != '.csv') and \
+       (ext != '.tab'):
         raise ValueError('%s is invalid fc log extension' % ext)
     else:
         return ext

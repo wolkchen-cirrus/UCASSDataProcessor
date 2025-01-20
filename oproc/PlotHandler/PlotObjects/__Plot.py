@@ -13,6 +13,7 @@ import ast
 import inspect
 import textwrap
 import os
+import pint
 
 
 # Redefining print function with timestamp
@@ -86,7 +87,6 @@ class Plot(object):
                     self.__ax[r,c].set_xlabel(self.get_disp_name(labels[l,0]))
                     self.__ax[r,c].set_ylabel(self.get_disp_name(labels[l,1]))
 
-        #self.__fig.tight_layout()
         self.__fig.suptitle(self.__repr__())
 
     def init_fig(self):
@@ -129,10 +129,10 @@ class Plot(object):
         except KeyError:
             unit = ''
         try:
-            unit = format(ureg[unit].u, '~')
-        except:
+            unit = ' (' + format(ureg[unit].u, '~P') + ')'
+        except pint.errors.UndefinedUnitError:
             unit = ''
-        return d_name+' ('+unit+')'
+        return d_name + unit
 
     def __run_subclass_method(self, method_name: str, missing_error=False):
         __exists = False

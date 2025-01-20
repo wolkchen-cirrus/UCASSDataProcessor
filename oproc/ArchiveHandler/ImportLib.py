@@ -10,7 +10,7 @@ from .. import newprint
 #from .RawDataObjects.MetaDataObject import MetaDataObject
 from .RawDataObjects.iss import iss as isso
 
-import dateutil.parser as dup
+from dateutil.parser import *
 from collections.abc import MutableMapping
 import os.path
 import inspect
@@ -230,9 +230,15 @@ def infer_datetime(fn: str, dts: str, tz: int) -> dt.datetime:
     """
 
     sdt = fn_datetime(fn)
-    dti = dup.parse(dts)
+    try:
+        dti = parse(dts)
+    except ParserError:
+        dec = dts.split(' ')[-1]
+        dts = '.'.join([' '.join(dts.split(' ')[:-1]), dec])
+        dti = parse(dts)
+
     if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
-        dti = dup.parse(dts, dayfirst=True)
+        dti = parse(dts, dayfirst=True)
         if (sdt - dti).total_seconds() / (60.0 ** 2 * 24) > 1:
             raise ValueError("Could not infer dt format, revise input")
 
