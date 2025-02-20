@@ -40,9 +40,9 @@ print = newprint()
 instrument="UCASS"
 if instrument=="UCASS":
     os.environ["WORKING_INSTRUMENT"] = "UCASS"
-    os.environ["AIRSPEED_TYPE"] = "corrected"
+    os.environ["AIRSPEED_TYPE"] = "normal"
     os.environ["WORKING_MATERIAL"] = "water"
-    os.environ["DEFAULT_ISS"] = "pace2022_iss.json"
+    os.environ["DEFAULT_ISS"] = "pace2022_sht_iss.json"
     os.environ["MATERIAL_ISS"] = "ucass_scs_iss.json"
     os.environ["WIND_ISS"] = "sammal_wd_iss.json"
     os.environ["SV_TYPE"] = "Airspeed"
@@ -92,10 +92,12 @@ def cli():
 def list(match_type):
     if not match_type:
         list = utils.match_raw_files(
-            ['UCASS','Met','FC Proc','CDP','PCASP'])
+#            ['UCASS','Met','SHT','FC Proc','CDP','PCASP'])
+            ['UCASS','Met','FC Proc'])
     else:
         list = utils.match_raw_files(
-            ['UCASS','Met','FC Proc','CDP','PCASP'],
+#            ['UCASS','Met','SHT','FC Proc','CDP','PCASP'],
+            ['UCASS','Met','FC Proc'],
                                      default_type=match_type)
     print('\n'+tabulate(list, headers='keys', tablefmt='psql'))
 

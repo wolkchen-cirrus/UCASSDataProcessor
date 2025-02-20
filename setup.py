@@ -10,7 +10,8 @@ setup(
         'matplotlib',
         'pymavlink',
         'click',
-        'tabulate'
+        'tabulate',
+        'cartopy'
     ],
     entry_points={
         'console_scripts': [
