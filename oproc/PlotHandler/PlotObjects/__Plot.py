@@ -263,11 +263,17 @@ class Plot(object):
     def fig(self):
         return self.__fig
 
+    @fig.setter
+    def fig(self, val):
+        self.__fig = val
+
     @property
     def ax(self):
         return self.__ax
 
-
+    @ax.setter
+    def ax(self, val):
+        self.__ax = val
 
 
 

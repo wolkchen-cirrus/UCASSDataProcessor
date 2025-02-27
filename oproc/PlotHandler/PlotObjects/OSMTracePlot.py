@@ -3,6 +3,7 @@ import numpy as np
 from ... import newprint
 import cartopy.crs as ccrs
 import cartopy.io.img_tiles as cimgt
+from matplotlib import pyplot as plt
 
 
 # Redefining print function with timestamp
@@ -13,20 +14,7 @@ class OSMTracePlot(Plot):
 
 
     def init_fig(self):
-        if self.__fig:
-            print("figure object exists")
-            return
-        else:
-            fig, ax = plt.subplots(self.shape[0], self.shape[1],\
-                                        layout='constrained',
-                                        projection=request.crs
-                                  )
-            self.__fig = fig
-            try:
-                self.__ax = np.matrix(ax)
-            except ValueError:
-                self.__ax = np.matrix([ax])
-
+        pass
 
     def init_plot(self):
         mask = []
@@ -34,43 +22,34 @@ class OSMTracePlot(Plot):
             mask = self.args['mask']
         except KeyError:
             pass
+        request = cimgt.OSM()
+        self.ax = plt.axes(projection=request.crs)
+        self.fig = self.ax.get_figure()
         data = self.get_ivars()
         pss = self.plot_spec.pss
-
-        request = cimgt.OSM()
         try:
-            extent = self.args['Extent']
+            ex = self.args['Extent']
             zl = self.args['Zoom']
         except KeyError:
             raise ValueError('\"extent\" and \"Zoom\" must be passed as a \
                              kwargs >:3')
+        pss_i = pss[0, 0]
+        labels = pss_i.data
+        self.ax.set_extent(ex)
+        self.ax.add_image(request, zl)
+        if mask:
+            for m in mask:
+                data['Lng'] = self.apply_plot_mask(m, data['Lng'])
+                data['Lat'] = self.apply_plot_mask(m, data['Lat'])
+        self.ax.plot(data['Lng'], data['Lat'], transform=ccrs.PlateCarree())
 
-        for r in range(self.shape[0]):
-            for c in range(self.shape[1]):
-                pss_i = pss[r, c]
-                labels = pss_i.data
-                n_lines = pss_i.n_lines
-                n_dims = pss_i.n_dims
-                for l in range(n_lines):
-                    if mask:
-                        for m in mask:
-                            data['Lat'] = self.apply_plot_mask(m, data['Lat'])
-                            data['Lon'] = self.apply_plot_mask(m, data['Lon'])
-                    else:
-                        pass
-                    if n_dims == 2:
-                        self.__ax[r, c].set_extent(extent)
-                        self.__ax[r, c].add_image(request, zl)
-                        self.__ax[r, c].plot(data['Lon'], data_i['Lat'],
-                                             transform=ccrs.PlateCarree())
-                    else:
-                        raise NotImplementedError("Not currently implemented \
-                                                  for dimensions other than 2")
+        lhs = 0.1*(ex[1]-ex[0])+ex[0]
+        bhs = 0.1*(ex[3]-ex[2])+ex[2]
+        self.ax.plot([lhs, lhs+0.01], [bhs, bhs], transform=ccrs.PlateCarree())
+#        lhsa = (lhs+lhs+0.01)/2
+#        self.ax.annotate('1 km', xy=(lhsa, bhs), xytext=(lhsa, bhs))
 
-                    self.__ax[r,c].set_xlabel(self.get_disp_name(labels[l,0]))
-                    self.__ax[r,c].set_ylabel(self.get_disp_name(labels[l,1]))
-
-        self.__fig.suptitle(self.__repr__())
+#        self.fig.suptitle(self.__repr__())
 
 
 

@@ -31,6 +31,7 @@ from oproc.ProcHandler.ProcObjects.GetPeriod import GetPeriod
 from oproc.ProcHandler.ProcObjects.AirspeedCorrection import AirspeedCorrection
 from oproc import newprint
 from oproc.PlotHandler.PlotObjects.LinePlot2D import LinePlot2D
+from oproc.PlotHandler.PlotObjects.OSMTracePlot import OSMTracePlot
 from oproc.PlotHandler.PlotObjects.PlotSpec import PlotSpec
 
 # Redefining print function with timestamp
@@ -199,6 +200,31 @@ def plot(h5_path: str, save: bool):
         for name, ph in phs.items():
             plt.figure(ph.fig.number)
             plt.savefig(os.path.join(fig_path, name), bbox_inches='tight')
+    else:
+        pass
+    plt.show()
+
+@cli.command()
+@click.argument('h5-path')
+@click.option('--save/--no-save', default=False)
+def map_plot(h5_path: str, save: bool):
+    plot_args = {'Zoom': 16, 'Extent': [24.09, 24.19, 68, 68.03], 'mask':['PMask1']}
+    phs = {}
+    with CampaignFile(h5_path) as cf:
+        dd = cf.read()
+        md_list = dd.md
+        ps = PlotSpec(1, 1, [np.matrix(['Lng', 'Lat'])],
+                     plot_spec=1,
+                     dim_list=2)
+    for md in md_list:
+        phs[md.date_time.strftime(ch.getval('nominalDTformat'))]\
+                = OSMTracePlot(md, ps, **plot_args)
+    if save:
+        fig_path = ch.getval('plot_save_path')
+        for name, ph in phs.items():
+            name = name+'.pdf'
+            plt.figure(ph.fig.number)
+            plt.savefig(os.path.join(fig_path, name), bbox_inches='tight', format='pdf')
     else:
         pass
     plt.show()
